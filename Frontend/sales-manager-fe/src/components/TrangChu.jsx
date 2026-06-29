@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import '../App.css'
 
 const API = 'http://localhost:5000/api'
@@ -44,6 +44,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState('Tất cả')
+  const [menuOpen, setMenuOpen] = useState(false)
 
   useEffect(() => {
     fetch(`${API}/product`)
@@ -91,9 +92,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
                   {isAdmin && <span className="role-badge">Admin</span>}
                 </span>
                 {isAdmin && (
-                  <button className="btn-admin" onClick={onAdminClick}>
-                    ⚙️ Quản trị
-                  </button>
+                  <button className="btn-admin" onClick={onAdminClick}>⚙️ Quản trị</button>
                 )}
                 <button className="btn-ghost" onClick={onLogoutClick}>Đăng xuất</button>
               </>
@@ -104,6 +103,36 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
               </>
             )}
           </div>
+
+          {/* Hamburger — chỉ hiện trên mobile */}
+          <button className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
+            <span /><span /><span />
+          </button>
+        </div>
+
+        {/* Mobile menu */}
+        <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
+          <a href="#products" onClick={() => setMenuOpen(false)}>🏗️ Sản phẩm</a>
+          <a href="#about" onClick={() => setMenuOpen(false)}>ℹ️ Về chúng tôi</a>
+          <a href="#contact" onClick={() => setMenuOpen(false)}>📞 Liên hệ</a>
+          <div className="mobile-divider" />
+          {isLoggedIn ? (
+            <>
+              <span style={{ padding: '8px 14px', fontSize: '0.88rem', color: 'var(--text)' }}>
+                Xin chào, <strong>{user.fullName || user.username}</strong>
+                {isAdmin && <span className="role-badge" style={{ marginLeft: 6 }}>Admin</span>}
+              </span>
+              {isAdmin && (
+                <button onClick={() => { setMenuOpen(false); onAdminClick() }}>⚙️ Quản trị Admin</button>
+              )}
+              <button onClick={() => { setMenuOpen(false); onLogoutClick() }}>🚪 Đăng xuất</button>
+            </>
+          ) : (
+            <>
+              <button onClick={() => { setMenuOpen(false); onLoginClick() }}>🔐 Đăng nhập</button>
+              <button className="btn-primary" onClick={() => { setMenuOpen(false); onRegisterClick() }}>Đăng ký miễn phí</button>
+            </>
+          )}
         </div>
       </header>
 

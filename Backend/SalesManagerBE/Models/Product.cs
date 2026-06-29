@@ -11,6 +11,10 @@ namespace SalesManagerBE.Models
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public string? Category { get; set; }
+        public int? CategoryId { get; set; }
+        public ProductCategory? ProductCategory { get; set; }
+        public int? UnitTypeId { get; set; }
+        public UnitType? UnitType { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public List<StockTransaction> Transactions { get; set; } = new();
     }

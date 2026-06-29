@@ -10,6 +10,8 @@ namespace SalesManagerBE.Models.Dtos
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public string? Category { get; set; }
+        public int? CategoryId { get; set; }
+        public int? UnitTypeId { get; set; }
     }
 
     public class StockTransactionDto
