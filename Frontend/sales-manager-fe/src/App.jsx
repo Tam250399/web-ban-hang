@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Toaster } from 'react-hot-toast'
 import './App.css'
 import TrangChu from './components/TrangChu'
 import Login from './components/Login'
@@ -26,34 +27,48 @@ function App() {
     setView('home')
   }
 
-  if (view === 'login') {
+  const renderView = () => {
+    if (view === 'login') {
+      return (
+        <Login
+          onSwitchToRegister={() => setView('register')}
+          onLoginSuccess={(userData) => {
+            setUser(userData)
+            setView(userData.role === 'Admin' ? 'admin' : 'home')
+          }}
+        />
+      )
+    }
+    if (view === 'register') {
+      return <Register onSwitchToLogin={() => setView('login')} />
+    }
+    if (view === 'admin' && user?.role === 'Admin') {
+      return <AdminDashboard user={user} onBackToHome={() => setView('home')} />
+    }
     return (
-      <Login
-        onSwitchToRegister={() => setView('register')}
-        onLoginSuccess={(userData) => {
-          setUser(userData)
-          setView(userData.role === 'Admin' ? 'admin' : 'home')
-        }}
+      <TrangChu
+        user={user}
+        onLoginClick={() => setView('login')}
+        onRegisterClick={() => setView('register')}
+        onLogoutClick={handleLogout}
+        onAdminClick={() => setView('admin')}
       />
     )
   }
 
-  if (view === 'register') {
-    return <Register onSwitchToLogin={() => setView('login')} />
-  }
-
-  if (view === 'admin' && user?.role === 'Admin') {
-    return <AdminDashboard user={user} onBackToHome={() => setView('home')} />
-  }
-
   return (
-    <TrangChu
-      user={user}
-      onLoginClick={() => setView('login')}
-      onRegisterClick={() => setView('register')}
-      onLogoutClick={handleLogout}
-      onAdminClick={() => setView('admin')}
-    />
+    <>
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: { fontFamily: 'inherit', fontSize: '0.92rem', borderRadius: '12px' },
+          success: { iconTheme: { primary: '#22c55e', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+        }}
+      />
+      {renderView()}
+    </>
   )
 }
 

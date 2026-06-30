@@ -1,16 +1,19 @@
 import { useEffect, useState } from 'react'
-import { API } from './api'
+import toast from 'react-hot-toast'
+import { stockService } from '../../services/stockService'
+import Pagination from '../common/Pagination'
 
 const EMPTY_FORM = { productId: '', type: 'Import', quantity: '', unitPrice: '', note: '' }
+const PAGE_SIZE  = 10
 
 function StockManager({ products }) {
-  const [form, setForm] = useState(EMPTY_FORM)
+  const [form, setForm]               = useState(EMPTY_FORM)
   const [transactions, setTransactions] = useState([])
-  const [msg, setMsg] = useState(null)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading]         = useState(false)
+  const [page, setPage]               = useState(1)
 
   const loadTransactions = () =>
-    fetch(`${API}/stock`).then(r => r.json()).then(setTransactions).catch(() => {})
+    stockService.getAll().then(setTransactions).catch(() => {})
 
   useEffect(() => { loadTransactions() }, [])
 
@@ -19,31 +22,25 @@ function StockManager({ products }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setMsg(null)
     try {
-      const res = await fetch(`${API}/stock`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          productId: +form.productId,
-          quantity: +form.quantity,
-          unitPrice: +form.unitPrice
-        })
+      await stockService.create({
+        ...form,
+        productId: +form.productId,
+        quantity:  +form.quantity,
+        unitPrice: +form.unitPrice,
       })
-      const data = await res.json()
-      if (res.ok) {
-        setMsg({ type: 'success', text: `${form.type === 'Import' ? 'Nhập kho' : 'Xuất kho'} thành công!` })
-        setForm(EMPTY_FORM)
-        loadTransactions()
-      } else {
-        setMsg({ type: 'error', text: data.message || 'Có lỗi xảy ra.' })
-      }
-    } catch {
-      setMsg({ type: 'error', text: 'Không thể kết nối máy chủ.' })
+      toast.success(`${form.type === 'Import' ? 'Nhập kho' : 'Xuất kho'} thành công!`)
+      setForm(EMPTY_FORM)
+      setPage(1)
+      loadTransactions()
+    } catch (err) {
+      toast.error(err.message || 'Có lỗi xảy ra.')
     }
     setLoading(false)
   }
+
+  const totalPages = Math.ceil(transactions.length / PAGE_SIZE)
+  const paginated  = transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
   return (
     <div>
@@ -72,7 +69,7 @@ function StockManager({ products }) {
               </select>
             </label>
 
-            <div className="form-row">
+            <div className="row">
               <label className="form-field">
                 <span>Số lượng <span className="required">*</span></span>
                 <input type="number" value={form.quantity} onChange={set('quantity')} required min="1" />
@@ -88,7 +85,6 @@ function StockManager({ products }) {
               <input type="text" value={form.note} onChange={set('note')} placeholder="Nhà cung cấp, khách hàng..." />
             </label>
 
-            {msg && <p className={`message ${msg.type}`}>{msg.text}</p>}
             <button className="btn-primary" type="submit" disabled={loading}>
               {loading ? 'Đang xử lý...' : 'Xác nhận giao dịch'}
             </button>
@@ -97,11 +93,15 @@ function StockManager({ products }) {
 
         {/* Lịch sử giao dịch */}
         <div>
-          <h4 style={{ marginBottom: 12 }}>Lịch sử giao dịch gần nhất</h4>
+          <h4 style={{ marginBottom: 12 }}>
+            Lịch sử giao dịch
+            <span className="count-badge" style={{ marginLeft: 8 }}>{transactions.length}</span>
+          </h4>
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
                 <tr>
+                  <th>#</th>
                   <th>Ngày</th>
                   <th>Sản phẩm</th>
                   <th>Loại</th>
@@ -112,8 +112,9 @@ function StockManager({ products }) {
                 </tr>
               </thead>
               <tbody>
-                {transactions.slice(0, 15).map(t => (
+                {paginated.map((t, i) => (
                   <tr key={t.id}>
+                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
                     <td>{new Date(t.transactionDate).toLocaleDateString('vi-VN')}</td>
                     <td>{t.productName}</td>
                     <td>
@@ -129,7 +130,7 @@ function StockManager({ products }) {
                 ))}
                 {transactions.length === 0 && (
                   <tr>
-                    <td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                    <td colSpan={8} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
                       Chưa có giao dịch nào
                     </td>
                   </tr>
@@ -137,6 +138,13 @@ function StockManager({ products }) {
               </tbody>
             </table>
           </div>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={transactions.length}
+            label="giao dịch"
+            onPage={setPage}
+          />
         </div>
 
       </div>

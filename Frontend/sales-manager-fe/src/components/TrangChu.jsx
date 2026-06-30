@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState } from 'react'
 import '../App.css'
 
 const API = 'http://localhost:5000/api'
@@ -13,26 +13,98 @@ const CATEGORY_ICONS = {
   'Sơn': '🎨',
 }
 
-function ProductCard({ product }) {
-  const icon = CATEGORY_ICONS[product.category] || '📦'
+function ProductDetailModal({ product, onClose }) {
+  const catName  = product.categoryName  || product.category  || 'Khác'
+  const unitName = product.unitTypeName  || product.unit      || ''
+  const icon     = CATEGORY_ICONS[catName] || '📦'
+  const inStock  = product.stockQuantity >= 50
+
   return (
-    <div className="product-card">
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="product-detail-modal" onClick={e => e.stopPropagation()}>
+        <button className="modal-close product-detail-close" onClick={onClose}>✕</button>
+
+        <div className="product-detail-body">
+          {/* Ảnh */}
+          <div className="product-detail-image">
+            {product.imageUrl ? (
+              <img src={product.imageUrl} alt={product.productName} />
+            ) : (
+              <div className="product-detail-image-placeholder">{icon}</div>
+            )}
+            {!inStock && <span className="low-stock-badge" style={{ position: 'absolute', top: 12, left: 12 }}>Sắp hết hàng</span>}
+          </div>
+
+          {/* Thông tin */}
+          <div className="product-detail-info">
+            <span className="product-category" style={{ fontSize: '0.8rem' }}>{catName}</span>
+            <h2 className="product-detail-name">{product.productName}</h2>
+            <p className="product-detail-code">Mã SP: <code>{product.productCode}</code></p>
+
+            <div className="product-detail-price-row">
+              <span className="product-detail-price">{product.price?.toLocaleString('vi-VN')}đ</span>
+              <span className="product-detail-unit">/ {unitName}</span>
+            </div>
+
+            <div className="product-detail-meta">
+              <div className="product-detail-row">
+                <span className="product-detail-label">Đơn vị tính</span>
+                <span>{unitName || '—'}</span>
+              </div>
+              <div className="product-detail-row">
+                <span className="product-detail-label">Tồn kho</span>
+                <span className={product.stockQuantity < 50 ? 'warn-text' : 'ok-text'}>
+                  {product.stockQuantity} {unitName} {product.stockQuantity < 50 ? '⚠️' : '✅'}
+                </span>
+              </div>
+              {product.description && (
+                <div className="product-detail-row" style={{ flexDirection: 'column', gap: 4 }}>
+                  <span className="product-detail-label">Mô tả</span>
+                  <span style={{ color: 'var(--text)', lineHeight: 1.6 }}>{product.description}</span>
+                </div>
+              )}
+            </div>
+
+            <button className="btn-primary product-detail-cta" onClick={onClose}>
+              Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function ProductCard({ product, onClick }) {
+  const catName  = product.categoryName || product.category || 'Khác'
+  const unitName = product.unitTypeName || product.unit || ''
+  const icon = CATEGORY_ICONS[catName] || '📦'
+  return (
+    <div className="product-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="product-img-placeholder">
-        <span className="product-icon">{icon}</span>
+        {product.imageUrl ? (
+          <img
+            src={product.imageUrl}
+            alt={product.productName}
+            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          />
+        ) : (
+          <span className="product-icon">{icon}</span>
+        )}
         {product.stockQuantity < 50 && (
           <span className="low-stock-badge">Sắp hết</span>
         )}
       </div>
       <div className="product-info">
-        <span className="product-category">{product.category || 'Khác'}</span>
+        <span className="product-category">{catName}</span>
         <h3 className="product-name">{product.productName}</h3>
         <p className="product-desc">{product.description}</p>
         <div className="product-footer">
           <div>
             <span className="product-price">{product.price?.toLocaleString('vi-VN')}đ</span>
-            <span className="product-unit">/{product.unit}</span>
+            <span className="product-unit">/{unitName}</span>
           </div>
-          <span className="product-stock">Còn: {product.stockQuantity} {product.unit}</span>
+          <span className="product-stock">Còn: {product.stockQuantity} {unitName}</span>
         </div>
       </div>
     </div>
@@ -40,11 +112,12 @@ function ProductCard({ product }) {
 }
 
 function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminClick }) {
-  const [products, setProducts] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
+  const [products, setProducts]           = useState([])
+  const [loading, setLoading]             = useState(true)
+  const [search, setSearch]               = useState('')
   const [activeCategory, setActiveCategory] = useState('Tất cả')
-  const [menuOpen, setMenuOpen] = useState(false)
+  const [menuOpen, setMenuOpen]           = useState(false)
+  const [selectedProduct, setSelectedProduct] = useState(null)
 
   useEffect(() => {
     fetch(`${API}/product`)
@@ -53,10 +126,11 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
       .catch(() => setLoading(false))
   }, [])
 
-  const categories = ['Tất cả', ...new Set(products.map(p => p.category || 'Khác'))]
+  const categories = ['Tất cả', ...new Set(products.map(p => p.categoryName || p.category || 'Khác'))]
 
   const filtered = products.filter(p => {
-    const matchCat = activeCategory === 'Tất cả' || (p.category || 'Khác') === activeCategory
+    const cat = p.categoryName || p.category || 'Khác'
+    const matchCat = activeCategory === 'Tất cả' || cat === activeCategory
     const matchSearch = p.productName?.toLowerCase().includes(search.toLowerCase()) ||
       p.productCode?.toLowerCase().includes(search.toLowerCase())
     return matchCat && matchSearch
@@ -207,7 +281,9 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           </div>
         ) : (
           <div className="product-grid">
-            {filtered.map(p => <ProductCard key={p.id} product={p} />)}
+            {filtered.map(p => (
+              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
+            ))}
           </div>
         )}
       </section>
@@ -260,6 +336,10 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           </div>
         </div>
       </section>
+
+      {selectedProduct && (
+        <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+      )}
 
       {/* FOOTER */}
       <footer className="site-footer">

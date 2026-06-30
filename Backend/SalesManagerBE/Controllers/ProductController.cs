@@ -77,7 +77,11 @@ namespace SalesManagerBE.Controllers
 
             _context.Products.Add(product);
             await _context.SaveChangesAsync();
-            return Ok(product);
+            return Ok(new {
+                product.Id, product.ProductCode, product.ProductName, product.Unit,
+                product.Price, product.StockQuantity, product.Description, product.ImageUrl,
+                product.Category, product.CategoryId, product.UnitTypeId, product.CreatedAt
+            });
         }
 
         [HttpPut("{id}")]
@@ -110,7 +114,11 @@ namespace SalesManagerBE.Controllers
             product.UnitTypeId = dto.UnitTypeId;
 
             await _context.SaveChangesAsync();
-            return Ok(product);
+            return Ok(new {
+                product.Id, product.ProductCode, product.ProductName, product.Unit,
+                product.Price, product.StockQuantity, product.Description, product.ImageUrl,
+                product.Category, product.CategoryId, product.UnitTypeId, product.CreatedAt
+            });
         }
 
         [HttpDelete("{id}")]

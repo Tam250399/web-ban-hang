@@ -1,1 +1,1 @@
-export const API = 'http://localhost:5000/api'
+export { BASE_URL as API } from '../../services/apiClient'

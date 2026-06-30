@@ -1,27 +1,31 @@
-import { useState, useEffect } from 'react'
-import { API } from './api'
+import { useState, useEffect, useRef } from 'react'
+import toast from 'react-hot-toast'
+import { productService } from '../../services/productService'
+import { categoryService } from '../../services/categoryService'
+import { uploadImage } from '../../services/uploadService'
 
 const EMPTY_FORM = {
   productCode: '', productName: '', categoryId: '', unitTypeId: '',
   price: '', stockQuantity: '', description: '', imageUrl: ''
 }
 
-function AddProduct({ onRefresh }) {
+function AddProduct({ onRefresh, onSuccess }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [categories, setCategories] = useState([])
   const [unitTypes, setUnitTypes] = useState([])
   const [productNames, setProductNames] = useState([])
   const [filteredNames, setFilteredNames] = useState([])
-  const [msg, setMsg] = useState(null)
   const [loading, setLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imagePreview, setImagePreview] = useState(null)
+  const fileInputRef = useRef(null)
 
   useEffect(() => {
-    fetch(`${API}/category/product-categories`).then(r => r.json()).then(setCategories).catch(() => {})
-    fetch(`${API}/category/unit-types`).then(r => r.json()).then(setUnitTypes).catch(() => {})
-    fetch(`${API}/category/product-names`).then(r => r.json()).then(setProductNames).catch(() => {})
+    categoryService.getCategories().then(setCategories).catch(() => {})
+    categoryService.getUnitTypes().then(setUnitTypes).catch(() => {})
+    categoryService.getProductNames().then(setProductNames).catch(() => {})
   }, [])
 
-  // Khi chọn danh mục → lọc tên sản phẩm theo danh mục đó
   useEffect(() => {
     if (form.categoryId) {
       setFilteredNames(productNames.filter(n => n.categoryId === +form.categoryId))
@@ -32,32 +36,46 @@ function AddProduct({ onRefresh }) {
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
 
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setImagePreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      setForm(f => ({ ...f, imageUrl: url }))
+      toast.success('Tải ảnh lên thành công!')
+    } catch (err) {
+      toast.error(err.message || 'Tải ảnh thất bại.')
+      setImagePreview(null)
+    }
+    setUploading(false)
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+    setForm(f => ({ ...f, imageUrl: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setMsg(null)
     try {
-      const res = await fetch(`${API}/product`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...form,
-          price: +form.price,
-          stockQuantity: +form.stockQuantity,
-          categoryId: form.categoryId ? +form.categoryId : null,
-          unitTypeId: form.unitTypeId ? +form.unitTypeId : null,
-        })
+      await productService.create({
+        ...form,
+        price: +form.price,
+        stockQuantity: +form.stockQuantity,
+        categoryId: form.categoryId ? +form.categoryId : null,
+        unitTypeId: form.unitTypeId ? +form.unitTypeId : null,
       })
-      if (res.ok) {
-        setMsg({ type: 'success', text: 'Thêm sản phẩm thành công!' })
-        setForm(EMPTY_FORM)
-        onRefresh()
-      } else {
-        const data = await res.json()
-        setMsg({ type: 'error', text: data.message || 'Có lỗi xảy ra.' })
-      }
-    } catch {
-      setMsg({ type: 'error', text: 'Không thể kết nối máy chủ.' })
+      toast.success('Thêm sản phẩm thành công!')
+      setForm(EMPTY_FORM)
+      setImagePreview(null)
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      onSuccess ? onSuccess() : onRefresh()
+    } catch (err) {
+      toast.error(err.message || 'Có lỗi xảy ra.')
     }
     setLoading(false)
   }
@@ -132,12 +150,32 @@ function AddProduct({ onRefresh }) {
             <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn về sản phẩm..." />
           </label>
 
-          <label className="form-field">
-            <span>URL hình ảnh</span>
-            <input value={form.imageUrl} onChange={set('imageUrl')} placeholder="https://..." />
-          </label>
-
-          {msg && <p className={`message ${msg.type}`}>{msg.text}</p>}
+          <div className="form-field">
+            <span>Hình ảnh sản phẩm</span>
+            {imagePreview ? (
+              <div className="image-upload-preview">
+                <img src={imagePreview} alt="preview" />
+                {uploading && <div className="image-upload-overlay">Đang tải...</div>}
+                {!uploading && (
+                  <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                )}
+              </div>
+            ) : (
+              <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                  disabled={uploading}
+                />
+                <span className="image-upload-icon">🖼️</span>
+                <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+              </label>
+            )}
+          </div>
 
           <button className="btn-primary" type="submit" disabled={loading}>
             {loading ? 'Đang lưu...' : '+ Thêm sản phẩm'}

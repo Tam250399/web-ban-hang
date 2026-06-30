@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import '../App.css'
-import { API } from './admin/api'
+import { productService } from '../services/productService'
+import { categoryService } from '../services/categoryService'
 import ProductList from './admin/ProductList'
 import AddProduct from './admin/AddProduct'
 import StockManager from './admin/StockManager'
@@ -22,17 +23,10 @@ function AdminDashboard({ user, onBackToHome }) {
   const [unitTypes, setUnitTypes] = useState([])
   const [stats, setStats] = useState(null)
 
-  const loadProducts = () =>
-    fetch(`${API}/product`).then(r => r.json()).then(setProducts).catch(() => {})
-
-  const loadCategories = () =>
-    fetch(`${API}/category/product-categories`).then(r => r.json()).then(setCategories).catch(() => {})
-
-  const loadUnitTypes = () =>
-    fetch(`${API}/category/unit-types`).then(r => r.json()).then(setUnitTypes).catch(() => {})
-
-  const loadStats = () =>
-    fetch(`${API}/product/statistics`).then(r => r.json()).then(setStats).catch(() => {})
+  const loadProducts   = () => productService.getAll().then(setProducts).catch(() => {})
+  const loadCategories = () => categoryService.getCategories().then(setCategories).catch(() => {})
+  const loadUnitTypes  = () => categoryService.getUnitTypes().then(setUnitTypes).catch(() => {})
+  const loadStats      = () => productService.getStatistics().then(setStats).catch(() => {})
 
   useEffect(() => {
     loadProducts()
@@ -109,7 +103,10 @@ function AdminDashboard({ user, onBackToHome }) {
             />
           )}
           {tab === 'add' && (
-            <AddProduct onRefresh={() => { loadProducts(); loadStats() }} />
+            <AddProduct
+              onRefresh={() => { loadProducts(); loadStats() }}
+              onSuccess={() => { loadProducts(); loadStats(); switchTab('list') }}
+            />
           )}
           {tab === 'stock' && <StockManager products={products} />}
           {tab === 'categories' && <CategoryManager />}

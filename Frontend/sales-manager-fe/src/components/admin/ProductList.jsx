@@ -1,102 +1,157 @@
-import { useState } from 'react'
-import { API } from './api'
+import { useState, useRef } from 'react'
+import toast from 'react-hot-toast'
+import { productService } from '../../services/productService'
+import { uploadImage } from '../../services/uploadService'
+import Pagination from '../common/Pagination'
+import ConfirmModal from '../common/ConfirmModal'
 
 const PAGE_SIZE = 10
 
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   const [form, setForm] = useState({
     productName: product.productName,
-    categoryId: product.categoryId || '',
-    unitTypeId: product.unitTypeId || '',
-    price: product.price,
+    categoryId:  product.categoryId  || '',
+    unitTypeId:  product.unitTypeId  || '',
+    price:       product.price,
     description: product.description || '',
-    imageUrl: product.imageUrl || '',
+    imageUrl:    product.imageUrl    || '',
   })
-  const [loading, setLoading] = useState(false)
-  const [msg, setMsg] = useState(null)
+  const [loading, setLoading]       = useState(false)
+  const [uploading, setUploading]   = useState(false)
+  const [imagePreview, setImagePreview] = useState(product.imageUrl || null)
+  const fileInputRef = useRef(null)
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
+
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+    setImagePreview(URL.createObjectURL(file))
+    setUploading(true)
+    try {
+      const url = await uploadImage(file)
+      setForm(f => ({ ...f, imageUrl: url }))
+      toast.success('Tải ảnh lên thành công!')
+    } catch (err) {
+      toast.error(err.message || 'Tải ảnh thất bại.')
+      setImagePreview(product.imageUrl || null)
+    }
+    setUploading(false)
+  }
+
+  const removeImage = () => {
+    setImagePreview(null)
+    setForm(f => ({ ...f, imageUrl: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
-    setMsg(null)
     try {
-      const res = await fetch(`${API}/product/${product.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          productCode: product.productCode,
-          productName: form.productName,
-          unit: '',
-          price: +form.price,
-          stockQuantity: product.stockQuantity,
-          description: form.description,
-          imageUrl: form.imageUrl,
-          categoryId: form.categoryId ? +form.categoryId : null,
-          unitTypeId: form.unitTypeId ? +form.unitTypeId : null,
-        })
+      await productService.update(product.id, {
+        productCode:   product.productCode,
+        productName:   form.productName,
+        unit:          '',
+        price:         +form.price,
+        stockQuantity: product.stockQuantity,
+        description:   form.description,
+        imageUrl:      form.imageUrl,
+        categoryId:    form.categoryId ? +form.categoryId : null,
+        unitTypeId:    form.unitTypeId ? +form.unitTypeId : null,
       })
-      if (res.ok) {
-        onSave()
-      } else {
-        const data = await res.json()
-        setMsg(data.message || 'Có lỗi xảy ra.')
-      }
-    } catch {
-      setMsg('Không thể kết nối máy chủ.')
+      toast.success('Cập nhật sản phẩm thành công!')
+      onSave()
+    } catch (err) {
+      toast.error(err.message || 'Có lỗi xảy ra.')
     }
     setLoading(false)
   }
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+      <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Chỉnh sửa sản phẩm</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-product-form">
-          <label className="form-field">
-            <span>Mã sản phẩm</span>
-            <input value={product.productCode} disabled style={{ opacity: 0.5 }} />
-          </label>
-          <label className="form-field">
-            <span>Tên sản phẩm <span className="required">*</span></span>
-            <input value={form.productName} onChange={set('productName')} required />
-          </label>
-          <div className="form-row">
-            <label className="form-field">
-              <span>Danh mục</span>
-              <select value={form.categoryId} onChange={set('categoryId')}>
-                <option value="">-- Chọn danh mục --</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </label>
-            <label className="form-field">
-              <span>Đơn vị tính</span>
-              <select value={form.unitTypeId} onChange={set('unitTypeId')}>
-                <option value="">-- Chọn đơn vị --</option>
-                {unitTypes.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-            </label>
+
+        <form onSubmit={handleSubmit}>
+          <div className="edit-modal-body">
+
+            {/* Cột trái — ảnh */}
+            <div className="edit-modal-image">
+              <p className="form-field-label">Hình ảnh</p>
+              {imagePreview ? (
+                <div className="image-upload-preview" style={{ maxHeight: 220 }}>
+                  <img src={imagePreview} alt="preview" />
+                  {uploading && <div className="image-upload-overlay">Đang tải...</div>}
+                  {!uploading && (
+                    <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                  )}
+                </div>
+              ) : (
+                <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                    disabled={uploading}
+                  />
+                  <span className="image-upload-icon">🖼️</span>
+                  <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP · Tối đa 5MB</span>
+                </label>
+              )}
+            </div>
+
+            {/* Cột phải — thông tin */}
+            <div className="edit-modal-fields">
+              <label className="form-field">
+                <span>Mã sản phẩm</span>
+                <input value={product.productCode} disabled style={{ opacity: 0.5 }} />
+              </label>
+
+              <label className="form-field">
+                <span>Tên sản phẩm <span className="required">*</span></span>
+                <input value={form.productName} onChange={set('productName')} required />
+              </label>
+
+              <div className="form-row">
+                <label className="form-field">
+                  <span>Danh mục</span>
+                  <select value={form.categoryId} onChange={set('categoryId')}>
+                    <option value="">-- Chọn danh mục --</option>
+                    {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </label>
+                <label className="form-field">
+                  <span>Đơn vị tính</span>
+                  <select value={form.unitTypeId} onChange={set('unitTypeId')}>
+                    <option value="">-- Chọn đơn vị --</option>
+                    {unitTypes.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
+                  </select>
+                </label>
+              </div>
+
+              <label className="form-field">
+                <span>Giá bán (VNĐ) <span className="required">*</span></span>
+                <input type="number" value={form.price} onChange={set('price')} required min="0" />
+              </label>
+
+              <label className="form-field">
+                <span>Mô tả</span>
+                <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn..." />
+              </label>
+            </div>
+
           </div>
-          <label className="form-field">
-            <span>Giá bán (VNĐ) <span className="required">*</span></span>
-            <input type="number" value={form.price} onChange={set('price')} required min="0" />
-          </label>
-          <label className="form-field">
-            <span>Mô tả</span>
-            <input value={form.description} onChange={set('description')} />
-          </label>
-          <label className="form-field">
-            <span>URL hình ảnh</span>
-            <input value={form.imageUrl} onChange={set('imageUrl')} />
-          </label>
-          {msg && <p className="message error">{msg}</p>}
+
           <div className="modal-footer">
             <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
-            <button type="submit" className="btn-primary" disabled={loading}>
+            <button type="submit" className="btn-primary" disabled={loading || uploading}>
               {loading ? 'Đang lưu...' : 'Lưu thay đổi'}
             </button>
           </div>
@@ -107,10 +162,11 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
 }
 
 function ProductList({ products, categories, unitTypes, onRefresh }) {
-  const [deleting, setDeleting] = useState(null)
-  const [editing, setEditing] = useState(null)
-  const [page, setPage] = useState(1)
-  const [search, setSearch] = useState('')
+  const [deleting, setDeleting]   = useState(null)
+  const [confirmId, setConfirmId] = useState(null)
+  const [editing, setEditing]     = useState(null)
+  const [page, setPage]           = useState(1)
+  const [search, setSearch]       = useState('')
 
   const filtered = products.filter(p =>
     p.productName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -119,19 +175,20 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   )
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
 
-  const handleDelete = async (id) => {
-    if (!confirm('Xác nhận xóa sản phẩm này?')) return
+  const handleDelete = async () => {
+    const id = confirmId
+    setConfirmId(null)
     setDeleting(id)
-    await fetch(`${API}/product/${id}`, { method: 'DELETE' })
-    onRefresh()
+    try {
+      await productService.remove(id)
+      toast.success('Đã xóa sản phẩm!')
+      onRefresh()
+    } catch (err) {
+      toast.error(err.message || 'Xóa thất bại.')
+    }
     setDeleting(null)
-  }
-
-  const handleSearch = (e) => {
-    setSearch(e.target.value)
-    setPage(1)
   }
 
   return (
@@ -145,7 +202,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           style={{ maxWidth: 280 }}
           placeholder="Tìm theo tên, mã, danh mục..."
           value={search}
-          onChange={handleSearch}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
         />
       </div>
 
@@ -154,6 +211,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           <thead>
             <tr>
               <th>#</th>
+              <th>Ảnh</th>
               <th>Mã SP</th>
               <th>Tên sản phẩm</th>
               <th>Danh mục</th>
@@ -166,7 +224,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           <tbody>
             {paginated.length === 0 && (
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', color: '#888', padding: 32 }}>
+                <td colSpan={9} style={{ textAlign: 'center', color: '#888', padding: 32 }}>
                   {search ? 'Không tìm thấy sản phẩm phù hợp' : 'Chưa có sản phẩm nào'}
                 </td>
               </tr>
@@ -175,6 +233,17 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
               <tr key={p.id} className={p.stockQuantity < 50 ? 'low-stock-row' : ''}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>
                   {(page - 1) * PAGE_SIZE + i + 1}
+                </td>
+                <td>
+                  {p.imageUrl ? (
+                    <img
+                      src={p.imageUrl}
+                      alt={p.productName}
+                      className="product-thumb"
+                    />
+                  ) : (
+                    <div className="product-thumb-placeholder">🧱</div>
+                  )}
                 </td>
                 <td><code>{p.productCode}</code></td>
                 <td><strong>{p.productName}</strong></td>
@@ -189,7 +258,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
                     <button className="btn-edit-sm" onClick={() => setEditing(p)}>✏️ Sửa</button>
                     <button
                       className="btn-danger-sm"
-                      onClick={() => handleDelete(p.id)}
+                      onClick={() => setConfirmId(p.id)}
                       disabled={deleting === p.id}
                     >
                       {deleting === p.id ? '...' : '🗑️ Xóa'}
@@ -202,31 +271,22 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
         </table>
       </div>
 
-      {/* Phân trang */}
-      {totalPages > 1 && (
-        <div className="pagination">
-          <button className="page-btn" onClick={() => setPage(1)} disabled={page === 1}>«</button>
-          <button className="page-btn" onClick={() => setPage(p => p - 1)} disabled={page === 1}>‹</button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .filter(p => p === 1 || p === totalPages || Math.abs(p - page) <= 1)
-            .reduce((acc, p, idx, arr) => {
-              if (idx > 0 && arr[idx - 1] !== p - 1) acc.push('...')
-              acc.push(p)
-              return acc
-            }, [])
-            .map((p, i) =>
-              p === '...'
-                ? <span key={i} className="page-ellipsis">…</span>
-                : <button key={p} className={`page-btn ${page === p ? 'active' : ''}`} onClick={() => setPage(p)}>{p}</button>
-            )
-          }
-          <button className="page-btn" onClick={() => setPage(p => p + 1)} disabled={page === totalPages}>›</button>
-          <button className="page-btn" onClick={() => setPage(totalPages)} disabled={page === totalPages}>»</button>
-          <span className="page-info">{filtered.length} sản phẩm</span>
-        </div>
+      <Pagination
+        page={page}
+        totalPages={totalPages}
+        total={filtered.length}
+        label="sản phẩm"
+        onPage={setPage}
+      />
+
+      {confirmId && (
+        <ConfirmModal
+          message="Bạn có chắc muốn xóa sản phẩm này không?"
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmId(null)}
+        />
       )}
 
-      {/* Modal chỉnh sửa */}
       {editing && (
         <EditModal
           product={editing}
