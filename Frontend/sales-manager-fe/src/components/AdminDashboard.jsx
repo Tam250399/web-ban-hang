@@ -51,7 +51,7 @@ function AdminDashboard({ user, onBackToHome }) {
           <div className="brand-icon">VL</div>
           <div>
             <strong>Admin Dashboard</strong>
-            <span>Vật Liệu Xây Dựng Pro</span>
+            <span>Vật Liệu Xây Dựng</span>
           </div>
         </div>
         <div className="admin-header-right">

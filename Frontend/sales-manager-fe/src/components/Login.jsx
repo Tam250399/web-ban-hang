@@ -48,7 +48,7 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
       <div className="auth-card-wrap">
       <div className="auth-card">
         <h2>Đăng nhập</h2>
-        <p className="page-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng Pro.</p>
+        <p className="page-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           <label>

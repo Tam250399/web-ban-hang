@@ -147,7 +147,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           <div className="brand">
             <div className="brand-icon">VL</div>
             <div>
-              <strong>Vật Liệu Xây Dựng Pro</strong>
+              <strong>Vật Liệu Xây Dựng</strong>
               <span>Cung cấp vật liệu chất lượng cao</span>
             </div>
           </div>
@@ -322,7 +322,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         <h2>Liên hệ với chúng tôi</h2>
         <div className="contact-grid">
           <div className="contact-info">
-            <p>📍 123 Đường Xây Dựng, Quận 1, TP.HCM</p>
+            <p>📍 Quốc Oai-Hà Nội</p>
             <p>📞 0901 234 567</p>
             <p>✉️ info@vlxdpro.vn</p>
             <p>🕐 Thứ 2 - Thứ 7: 7:00 - 18:00</p>
@@ -347,7 +347,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           <div className="footer-brand">
             <div className="brand-icon">VL</div>
             <div>
-              <strong>Vật Liệu Xây Dựng Pro</strong>
+              <strong style={{ color: '#007bff', padding: '0 10px' }}>Vật Liệu Xây Dựng</strong>
               <span>Đồng hành cùng công trình của bạn</span>
             </div>
           </div>
@@ -365,7 +365,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
               <a href="#about">Về chúng tôi</a>
             </div>
           </div>
-          <p className="footer-copy">© 2026 Vật Liệu Xây Dựng Pro. All rights reserved.</p>
+          <p className="footer-copy">© 2026 Vật Liệu Xây Dựng. All rights reserved.</p>
         </div>
       </footer>
     </div>
