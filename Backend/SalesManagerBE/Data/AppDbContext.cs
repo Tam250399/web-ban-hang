@@ -14,6 +14,7 @@ namespace SalesManagerBE.Data
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<UnitType> UnitTypes => Set<UnitType>();
         public DbSet<ProductNameTemplate> ProductNameTemplates => Set<ProductNameTemplate>();
+        public DbSet<Banner> Banners => Set<Banner>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -133,6 +134,14 @@ namespace SalesManagerBE.Data
                     new Product { Id = 7, ProductCode = "DA001", ProductName = "Đá dăm 1x2 xây dựng", Unit = "m³", Price = 320000, StockQuantity = 300, Category = "Cát - Đá", CategoryId = 3, UnitTypeId = 3, Description = "Đá dăm 1x2 dùng trộn bê tông", CreatedAt = new DateTime(2024, 1, 1) },
                     new Product { Id = 8, ProductCode = "SN001", ProductName = "Sơn nước nội thất Jotun 18L", Unit = "Thùng", Price = 1250000, StockQuantity = 120, Category = "Sơn", CategoryId = 7, UnitTypeId = 7, Description = "Sơn nước cao cấp", CreatedAt = new DateTime(2024, 1, 1) }
                 );
+            });
+
+            // Banner config
+            modelBuilder.Entity<Banner>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Title).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
             });
 
             // StockTransaction config

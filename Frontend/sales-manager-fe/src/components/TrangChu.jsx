@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import '../App.css'
+import Carousel from './Carousel'
+import { bannerService } from '../services/bannerService'
 
 const API = 'http://localhost:5000/api'
 
@@ -118,12 +120,14 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
   const [activeCategory, setActiveCategory] = useState('Tất cả')
   const [menuOpen, setMenuOpen]           = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
+  const [banners, setBanners]             = useState([])
 
   useEffect(() => {
     fetch(`${API}/product`)
       .then(r => r.json())
       .then(data => { setProducts(data); setLoading(false) })
       .catch(() => setLoading(false))
+    bannerService.getActive().then(setBanners).catch(() => {})
   }, [])
 
   const categories = ['Tất cả', ...new Set(products.map(p => p.categoryName || p.category || 'Khác'))]
@@ -145,10 +149,10 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
       <header className="site-header">
         <div className="header-inner">
           <div className="brand">
-            <div className="brand-icon">VL</div>
+            <div className="brand-icon">ĐL</div>
             <div>
-              <strong>Vật Liệu Xây Dựng</strong>
-              <span>Cung cấp vật liệu chất lượng cao</span>
+              <strong>Cửa Hàng VLXD Đức Lợi</strong>
+              <span>Nhà phân phối xi măng Sài Sơn</span>
             </div>
           </div>
 
@@ -210,36 +214,42 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="hero-banner">
-        <div className="hero-content">
-          <p className="hero-eyebrow">Hệ thống bán hàng vật liệu xây dựng</p>
-          <h1>Vật liệu chất lượng — <span className="hero-accent">Giá tốt nhất</span></h1>
-          <p className="hero-sub">
-            Cung cấp đầy đủ xi măng, gạch, thép, cát đá và các vật liệu xây dựng chính hãng.
-            Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
-          </p>
-          <div className="hero-btns">
-            <a href="#products" className="btn-primary">Xem sản phẩm</a>
-            {!isLoggedIn && (
-              <button className="btn-outline" onClick={onRegisterClick}>Tạo tài khoản</button>
-            )}
+      {/* HERO SLIDER — có banner thì chạy carousel, không có thì hiện hero mặc định */}
+      <section className="hero-slider-section">
+        {banners.length > 0 ? (
+          <Carousel slides={banners} />
+        ) : (
+          <div className="hero-banner">
+            <div className="hero-content">
+              <p className="hero-eyebrow">Cửa Hàng Vật Liệu Xây Dựng Đức Lợi — Nhà phân phối xi măng Sài Sơn</p>
+              <h1>Vật liệu chất lượng — <span className="hero-accent">Giá tốt nhất</span></h1>
+              <p className="hero-sub">
+                Chuyên bán buôn - bán lẻ: Xi măng - Sắt - Thép - Cát - Đá - Sỏi và các vật liệu xây dựng chính hãng.
+                Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
+              </p>
+              <div className="hero-btns">
+                <a href="#products" className="btn-primary">Xem sản phẩm</a>
+                {!isLoggedIn && (
+                  <button className="btn-outline" onClick={onRegisterClick}>Tạo tài khoản</button>
+                )}
+              </div>
+            </div>
+            <div className="hero-stats">
+              <div className="stat-card">
+                <span className="stat-num">500+</span>
+                <span className="stat-label">Loại sản phẩm</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-num">1,200+</span>
+                <span className="stat-label">Khách hàng tin dùng</span>
+              </div>
+              <div className="stat-card">
+                <span className="stat-num">10+</span>
+                <span className="stat-label">Năm kinh nghiệm</span>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="hero-stats">
-          <div className="stat-card">
-            <span className="stat-num">500+</span>
-            <span className="stat-label">Loại sản phẩm</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-num">1,200+</span>
-            <span className="stat-label">Khách hàng tin dùng</span>
-          </div>
-          <div className="stat-card">
-            <span className="stat-num">10+</span>
-            <span className="stat-label">Năm kinh nghiệm</span>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* PRODUCTS SECTION */}
@@ -322,7 +332,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         <h2>Liên hệ với chúng tôi</h2>
         <div className="contact-grid">
           <div className="contact-info">
-            <p>📍 Quốc Oai-Hà Nội</p>
+            <p>📍 Khánh Tân, Sài Sơn, Quốc Oai, Hà Nội</p>
             <p>📞 0901 234 567</p>
             <p>✉️ info@vlxdpro.vn</p>
             <p>🕐 Thứ 2 - Thứ 7: 7:00 - 18:00</p>
@@ -345,9 +355,9 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
       <footer className="site-footer">
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="brand-icon">VL</div>
+            <div className="brand-icon">ĐL</div>
             <div>
-              <strong style={{ color: '#007bff', padding: '0 10px' }}>Vật Liệu Xây Dựng</strong>
+              <strong style={{ color: '#007bff', padding: '0 10px' }}>Cửa Hàng VLXD Đức Lợi</strong>
               <span>Đồng hành cùng công trình của bạn</span>
             </div>
           </div>
@@ -365,7 +375,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
               <a href="#about">Về chúng tôi</a>
             </div>
           </div>
-          <p className="footer-copy">© 2026 Vật Liệu Xây Dựng. All rights reserved.</p>
+          <p className="footer-copy">© 2026 Cửa Hàng Vật Liệu Xây Dựng Đức Lợi. All rights reserved.</p>
         </div>
       </footer>
     </div>

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git add *)",
-      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:5000/api/product/10\" -Method DELETE -UseBasicParsing; \"Cleaned: $\\($r.StatusCode\\)\")"
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:5000/api/product/10\" -Method DELETE -UseBasicParsing; \"Cleaned: $\\($r.StatusCode\\)\")",
+      "Bash(npm run *)"
     ]
   }
 }

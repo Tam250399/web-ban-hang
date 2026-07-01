@@ -7,12 +7,14 @@ import AddProduct from './admin/AddProduct'
 import StockManager from './admin/StockManager'
 import Statistics from './admin/Statistics'
 import CategoryManager from './admin/CategoryManager'
+import BannerManager from './admin/BannerManager'
 
 const TABS = [
   { key: 'list',       label: '📋 Sản phẩm' },
   { key: 'add',        label: '➕ Thêm mới' },
   { key: 'stock',      label: '📦 Nhập/Xuất kho' },
   { key: 'categories', label: '🏷️ Danh mục' },
+  { key: 'banners',    label: '🖼️ Banner' },
   { key: 'stats',      label: '📊 Thống kê' },
 ]
 
@@ -110,6 +112,7 @@ function AdminDashboard({ user, onBackToHome }) {
           )}
           {tab === 'stock' && <StockManager products={products} />}
           {tab === 'categories' && <CategoryManager />}
+          {tab === 'banners' && <BannerManager />}
           {tab === 'stats' && <Statistics stats={stats} />}
         </main>
 
