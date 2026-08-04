@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { productService } from '../../services/productService'
 import { categoryService } from '../../services/categoryService'
 import { uploadImage } from '../../services/uploadService'
+import SearchableSelect from '../common/SearchableSelect'
 
 const EMPTY_FORM = {
   productCode: '', productName: '', categoryId: '', unitTypeId: '',
@@ -60,6 +61,10 @@ function AddProduct({ onRefresh, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (!form.unitTypeId) {
+      toast.error('Vui lòng chọn đơn vị tính.')
+      return
+    }
     setLoading(true)
     try {
       await productService.create({
@@ -92,26 +97,30 @@ function AddProduct({ onRefresh, onSuccess }) {
               <input value={form.productCode} onChange={set('productCode')} required placeholder="VD: XM001" />
             </label>
 
-            <label className="form-field">
+            <div className="form-field">
               <span>Danh mục sản phẩm</span>
-              <select value={form.categoryId} onChange={set('categoryId')}>
-                <option value="">-- Chọn danh mục --</option>
-                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-              </select>
-            </label>
+              <SearchableSelect
+                value={form.categoryId}
+                onChange={(val) => setForm(f => ({ ...f, categoryId: val }))}
+                options={categories.map(c => ({ value: c.id, label: c.name }))}
+                placeholder="-- Chọn danh mục --"
+                searchPlaceholder="Tìm danh mục..."
+              />
+            </div>
           </div>
 
-          <label className="form-field">
+          <div className="form-field">
             <span>Tên sản phẩm <span className="required">*</span></span>
             <div style={{ display: 'flex', gap: 8 }}>
-              <select
-                style={{ flex: 1 }}
-                value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
-                onChange={e => setForm(f => ({ ...f, productName: e.target.value }))}
-              >
-                <option value="">-- Chọn tên từ danh mục --</option>
-                {filteredNames.map(n => <option key={n.id} value={n.name}>{n.name}</option>)}
-              </select>
+              <div style={{ flex: 1 }}>
+                <SearchableSelect
+                  value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
+                  onChange={(val) => setForm(f => ({ ...f, productName: val }))}
+                  options={filteredNames.map(n => ({ value: n.name, label: n.name }))}
+                  placeholder="-- Chọn tên từ danh mục --"
+                  searchPlaceholder="Tìm tên sản phẩm..."
+                />
+              </div>
               <input
                 style={{ flex: 1 }}
                 value={form.productName}
@@ -123,16 +132,19 @@ function AddProduct({ onRefresh, onSuccess }) {
             <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>
               Chọn từ danh sách hoặc nhập tên tùy chỉnh
             </span>
-          </label>
+          </div>
 
           <div className="form-row">
-            <label className="form-field">
+            <div className="form-field">
               <span>Đơn vị tính <span className="required">*</span></span>
-              <select value={form.unitTypeId} onChange={set('unitTypeId')} required>
-                <option value="">-- Chọn đơn vị --</option>
-                {unitTypes.map(u => <option key={u.id} value={u.id}>{u.name}</option>)}
-              </select>
-            </label>
+              <SearchableSelect
+                value={form.unitTypeId}
+                onChange={(val) => setForm(f => ({ ...f, unitTypeId: val }))}
+                options={unitTypes.map(u => ({ value: u.id, label: u.name }))}
+                placeholder="-- Chọn đơn vị --"
+                searchPlaceholder="Tìm đơn vị..."
+              />
+            </div>
 
             <label className="form-field">
               <span>Giá bán (VNĐ) <span className="required">*</span></span>

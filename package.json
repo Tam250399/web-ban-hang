@@ -1,0 +1,22 @@
+{
+  "name": "salesmanagerproject",
+  "version": "1.0.0",
+  "description": "- `/Database`: Chứa script khởi tạo database cho SQL Server (`init.sql`). - `/Backend`: Dự án .NET 8 Web API tích hợp sẵn DTO, Controller Login/Register và cấu hình kết nối MinIO. - `/Frontend`: Dự án React chứa form Đăng ký và Đăng nhập chuẩn giao diện.",
+  "main": "index.js",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tam250399/web-ban-hang.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tam250399/web-ban-hang/issues"
+  },
+  "homepage": "https://github.com/Tam250399/web-ban-hang#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.62.1",
+    "@types/node": "^26.1.2"
+  }
+}

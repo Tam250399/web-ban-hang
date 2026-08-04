@@ -4,13 +4,13 @@ import { stockService } from '../../services/stockService'
 import Pagination from '../common/Pagination'
 
 const EMPTY_FORM = { productId: '', type: 'Import', quantity: '', unitPrice: '', note: '' }
-const PAGE_SIZE  = 10
 
 function StockManager({ products }) {
   const [form, setForm]               = useState(EMPTY_FORM)
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading]         = useState(false)
   const [page, setPage]               = useState(1)
+  const [pageSize, setPageSize]       = useState(10)
 
   const loadTransactions = () =>
     stockService.getAll().then(setTransactions).catch(() => {})
@@ -39,8 +39,8 @@ function StockManager({ products }) {
     setLoading(false)
   }
 
-  const totalPages = Math.ceil(transactions.length / PAGE_SIZE)
-  const paginated  = transactions.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(transactions.length / pageSize)
+  const paginated  = transactions.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div>
@@ -114,7 +114,7 @@ function StockManager({ products }) {
               <tbody>
                 {paginated.map((t, i) => (
                   <tr key={t.id}>
-                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                     <td>{new Date(t.transactionDate).toLocaleDateString('vi-VN')}</td>
                     <td>{t.productName}</td>
                     <td>
@@ -142,6 +142,8 @@ function StockManager({ products }) {
             page={page}
             totalPages={totalPages}
             total={transactions.length}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
             label="giao dịch"
             onPage={setPage}
           />

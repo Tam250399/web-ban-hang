@@ -5,8 +5,6 @@ import { uploadImage } from '../../services/uploadService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 
-const PAGE_SIZE = 10
-
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   const [form, setForm] = useState({
     productName: product.productName,
@@ -166,6 +164,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   const [confirmId, setConfirmId] = useState(null)
   const [editing, setEditing]     = useState(null)
   const [page, setPage]           = useState(1)
+  const [pageSize, setPageSize]   = useState(10)
   const [search, setSearch]       = useState('')
 
   const filtered = products.filter(p =>
@@ -174,8 +173,8 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
     (p.categoryName || p.category || '')?.toLowerCase().includes(search.toLowerCase())
   )
 
-  const totalPages = Math.ceil(filtered.length / PAGE_SIZE)
-  const paginated  = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated  = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   const handleDelete = async () => {
     const id = confirmId
@@ -232,7 +231,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
             {paginated.map((p, i) => (
               <tr key={p.id} className={p.stockQuantity < 50 ? 'low-stock-row' : ''}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>
-                  {(page - 1) * PAGE_SIZE + i + 1}
+                  {(page - 1) * pageSize + i + 1}
                 </td>
                 <td>
                   {p.imageUrl ? (
@@ -275,6 +274,8 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
         page={page}
         totalPages={totalPages}
         total={filtered.length}
+        pageSize={pageSize}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
         label="sản phẩm"
         onPage={setPage}
       />

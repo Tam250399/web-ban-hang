@@ -1,8 +1,8 @@
 export const BASE_URL = '/api'
 
-export async function request(url, { body, ...options } = {}) {
+export async function request(url, { body, headers, ...options } = {}) {
   const res = await fetch(url, {
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...headers },
     ...options,
     ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
   })

@@ -83,7 +83,7 @@ namespace SalesManagerBE.Services
             return tokenHandler.WriteToken(token);
         }
 
-        private static string HashPassword(string password)
+        public static string HashPassword(string password)
         {
             using var sha256 = SHA256.Create();
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));

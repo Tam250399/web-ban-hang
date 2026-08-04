@@ -4,8 +4,6 @@ import { categoryService } from '../../services/categoryService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 
-const PAGE_SIZE = 8
-
 // ---- CRUD cho danh mục có trường tên + mô tả ----
 function SimpleCrudTable({ title, items, onAdd, onEdit, onDelete }) {
   const [form, setForm]     = useState({ name: '', description: '' })
@@ -14,6 +12,7 @@ function SimpleCrudTable({ title, items, onAdd, onEdit, onDelete }) {
   const [deleting, setDeleting] = useState(null)
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage]     = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const reset = () => { setForm({ name: '', description: '' }); setEditId(null) }
 
@@ -48,8 +47,8 @@ function SimpleCrudTable({ title, items, onAdd, onEdit, onDelete }) {
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(items.length / PAGE_SIZE)
-  const paginated  = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(items.length / pageSize)
+  const paginated  = items.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="crud-section">
@@ -99,7 +98,7 @@ function SimpleCrudTable({ title, items, onAdd, onEdit, onDelete }) {
                 )}
                 {paginated.map((item, i) => (
                   <tr key={item.id} className={editId === item.id ? 'editing-row' : ''}>
-                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                     <td><strong>{item.name}</strong></td>
                     <td style={{ color: 'var(--text)', fontSize: '0.88rem' }}>{item.description || '-'}</td>
                     <td>
@@ -115,7 +114,15 @@ function SimpleCrudTable({ title, items, onAdd, onEdit, onDelete }) {
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} total={items.length} label="mục" onPage={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={items.length}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+            label="mục"
+            onPage={setPage}
+          />
         </div>
       </div>
       {confirmId && (
@@ -137,6 +144,7 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
   const [deleting, setDeleting] = useState(null)
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage]     = useState(1)
+  const [pageSize, setPageSize] = useState(10)
 
   const reset = () => { setForm({ name: '', categoryId: '' }); setEditId(null) }
 
@@ -172,8 +180,8 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(items.length / PAGE_SIZE)
-  const paginated  = items.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+  const totalPages = Math.ceil(items.length / pageSize)
+  const paginated  = items.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="crud-section">
@@ -222,7 +230,7 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
                 )}
                 {paginated.map((item, i) => (
                   <tr key={item.id} className={editId === item.id ? 'editing-row' : ''}>
-                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * PAGE_SIZE + i + 1}</td>
+                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                     <td><strong>{item.name}</strong></td>
                     <td>{item.categoryName ? <span className="cat-tag">{item.categoryName}</span> : '-'}</td>
                     <td>
@@ -238,7 +246,15 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
               </tbody>
             </table>
           </div>
-          <Pagination page={page} totalPages={totalPages} total={items.length} label="tên" onPage={setPage} />
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            total={items.length}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
+            label="tên"
+            onPage={setPage}
+          />
         </div>
       </div>
       {confirmId && (

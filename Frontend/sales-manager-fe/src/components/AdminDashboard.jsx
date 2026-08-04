@@ -8,6 +8,7 @@ import StockManager from './admin/StockManager'
 import Statistics from './admin/Statistics'
 import CategoryManager from './admin/CategoryManager'
 import BannerManager from './admin/BannerManager'
+import SystemManager from './admin/SystemManager'
 
 const TABS = [
   { key: 'list',       label: '📋 Sản phẩm' },
@@ -16,6 +17,7 @@ const TABS = [
   { key: 'categories', label: '🏷️ Danh mục' },
   { key: 'banners',    label: '🖼️ Banner' },
   { key: 'stats',      label: '📊 Thống kê' },
+  { key: 'system',     label: '⚙️ Hệ thống' },
 ]
 
 function AdminDashboard({ user, onBackToHome }) {
@@ -114,6 +116,7 @@ function AdminDashboard({ user, onBackToHome }) {
           {tab === 'categories' && <CategoryManager />}
           {tab === 'banners' && <BannerManager />}
           {tab === 'stats' && <Statistics stats={stats} />}
+          {tab === 'system' && <SystemManager currentUser={user} />}
         </main>
 
       </div>
