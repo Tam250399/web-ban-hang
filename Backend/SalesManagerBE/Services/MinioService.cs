@@ -25,6 +25,22 @@ namespace SalesManagerBE.Services
             {
                 var mbArgs = new MakeBucketArgs().WithBucket(bucketName);
                 await _minioClient.MakeBucketAsync(mbArgs);
+
+                var policy = $$"""
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": { "AWS": ["*"] },
+                            "Action": ["s3:GetObject"],
+                            "Resource": ["arn:aws:s3:::{{bucketName}}/*"]
+                        }
+                    ]
+                }
+                """;
+                var spArgs = new SetPolicyArgs().WithBucket(bucketName).WithPolicy(policy);
+                await _minioClient.SetPolicyAsync(spArgs);
             }
 
             var putObjectArgs = new PutObjectArgs()

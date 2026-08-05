@@ -72,6 +72,38 @@ namespace SalesManagerBE.Controllers
             });
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
+        {
+            var user = await _context.Users.FindAsync(id);
+            if (user == null) return NotFound();
+
+            var role = await _context.Roles.FindAsync(dto.RoleId);
+            if (role == null)
+                return BadRequest(new { message = "Vai trò không hợp lệ." });
+
+            user.FullName = dto.FullName;
+            user.Email = dto.Email;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.RoleId = dto.RoleId;
+            if (!string.IsNullOrWhiteSpace(dto.Password))
+                user.PasswordHash = AuthService.HashPassword(dto.Password);
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new UserDto
+            {
+                Id = user.Id,
+                Username = user.Username,
+                FullName = user.FullName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId,
+                RoleName = role.RoleName,
+                CreatedAt = user.CreatedAt
+            });
+        }
+
         [HttpPut("{id}/role")]
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleDto dto)
         {
