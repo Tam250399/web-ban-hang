@@ -10,5 +10,7 @@ namespace SalesManagerBE.Models
         public decimal UnitPrice { get; set; }
         public string? Note { get; set; }
         public DateTime TransactionDate { get; set; } = DateTime.UtcNow;
+        public int? SalesInvoiceId { get; set; }
+        public SalesInvoice? SalesInvoice { get; set; }
     }
 }

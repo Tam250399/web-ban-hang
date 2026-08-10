@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using SalesManagerBE.Data;
@@ -11,9 +12,11 @@ using SalesManagerBE.Data;
 namespace SalesManagerBE.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810075811_SeedAdminUser")]
+    partial class SeedAdminUser
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -440,33 +443,6 @@ namespace SalesManagerBE.Migrations
                         });
                 });
 
-            modelBuilder.Entity("SalesManagerBE.Models.SalesInvoice", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("CustomerName")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)");
-
-                    b.Property<DateTime>("InvoiceDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("PreparedByName")
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("SalesInvoices");
-                });
-
             modelBuilder.Entity("SalesManagerBE.Models.StockTransaction", b =>
                 {
                     b.Property<int>("Id")
@@ -485,9 +461,6 @@ namespace SalesManagerBE.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("numeric(18,2)");
 
-                    b.Property<int?>("SalesInvoiceId")
-                        .HasColumnType("integer");
-
                     b.Property<DateTime>("TransactionDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -503,8 +476,6 @@ namespace SalesManagerBE.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("SalesInvoiceId");
 
                     b.ToTable("StockTransactions");
                 });
@@ -675,14 +646,7 @@ namespace SalesManagerBE.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("SalesManagerBE.Models.SalesInvoice", "SalesInvoice")
-                        .WithMany("Items")
-                        .HasForeignKey("SalesInvoiceId")
-                        .OnDelete(DeleteBehavior.Cascade);
-
                     b.Navigation("Product");
-
-                    b.Navigation("SalesInvoice");
                 });
 
             modelBuilder.Entity("SalesManagerBE.Models.User", b =>
@@ -710,11 +674,6 @@ namespace SalesManagerBE.Migrations
             modelBuilder.Entity("SalesManagerBE.Models.Role", b =>
                 {
                     b.Navigation("Users");
-                });
-
-            modelBuilder.Entity("SalesManagerBE.Models.SalesInvoice", b =>
-                {
-                    b.Navigation("Items");
                 });
 
             modelBuilder.Entity("SalesManagerBE.Models.UnitType", b =>

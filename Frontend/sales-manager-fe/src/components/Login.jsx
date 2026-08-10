@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import toast from 'react-hot-toast'
 import '../App.css'
 
 const API_BASE_URL = 'http://localhost:5000'
@@ -83,6 +84,7 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
 
       localStorage.setItem('salesManagerToken', data?.token || '')
       localStorage.setItem('salesManagerUser', JSON.stringify(data?.user || { username }))
+      toast.success(`Đăng nhập thành công! Xin chào ${data?.user?.fullName || data?.user?.username || username}`)
       onLoginSuccess(data?.user || { username })
     } catch (error) {
       setFormError('Không thể kết nối tới backend.')
@@ -91,84 +93,88 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
   }
 
   return (
-    <div className="login-shell">
-      <div className="login-card">
-        <h1 className="login-title">Đăng nhập</h1>
-        <p className="login-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng</p>
+    <div className="auth-shell">
+      <div className="hzd" />
+      <div className="auth-center">
+        <div className="auth-card">
+          <span className="tag chip-rotate">Đức Lợi</span>
+          <h1 className="auth-title">Đăng nhập</h1>
+          <p className="auth-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng</p>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="login-field">
-            <label htmlFor="username" className="login-label">Tên đăng nhập</label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="username"
-              placeholder="Nhập tên đăng nhập"
-              value={username}
-              onChange={handleUsernameChange}
-              className={`login-input ${usernameError ? 'has-error' : ''}`}
-            />
-            {usernameError && <span className="login-field-error">{usernameError}</span>}
-          </div>
-
-          <div className="login-field">
-            <label htmlFor="password" className="login-label">Mật khẩu</label>
-            <div className="login-password-wrap">
+          <form onSubmit={handleSubmit} className="auth-form">
+            <div className="auth-field">
+              <label htmlFor="username" className="auth-label">Tên đăng nhập</label>
               <input
-                id="password"
-                name="password"
-                type={showPassword ? 'text' : 'password'}
-                autoComplete="current-password"
-                placeholder="Nhập mật khẩu"
-                value={password}
-                onChange={handlePasswordChange}
-                className={`login-input login-input-password ${passwordError ? 'has-error' : ''}`}
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="username"
+                placeholder="Nhập tên đăng nhập"
+                value={username}
+                onChange={handleUsernameChange}
+                className={`auth-input ${usernameError ? 'has-error' : ''}`}
               />
-              <button
-                type="button"
-                aria-label="Ẩn hiện mật khẩu"
-                onClick={() => setShowPassword((s) => !s)}
-                className="login-eye-btn"
-              >
-                {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-              </button>
+              {usernameError && <span className="auth-field-error">{usernameError}</span>}
             </div>
-            {passwordError && <span className="login-field-error">{passwordError}</span>}
-          </div>
 
-          <div className="login-row">
-            <label className="login-checkbox-label">
-              <input
-                type="checkbox"
-                checked={remember}
-                onChange={() => setRemember((r) => !r)}
-                className="login-checkbox"
-              />
-              Nhớ đăng nhập
-            </label>
-            <a href="#" className="login-forgot-link" onClick={(e) => e.preventDefault()}>
-              Quên mật khẩu?
-            </a>
-          </div>
-
-          {formError && (
-            <div className="login-error-banner">
-              <span>{formError}</span>
+            <div className="auth-field">
+              <label htmlFor="password" className="auth-label">Mật khẩu</label>
+              <div className="auth-password-wrap">
+                <input
+                  id="password"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  autoComplete="current-password"
+                  placeholder="Nhập mật khẩu"
+                  value={password}
+                  onChange={handlePasswordChange}
+                  className={`auth-input auth-input-password ${passwordError ? 'has-error' : ''}`}
+                />
+                <button
+                  type="button"
+                  aria-label="Ẩn hiện mật khẩu"
+                  onClick={() => setShowPassword((s) => !s)}
+                  className="auth-eye-btn"
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
+              {passwordError && <span className="auth-field-error">{passwordError}</span>}
             </div>
-          )}
 
-          <button type="submit" disabled={submitting} className="login-submit">
-            {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
-          </button>
+            <div className="auth-row">
+              <label className="auth-checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={remember}
+                  onChange={() => setRemember((r) => !r)}
+                  className="auth-checkbox"
+                />
+                Nhớ đăng nhập
+              </label>
+              <a href="#" className="auth-forgot-link" onClick={(e) => e.preventDefault()}>
+                Quên mật khẩu?
+              </a>
+            </div>
 
-          <p className="login-switch">
-            Chưa có tài khoản?{' '}
-            <button type="button" className="login-switch-link" onClick={onSwitchToRegister}>
-              Đăng ký ngay
+            {formError && (
+              <div className="auth-error-banner">
+                <span>{formError}</span>
+              </div>
+            )}
+
+            <button type="submit" disabled={submitting} className="auth-submit">
+              {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
-          </p>
-        </form>
+
+            <p className="auth-switch">
+              Chưa có tài khoản?{' '}
+              <button type="button" className="auth-switch-link" onClick={onSwitchToRegister}>
+                Đăng ký ngay
+              </button>
+            </p>
+          </form>
+        </div>
       </div>
     </div>
   )

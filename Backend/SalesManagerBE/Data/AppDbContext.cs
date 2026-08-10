@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Models;
+using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Data
 {
@@ -11,6 +12,7 @@ namespace SalesManagerBE.Data
         public DbSet<Role> Roles => Set<Role>();
         public DbSet<Product> Products => Set<Product>();
         public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
+        public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<UnitType> UnitTypes => Set<UnitType>();
         public DbSet<ProductNameTemplate> ProductNameTemplates => Set<ProductNameTemplate>();
@@ -39,6 +41,18 @@ namespace SalesManagerBE.Data
                     .WithMany(r => r.Users)
                     .HasForeignKey(e => e.RoleId)
                     .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasData(
+                    new User
+                    {
+                        Id = 1,
+                        Username = "admin",
+                        PasswordHash = AuthService.HashPassword("Admin@123"),
+                        FullName = "Quản trị viên",
+                        RoleId = 1,
+                        CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                    }
+                );
             });
 
             // ProductCategory seed
@@ -155,6 +169,17 @@ namespace SalesManagerBE.Data
                     .WithMany(p => p.Transactions)
                     .HasForeignKey(e => e.ProductId)
                     .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.SalesInvoice)
+                    .WithMany(i => i.Items)
+                    .HasForeignKey(e => e.SalesInvoiceId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // SalesInvoice config
+            modelBuilder.Entity<SalesInvoice>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
             });
         }
     }

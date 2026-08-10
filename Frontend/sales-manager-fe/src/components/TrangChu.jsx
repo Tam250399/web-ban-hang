@@ -41,7 +41,7 @@ function ProductDetailModal({ product, onClose }) {
           <div className="product-detail-info">
             <span className="product-category" style={{ fontSize: '0.8rem' }}>{catName}</span>
             <h2 className="product-detail-name">{product.productName}</h2>
-            <p className="product-detail-code">Mã SP: <code>{product.productCode}</code></p>
+            <p className="product-detail-code">Mã SP: <code className="tag">{product.productCode}</code></p>
 
             <div className="product-detail-price-row">
               <span className="product-detail-price">{product.price?.toLocaleString('vi-VN')}đ</span>
@@ -93,6 +93,7 @@ function ProductCard({ product, onClick }) {
         ) : (
           <span className="product-icon">{icon}</span>
         )}
+        <span className="tag chip-rotate product-code-chip">{product.productCode}</span>
         {product.stockQuantity < 50 && (
           <span className="low-stock-badge">Sắp hết</span>
         )}
@@ -214,6 +215,8 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         </div>
       </header>
 
+      <div className="hzd" />
+
       {/* HERO SLIDER — có banner thì chạy carousel, không có thì hiện hero mặc định */}
       <section className="hero-slider-section">
         {banners.length > 0 ? (
@@ -221,7 +224,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         ) : (
           <div className="hero-banner">
             <div className="hero-content">
-              <p className="hero-eyebrow">Cửa Hàng Vật Liệu Xây Dựng Đức Lợi — Nhà phân phối xi măng Sài Sơn</p>
+              <p className="hero-eyebrow chip-rotate tag">Cửa Hàng Vật Liệu Xây Dựng Đức Lợi — Nhà phân phối xi măng Sài Sơn</p>
               <h1>Vật liệu chất lượng — <span className="hero-accent">Giá tốt nhất</span></h1>
               <p className="hero-sub">
                 Chuyên bán buôn - bán lẻ: Xi măng - Sắt - Thép - Cát - Đá - Sỏi và các vật liệu xây dựng chính hãng.
@@ -251,6 +254,8 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           </div>
         )}
       </section>
+
+      <div className="hzd" />
 
       {/* PRODUCTS SECTION */}
       <section id="products" className="products-section">
@@ -297,6 +302,8 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           </div>
         )}
       </section>
+
+      <div className="hzd" style={{ marginTop: 64 }} />
 
       {/* ABOUT */}
       <section id="about" className="about-section">
@@ -353,11 +360,12 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
 
       {/* FOOTER */}
       <footer className="site-footer">
+        <div className="hzd" />
         <div className="footer-inner">
           <div className="footer-brand">
             <div className="brand-icon">ĐL</div>
             <div>
-              <strong style={{ color: '#007bff', padding: '0 10px' }}>Cửa Hàng VLXD Đức Lợi</strong>
+              <strong>Cửa Hàng VLXD Đức Lợi</strong>
               <span>Đồng hành cùng công trình của bạn</span>
             </div>
           </div>

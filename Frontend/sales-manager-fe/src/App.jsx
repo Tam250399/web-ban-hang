@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Toaster } from 'react-hot-toast'
+import { Toaster, toast } from 'react-hot-toast'
 import './App.css'
 import TrangChu from './components/TrangChu'
 import Login from './components/Login'
@@ -25,6 +25,7 @@ function App() {
     localStorage.removeItem('salesManagerUser')
     setUser({ username: 'guest', fullName: 'Khách' })
     setView('home')
+    toast.success('Đã đăng xuất')
   }
 
   const renderView = () => {
@@ -64,7 +65,7 @@ function App() {
           duration: 3000,
           style: { fontFamily: 'inherit', fontSize: '0.92rem', borderRadius: '12px' },
           success: { iconTheme: { primary: '#22c55e', secondary: '#fff' } },
-          error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+          error: { iconTheme: { primary: '#9B360B', secondary: '#fff' } },
         }}
       />
       {renderView()}
