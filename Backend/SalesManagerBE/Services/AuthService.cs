@@ -49,7 +49,7 @@ namespace SalesManagerBE.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return new AuthResult(true, new UserInfo(user.Username, user.FullName), null);
+            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName), null);
         }
 
         public async Task<AuthResult> LoginAsync(LoginDto dto)
@@ -61,7 +61,7 @@ namespace SalesManagerBE.Services
             }
 
             var token = GenerateJwtToken(user);
-            return new AuthResult(true, new UserInfo(user.Username, user.FullName, user.Role?.RoleName), null, token);
+            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName), null, token);
         }
 
         private string GenerateJwtToken(User user)
@@ -72,6 +72,7 @@ namespace SalesManagerBE.Services
             {
                 Subject = new ClaimsIdentity(new[]
                 {
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Customer")
                 }),
@@ -114,13 +115,15 @@ namespace SalesManagerBE.Services
 
     public class UserInfo
     {
-        public UserInfo(string username, string? fullName, string? role = null)
+        public UserInfo(int id, string username, string? fullName, string? role = null)
         {
+            Id = id;
             Username = username;
             FullName = fullName;
             Role = role;
         }
 
+        public int Id { get; set; }
         public string Username { get; set; }
         public string? FullName { get; set; }
         public string? Role { get; set; }

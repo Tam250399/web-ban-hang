@@ -5,6 +5,8 @@ import TrangChu from './components/TrangChu'
 import Login from './components/Login'
 import Register from './components/Register'
 import AdminDashboard from './components/AdminDashboard'
+import ChatWidget from './components/common/ChatWidget'
+import { chatService } from './services/chatService'
 
 function App() {
   const [view, setView] = useState('home')
@@ -23,6 +25,7 @@ function App() {
   const handleLogout = () => {
     localStorage.removeItem('salesManagerToken')
     localStorage.removeItem('salesManagerUser')
+    chatService.disconnect()
     setUser({ username: 'guest', fullName: 'Khách' })
     setView('home')
   }
@@ -68,6 +71,7 @@ function App() {
         }}
       />
       {renderView()}
+      <ChatWidget key={user?.id ?? user?.username ?? 'anon'} user={user} />
     </>
   )
 }

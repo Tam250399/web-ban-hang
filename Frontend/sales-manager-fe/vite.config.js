@@ -10,6 +10,11 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:5000',
         changeOrigin: true,
+      },
+      '/chathub': {
+        target: 'http://localhost:5000',
+        changeOrigin: true,
+        ws: true,
       }
     }
   }
