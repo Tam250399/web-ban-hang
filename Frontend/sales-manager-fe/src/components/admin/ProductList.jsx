@@ -4,6 +4,7 @@ import { productService } from '../../services/productService'
 import { uploadImage } from '../../services/uploadService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
+import AddProduct from './AddProduct'
 
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -166,6 +167,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   const [page, setPage]           = useState(1)
   const [pageSize, setPageSize]   = useState(10)
   const [search, setSearch]       = useState('')
+  const [showAddModal, setShowAddModal] = useState(false)
 
   const filtered = products.filter(p =>
     p.productName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -196,13 +198,16 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
         <h3 className="tab-title" style={{ margin: 0 }}>
           Danh sách sản phẩm <span className="count-badge">{products.length}</span>
         </h3>
-        <input
-          className="search-input"
-          style={{ maxWidth: 280 }}
-          placeholder="Tìm theo tên, mã, danh mục..."
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1) }}
-        />
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <input
+            className="search-input"
+            style={{ maxWidth: 280 }}
+            placeholder="Tìm theo tên, mã, danh mục..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+          />
+          <button className="btn-primary" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowAddModal(true)}>+ Thêm mới</button>
+        </div>
       </div>
 
       <div className="admin-table-wrap">
@@ -295,6 +300,14 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           unitTypes={unitTypes}
           onSave={() => { setEditing(null); onRefresh() }}
           onClose={() => setEditing(null)}
+        />
+      )}
+
+      {showAddModal && (
+        <AddProduct
+          onRefresh={onRefresh}
+          onSuccess={() => { setShowAddModal(false); onRefresh() }}
+          onClose={() => setShowAddModal(false)}
         />
       )}
     </div>

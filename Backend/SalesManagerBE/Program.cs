@@ -61,6 +61,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
+builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
 
 builder.Services.AddMinio(configureSource => configureSource
     .WithEndpoint("localhost:9000")

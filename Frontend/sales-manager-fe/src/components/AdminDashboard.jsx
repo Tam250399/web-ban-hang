@@ -4,7 +4,6 @@ import { productService } from '../services/productService'
 import { categoryService } from '../services/categoryService'
 import { chatService } from '../services/chatService'
 import ProductList from './admin/ProductList'
-import AddProduct from './admin/AddProduct'
 import StockManager from './admin/StockManager'
 import Statistics from './admin/Statistics'
 import CategoryManager from './admin/CategoryManager'
@@ -14,7 +13,6 @@ import ChatManager from './admin/ChatManager'
 
 const TABS = [
   { key: 'list',       label: '📋 Sản phẩm' },
-  { key: 'add',        label: '➕ Thêm mới' },
   { key: 'stock',      label: '📦 Nhập/Xuất kho' },
   { key: 'categories', label: '🏷️ Danh mục' },
   { key: 'banners',    label: '🖼️ Banner' },
@@ -138,13 +136,7 @@ function AdminDashboard({ user, onBackToHome }) {
               products={products}
               categories={categories}
               unitTypes={unitTypes}
-              onRefresh={loadProducts}
-            />
-          )}
-          {tab === 'add' && (
-            <AddProduct
               onRefresh={() => { loadProducts(); loadStats() }}
-              onSuccess={() => { loadProducts(); loadStats(); switchTab('list') }}
             />
           )}
           {tab === 'stock' && <StockManager products={products} />}

@@ -10,7 +10,7 @@ const EMPTY_FORM = {
   price: '', stockQuantity: '', description: '', imageUrl: ''
 }
 
-function AddProduct({ onRefresh, onSuccess }) {
+function AddProduct({ onRefresh, onSuccess, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [categories, setCategories] = useState([])
   const [unitTypes, setUnitTypes] = useState([])
@@ -86,112 +86,126 @@ function AddProduct({ onRefresh, onSuccess }) {
   }
 
   return (
-    <div>
-      <h3 className="tab-title">Thêm sản phẩm mới</h3>
-      <div className="form-card">
-        <form onSubmit={handleSubmit} className="add-product-form">
+    <div className="modal-overlay">
+      <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Thêm sản phẩm mới</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
 
-          <div className="form-row">
-            <label className="form-field">
-              <span>Mã sản phẩm <span className="required">*</span></span>
-              <input value={form.productCode} onChange={set('productCode')} required placeholder="VD: XM001" />
-            </label>
+        <form onSubmit={handleSubmit}>
+          <div className="edit-modal-body">
 
-            <div className="form-field">
-              <span>Danh mục sản phẩm</span>
-              <SearchableSelect
-                value={form.categoryId}
-                onChange={(val) => setForm(f => ({ ...f, categoryId: val }))}
-                options={categories.map(c => ({ value: c.id, label: c.name }))}
-                placeholder="-- Chọn danh mục --"
-                searchPlaceholder="Tìm danh mục..."
-              />
+            {/* Cột trái — ảnh */}
+            <div className="edit-modal-image">
+              <p className="form-field-label">Hình ảnh sản phẩm</p>
+              {imagePreview ? (
+                <div className="image-upload-preview" style={{ maxHeight: 220 }}>
+                  <img src={imagePreview} alt="preview" />
+                  {uploading && <div className="image-upload-overlay">Đang tải...</div>}
+                  {!uploading && (
+                    <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                  )}
+                </div>
+              ) : (
+                <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    onChange={handleImageChange}
+                    style={{ display: 'none' }}
+                    disabled={uploading}
+                  />
+                  <span className="image-upload-icon">🖼️</span>
+                  <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+                </label>
+              )}
             </div>
-          </div>
 
-          <div className="form-field">
-            <span>Tên sản phẩm <span className="required">*</span></span>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <div style={{ flex: 1 }}>
-                <SearchableSelect
-                  value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
-                  onChange={(val) => setForm(f => ({ ...f, productName: val }))}
-                  options={filteredNames.map(n => ({ value: n.name, label: n.name }))}
-                  placeholder="-- Chọn tên từ danh mục --"
-                  searchPlaceholder="Tìm tên sản phẩm..."
-                />
+            {/* Cột phải — thông tin */}
+            <div className="edit-modal-fields">
+              <div className="form-row">
+                <label className="form-field">
+                  <span>Mã sản phẩm <span className="required">*</span></span>
+                  <input value={form.productCode} onChange={set('productCode')} required placeholder="VD: XM001" />
+                </label>
+
+                <div className="form-field">
+                  <span>Danh mục sản phẩm</span>
+                  <SearchableSelect
+                    value={form.categoryId}
+                    onChange={(val) => setForm(f => ({ ...f, categoryId: val }))}
+                    options={categories.map(c => ({ value: c.id, label: c.name }))}
+                    placeholder="-- Chọn danh mục --"
+                    searchPlaceholder="Tìm danh mục..."
+                  />
+                </div>
               </div>
-              <input
-                style={{ flex: 1 }}
-                value={form.productName}
-                onChange={set('productName')}
-                required
-                placeholder="Hoặc nhập tên mới..."
-              />
-            </div>
-            <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>
-              Chọn từ danh sách hoặc nhập tên tùy chỉnh
-            </span>
-          </div>
 
-          <div className="form-row">
-            <div className="form-field">
-              <span>Đơn vị tính <span className="required">*</span></span>
-              <SearchableSelect
-                value={form.unitTypeId}
-                onChange={(val) => setForm(f => ({ ...f, unitTypeId: val }))}
-                options={unitTypes.map(u => ({ value: u.id, label: u.name }))}
-                placeholder="-- Chọn đơn vị --"
-                searchPlaceholder="Tìm đơn vị..."
-              />
-            </div>
-
-            <label className="form-field">
-              <span>Giá bán (VNĐ) <span className="required">*</span></span>
-              <input type="number" value={form.price} onChange={set('price')} required min="0" placeholder="0" />
-            </label>
-          </div>
-
-          <label className="form-field">
-            <span>Số lượng ban đầu <span className="required">*</span></span>
-            <input type="number" value={form.stockQuantity} onChange={set('stockQuantity')} required min="0" placeholder="0" />
-          </label>
-
-          <label className="form-field">
-            <span>Mô tả sản phẩm</span>
-            <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn về sản phẩm..." />
-          </label>
-
-          <div className="form-field">
-            <span>Hình ảnh sản phẩm</span>
-            {imagePreview ? (
-              <div className="image-upload-preview">
-                <img src={imagePreview} alt="preview" />
-                {uploading && <div className="image-upload-overlay">Đang tải...</div>}
-                {!uploading && (
-                  <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
-                )}
+              <div className="form-field">
+                <span>Tên sản phẩm <span className="required">*</span></span>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <div style={{ flex: 1 }}>
+                    <SearchableSelect
+                      value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
+                      onChange={(val) => setForm(f => ({ ...f, productName: val }))}
+                      options={filteredNames.map(n => ({ value: n.name, label: n.name }))}
+                      placeholder="-- Chọn tên từ danh mục --"
+                      searchPlaceholder="Tìm tên sản phẩm..."
+                    />
+                  </div>
+                  <input
+                    style={{ flex: 1 }}
+                    value={form.productName}
+                    onChange={set('productName')}
+                    required
+                    placeholder="Hoặc nhập tên mới..."
+                  />
+                </div>
+                <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>
+                  Chọn từ danh sách hoặc nhập tên tùy chỉnh
+                </span>
               </div>
-            ) : (
-              <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  onChange={handleImageChange}
-                  style={{ display: 'none' }}
-                  disabled={uploading}
-                />
-                <span className="image-upload-icon">🖼️</span>
-                <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+
+              <div className="form-row">
+                <div className="form-field">
+                  <span>Đơn vị tính <span className="required">*</span></span>
+                  <SearchableSelect
+                    value={form.unitTypeId}
+                    onChange={(val) => setForm(f => ({ ...f, unitTypeId: val }))}
+                    options={unitTypes.map(u => ({ value: u.id, label: u.name }))}
+                    placeholder="-- Chọn đơn vị --"
+                    searchPlaceholder="Tìm đơn vị..."
+                  />
+                </div>
+
+                <label className="form-field">
+                  <span>Giá bán (VNĐ) <span className="required">*</span></span>
+                  <input type="number" value={form.price} onChange={set('price')} required min="0" placeholder="0" />
+                </label>
+              </div>
+
+              <label className="form-field">
+                <span>Số lượng ban đầu <span className="required">*</span></span>
+                <input type="number" value={form.stockQuantity} onChange={set('stockQuantity')} required min="0" placeholder="0" />
               </label>
-            )}
+
+              <label className="form-field">
+                <span>Mô tả sản phẩm</span>
+                <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn về sản phẩm..." />
+              </label>
+            </div>
+
           </div>
 
-          <button className="btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Đang lưu...' : '+ Thêm sản phẩm'}
-          </button>
+          <div className="modal-footer">
+            <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
+            <button className="btn-primary" type="submit" disabled={loading || uploading}>
+              {loading ? 'Đang lưu...' : '+ Thêm sản phẩm'}
+            </button>
+          </div>
         </form>
       </div>
     </div>

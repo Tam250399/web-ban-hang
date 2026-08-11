@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
 function SearchableSelect({
   value,
@@ -10,14 +11,30 @@ function SearchableSelect({
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [panelStyle, setPanelStyle] = useState(null)
   const wrapRef = useRef(null)
+  const panelRef = useRef(null)
   const searchRef = useRef(null)
 
   const selected = options.find(o => String(o.value) === String(value))
 
+  const updatePosition = () => {
+    if (!wrapRef.current) return
+    const rect = wrapRef.current.getBoundingClientRect()
+    setPanelStyle({
+      position: 'fixed',
+      top: rect.bottom + 6,
+      left: rect.left,
+      width: rect.width,
+    })
+  }
+
   useEffect(() => {
     const onClickOutside = (e) => {
-      if (wrapRef.current && !wrapRef.current.contains(e.target)) {
+      if (
+        wrapRef.current && !wrapRef.current.contains(e.target) &&
+        panelRef.current && !panelRef.current.contains(e.target)
+      ) {
         setOpen(false)
         setQuery('')
       }
@@ -27,7 +44,15 @@ function SearchableSelect({
   }, [])
 
   useEffect(() => {
-    if (open) searchRef.current?.focus()
+    if (!open) return
+    updatePosition()
+    searchRef.current?.focus()
+    window.addEventListener('scroll', updatePosition, true)
+    window.addEventListener('resize', updatePosition)
+    return () => {
+      window.removeEventListener('scroll', updatePosition, true)
+      window.removeEventListener('resize', updatePosition)
+    }
   }, [open])
 
   const filtered = options.filter(o =>
@@ -66,8 +91,8 @@ function SearchableSelect({
         </svg>
       </button>
 
-      {open && (
-        <div className="searchable-select-panel">
+      {open && panelStyle && createPortal(
+        <div className="searchable-select-panel" style={panelStyle} ref={panelRef}>
           <input
             ref={searchRef}
             className="searchable-select-search"
@@ -96,7 +121,8 @@ function SearchableSelect({
               </div>
             ))}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   )
