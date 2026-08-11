@@ -13,6 +13,7 @@ namespace SalesManagerBE.Data
         public DbSet<Product> Products => Set<Product>();
         public DbSet<StockTransaction> StockTransactions => Set<StockTransaction>();
         public DbSet<SalesInvoice> SalesInvoices => Set<SalesInvoice>();
+        public DbSet<Customer> Customers => Set<Customer>();
         public DbSet<ProductCategory> ProductCategories => Set<ProductCategory>();
         public DbSet<UnitType> UnitTypes => Set<UnitType>();
         public DbSet<ProductNameTemplate> ProductNameTemplates => Set<ProductNameTemplate>();
@@ -204,11 +205,25 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // Customer config
+            modelBuilder.Entity<Customer>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.FullName).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Address).HasMaxLength(300);
+                entity.HasIndex(e => e.PhoneNumber).IsUnique();
+            });
+
             // SalesInvoice config
             modelBuilder.Entity<SalesInvoice>(entity =>
             {
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CustomerName).IsRequired().HasMaxLength(200);
+                entity.HasOne(e => e.Customer)
+                    .WithMany(c => c.Invoices)
+                    .HasForeignKey(e => e.CustomerId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

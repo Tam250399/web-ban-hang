@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { stockService } from '../../services/stockService'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
+import { customerService } from '../../services/customerService'
 import Pagination from '../common/Pagination'
 import SearchableSelect from '../common/SearchableSelect'
 import ConfirmModal from '../common/ConfirmModal'
+import MoneyInput from '../common/MoneyInput'
 
 const EMPTY_IMPORT_FORM = { productId: '', quantity: '', unitPrice: '', note: '' }
 const today = () => new Date().toISOString().slice(0, 10)
@@ -13,8 +15,14 @@ const currentUser = () => {
   try { return JSON.parse(localStorage.getItem('salesManagerUser') || 'null') } catch { return null }
 }
 
-function ImportModal({ products, onClose, onSaved }) {
-  const [form, setForm] = useState(EMPTY_IMPORT_FORM)
+function ImportModal({ products, transaction, onClose, onSaved }) {
+  const isEdit = !!transaction
+  const [form, setForm] = useState(isEdit ? {
+    productId: String(transaction.productId),
+    quantity: transaction.quantity,
+    unitPrice: transaction.unitPrice,
+    note: transaction.note || '',
+  } : EMPTY_IMPORT_FORM)
   const [loading, setLoading] = useState(false)
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -22,15 +30,21 @@ function ImportModal({ products, onClose, onSaved }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
+    const payload = {
+      ...form,
+      type: 'Import',
+      productId: +form.productId,
+      quantity: +form.quantity,
+      unitPrice: +form.unitPrice,
+    }
     try {
-      await stockService.create({
-        ...form,
-        type: 'Import',
-        productId: +form.productId,
-        quantity: +form.quantity,
-        unitPrice: +form.unitPrice,
-      })
-      toast.success('Nhập kho thành công!')
+      if (isEdit) {
+        await stockService.update(transaction.id, payload)
+        toast.success('Cập nhật phiếu nhập kho thành công!')
+      } else {
+        await stockService.create(payload)
+        toast.success('Nhập kho thành công!')
+      }
       onSaved()
     } catch (err) {
       toast.error(err.message || 'Có lỗi xảy ra.')
@@ -42,11 +56,11 @@ function ImportModal({ products, onClose, onSaved }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
-          <h3>Tạo phiếu nhập kho</h3>
+          <h3>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</h3>
           <button className="modal-close" onClick={onClose}>✕</button>
         </div>
 
-        <form onSubmit={handleSubmit} className="stock-form">
+        <form onSubmit={handleSubmit} className="add-product-form">
           <label className="form-field">
             <span>Sản phẩm <span className="required">*</span></span>
             <select value={form.productId} onChange={set('productId')} required autoFocus>
@@ -57,14 +71,14 @@ function ImportModal({ products, onClose, onSaved }) {
             </select>
           </label>
 
-          <div className="row">
+          <div className="form-row">
             <label className="form-field">
               <span>Số lượng <span className="required">*</span></span>
               <input type="number" value={form.quantity} onChange={set('quantity')} required min="1" />
             </label>
             <label className="form-field">
               <span>Đơn giá (VNĐ) <span className="required">*</span></span>
-              <input type="number" value={form.unitPrice} onChange={set('unitPrice')} required min="0" />
+              <MoneyInput value={form.unitPrice} onChange={set('unitPrice')} required />
             </label>
           </div>
 
@@ -76,7 +90,7 @@ function ImportModal({ products, onClose, onSaved }) {
           <div className="modal-footer">
             <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
             <button className="btn-primary" type="submit" disabled={loading}>
-              {loading ? 'Đang xử lý...' : 'Xác nhận nhập kho'}
+              {loading ? 'Đang xử lý...' : isEdit ? 'Lưu thay đổi' : 'Xác nhận nhập kho'}
             </button>
           </div>
         </form>
@@ -92,11 +106,32 @@ function ImportPanel({ products, transactions, reload }) {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [showModal, setShowModal] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const openAdd = () => { setEditingTransaction(null); setShowModal(true) }
+  const openEdit = (t) => { setEditingTransaction(t); setShowModal(true) }
+  const closeModal = () => { setShowModal(false); setEditingTransaction(null) }
 
   const handleSaved = () => {
-    setShowModal(false)
+    closeModal()
     setPage(1)
     reload()
+  }
+
+  const handleDelete = async () => {
+    const id = confirmDeleteId
+    setConfirmDeleteId(null)
+    setDeleting(true)
+    try {
+      await stockService.remove(id)
+      toast.success('Đã xóa giao dịch nhập kho!')
+      reload()
+    } catch (err) {
+      toast.error(err.message || 'Xóa thất bại.')
+    }
+    setDeleting(false)
   }
 
   const filtered = transactions.filter(t => {
@@ -120,7 +155,7 @@ function ImportPanel({ products, transactions, reload }) {
           Lịch sử nhập kho
           <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
         </h4>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>+ Thêm phiếu nhập</button>
+        <button className="btn-primary" onClick={openAdd}>+ Thêm phiếu nhập</button>
       </div>
 
       <div>
@@ -146,7 +181,7 @@ function ImportPanel({ products, transactions, reload }) {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>#</th><th>Ngày</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th>
+                <th>#</th><th>Ngày</th><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th><th>Ghi chú</th><th>Thao tác</th>
               </tr>
             </thead>
             <tbody>
@@ -159,10 +194,18 @@ function ImportPanel({ products, transactions, reload }) {
                   <td>{t.unitPrice?.toLocaleString('vi-VN')}đ</td>
                   <td><strong>{(t.quantity * t.unitPrice)?.toLocaleString('vi-VN')}đ</strong></td>
                   <td>{t.note || '-'}</td>
+                  <td>
+                    <div className="action-btns">
+                      <button className="btn-edit-sm" onClick={() => openEdit(t)}>✏️ Sửa</button>
+                      <button className="btn-danger-sm" onClick={() => setConfirmDeleteId(t.id)} disabled={deleting}>
+                        🗑️ Xóa
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))}
               {filtered.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>
+                <tr><td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>
                   {transactions.length === 0 ? 'Chưa có giao dịch nhập kho nào' : 'Không tìm thấy giao dịch phù hợp'}
                 </td></tr>
               )}
@@ -179,17 +222,26 @@ function ImportPanel({ products, transactions, reload }) {
       {showModal && (
         <ImportModal
           products={products}
-          onClose={() => setShowModal(false)}
+          transaction={editingTransaction}
+          onClose={closeModal}
           onSaved={handleSaved}
+        />
+      )}
+
+      {confirmDeleteId && (
+        <ConfirmModal
+          message="Bạn có chắc muốn xóa giao dịch nhập kho này không? Tồn kho sản phẩm liên quan sẽ được điều chỉnh lại."
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmDeleteId(null)}
         />
       )}
     </div>
   )
 }
 
-function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
+function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) {
   const isEdit = !!invoice
-  const [customerName, setCustomerName] = useState(invoice?.customerName || '')
+  const [customerId, setCustomerId] = useState(invoice?.customerId ? String(invoice.customerId) : '')
   const [invoiceDate, setInvoiceDate] = useState(invoice ? invoice.invoiceDate.slice(0, 10) : today())
   const [items, setItems] = useState(
     invoice?.items?.length
@@ -200,6 +252,7 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
 
   const productOptions = products.map(p => ({ value: String(p.id), label: `${p.productCode} - ${p.productName}` }))
   const productById = (id) => products.find(p => String(p.id) === String(id))
+  const customerOptions = customers.map(c => ({ value: String(c.id), label: c.fullName }))
 
   const updateItem = (index, field, value) => {
     setItems(list => list.map((it, i) => {
@@ -220,7 +273,7 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!customerName.trim()) { toast.error('Vui lòng nhập tên khách hàng.'); return }
+    if (!customerId) { toast.error('Vui lòng chọn khách hàng.'); return }
     const validItems = items.filter(it => it.productId && Number(it.quantity) > 0)
     if (validItems.length === 0) { toast.error('Vui lòng thêm ít nhất 1 sản phẩm.'); return }
 
@@ -228,7 +281,7 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
     try {
       const user = currentUser()
       const payload = {
-        customerName: customerName.trim(),
+        customerId: +customerId,
         invoiceDate,
         preparedByName: user?.fullName || user?.username || '',
         items: validItems.map(it => ({
@@ -265,10 +318,16 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
             </div>
 
             <div className="invoice-modal-fields">
-              <label className="form-field">
-                <span>Tên khách hàng <span className="required">*</span></span>
-                <input type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Nhập tên khách hàng..." autoFocus required />
-              </label>
+              <div className="form-field">
+                <span>Khách hàng <span className="required">*</span></span>
+                <SearchableSelect
+                  value={customerId}
+                  onChange={(val) => setCustomerId(val)}
+                  options={customerOptions}
+                  placeholder="-- Chọn khách hàng --"
+                  searchPlaceholder="Tìm theo tên khách hàng..."
+                />
+              </div>
               <label className="form-field">
                 <span>Ngày</span>
                 <input type="date" value={invoiceDate} onChange={e => setInvoiceDate(e.target.value)} />
@@ -304,7 +363,7 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
                         <input type="number" min="1" value={it.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
                       </td>
                       <td style={{ width: 130 }}>
-                        <input type="number" min="0" value={it.unitPrice} onChange={e => updateItem(i, 'unitPrice', e.target.value)} />
+                        <MoneyInput min="0" value={it.unitPrice} onChange={e => updateItem(i, 'unitPrice', e.target.value)} />
                       </td>
                       <td className="invoice-line-total">{lineTotal.toLocaleString('vi-VN')}đ</td>
                       <td>
@@ -336,13 +395,14 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
   )
 }
 
-function ExportPanel({ products, invoices, reload }) {
+function ExportPanel({ products, customers, invoices, reload }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
+  const [filterCustomerId, setFilterCustomerId] = useState('')
   const [selectedIds, setSelectedIds] = useState([])
   const [modalInvoice, setModalInvoice] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -351,13 +411,16 @@ function ExportPanel({ products, invoices, reload }) {
   const [deleting, setDeleting] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
+  const customerFilterOptions = customers.map(c => ({ value: String(c.id), label: c.fullName }))
+
   const filtered = invoices.filter(inv => {
     const matchSearch = inv.customerName?.toLowerCase().includes(search.trim().toLowerCase())
+    const matchCustomer = !filterCustomerId || String(inv.customerId) === filterCustomerId
     const invDate = inv.invoiceDate.slice(0, 10)
     const matchFrom = !fromDate || invDate >= fromDate
     const matchTo = !toDate || invDate <= toDate
     const matchMonth = !filterMonth || invDate.slice(0, 7) === filterMonth
-    return matchSearch && matchFrom && matchTo && matchMonth
+    return matchSearch && matchCustomer && matchFrom && matchTo && matchMonth
   })
 
   const totalPages = Math.ceil(filtered.length / pageSize)
@@ -458,6 +521,15 @@ function ExportPanel({ products, invoices, reload }) {
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
         />
+        <div style={{ minWidth: 220 }}>
+          <SearchableSelect
+            value={filterCustomerId}
+            onChange={(val) => { setFilterCustomerId(val); setPage(1) }}
+            options={customerFilterOptions}
+            placeholder="-- Tất cả khách hàng --"
+            searchPlaceholder="Tìm theo tên khách hàng..."
+          />
+        </div>
         <label className="admin-filter-date">
           <span>Tháng</span>
           <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setPage(1) }} />
@@ -470,11 +542,11 @@ function ExportPanel({ products, invoices, reload }) {
           <span>Đến ngày</span>
           <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
         </label>
-        {(search || filterMonth || fromDate || toDate) && (
+        {(search || filterCustomerId || filterMonth || fromDate || toDate) && (
           <button
             type="button"
             className="btn-ghost"
-            onClick={() => { setSearch(''); setFilterMonth(''); setFromDate(''); setToDate(''); setPage(1) }}
+            onClick={() => { setSearch(''); setFilterCustomerId(''); setFilterMonth(''); setFromDate(''); setToDate(''); setPage(1) }}
           >Xóa lọc</button>
         )}
       </div>
@@ -531,6 +603,7 @@ function ExportPanel({ products, invoices, reload }) {
       {showModal && (
         <CreateInvoiceModal
           products={products}
+          customers={customers}
           invoice={modalInvoice}
           onClose={() => { setShowModal(false); setModalInvoice(null) }}
           onSaved={handleSaved}
@@ -552,10 +625,12 @@ function StockManager({ products }) {
   const [sub, setSub] = useState('import')
   const [transactions, setTransactions] = useState([])
   const [invoices, setInvoices] = useState([])
+  const [customers, setCustomers] = useState([])
 
   const loadTransactions = () => stockService.getAll().then(setTransactions).catch(() => {})
   const loadInvoices = () => salesInvoiceService.getAll().then(setInvoices).catch(() => {})
-  useEffect(() => { loadTransactions(); loadInvoices() }, [])
+  const loadCustomers = () => customerService.getAll().then(setCustomers).catch(() => {})
+  useEffect(() => { loadTransactions(); loadInvoices(); loadCustomers() }, [])
 
   const importTransactions = transactions.filter(t => t.type === 'Import')
 
@@ -584,7 +659,7 @@ function StockManager({ products }) {
       <div style={{ marginTop: 20 }}>
         {sub === 'import'
           ? <ImportPanel products={products} transactions={importTransactions} reload={loadTransactions} />
-          : <ExportPanel products={products} invoices={invoices} reload={loadInvoices} />}
+          : <ExportPanel products={products} customers={customers} invoices={invoices} reload={loadInvoices} />}
       </div>
     </div>
   )

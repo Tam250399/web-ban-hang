@@ -4,6 +4,7 @@ import { productService } from '../../services/productService'
 import { categoryService } from '../../services/categoryService'
 import { uploadImage } from '../../services/uploadService'
 import SearchableSelect from '../common/SearchableSelect'
+import MoneyInput from '../common/MoneyInput'
 
 const EMPTY_FORM = {
   productCode: '', productName: '', categoryId: '', unitTypeId: '',
@@ -183,7 +184,7 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
 
                 <label className="form-field">
                   <span>Giá bán (VNĐ) <span className="required">*</span></span>
-                  <input type="number" value={form.price} onChange={set('price')} required min="0" placeholder="0" />
+                  <MoneyInput value={form.price} onChange={set('price')} required min="0" placeholder="0" />
                 </label>
               </div>
 

@@ -10,10 +10,12 @@ import CategoryManager from './admin/CategoryManager'
 import BannerManager from './admin/BannerManager'
 import SystemManager from './admin/SystemManager'
 import ChatManager from './admin/ChatManager'
+import CustomerManager from './admin/CustomerManager'
 
 const TABS = [
   { key: 'list',       label: '📋 Sản phẩm' },
   { key: 'stock',      label: '📦 Nhập/Xuất kho' },
+  { key: 'customers',  label: '👥 Khách hàng' },
   { key: 'categories', label: '🏷️ Danh mục' },
   { key: 'banners',    label: '🖼️ Banner' },
   { key: 'chat',       label: '💬 Chat' },
@@ -158,6 +160,7 @@ function AdminDashboard({ user, onBackToHome }) {
             />
           )}
           {tab === 'stock' && <StockManager products={products} />}
+          {tab === 'customers' && <CustomerManager />}
           {tab === 'categories' && <CategoryManager />}
           {tab === 'banners' && <BannerManager />}
           {tab === 'chat' && (

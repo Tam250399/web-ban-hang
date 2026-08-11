@@ -4,6 +4,7 @@ import { productService } from '../../services/productService'
 import { uploadImage } from '../../services/uploadService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
+import MoneyInput from '../common/MoneyInput'
 import AddProduct from './AddProduct'
 
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
@@ -137,7 +138,7 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
 
               <label className="form-field">
                 <span>Giá bán (VNĐ) <span className="required">*</span></span>
-                <input type="number" value={form.price} onChange={set('price')} required min="0" />
+                <MoneyInput value={form.price} onChange={set('price')} required min="0" />
               </label>
 
               <label className="form-field">

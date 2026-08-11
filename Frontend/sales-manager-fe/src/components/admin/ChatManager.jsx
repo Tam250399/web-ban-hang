@@ -15,6 +15,7 @@ function formatDay(iso) {
 // AdminDashboard (để chuông thông báo trên header hoạt động dù đang ở tab nào),
 // ChatManager chỉ nhận qua props.
 function ChatManager({ conversations, setConversations, activeId, setActiveId }) {
+  const [search, setSearch] = useState('')
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
@@ -151,16 +152,31 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
   }
 
   const active = conversations.find(c => c.id === activeId)
+  const filteredConversations = conversations.filter(c =>
+    c.customerName?.toLowerCase().includes(search.trim().toLowerCase())
+  )
 
   return (
     <div className="chat-page">
       <h3 className="tab-title">Chat với khách hàng</h3>
       <div className={`chat-admin-layout ${activeId ? 'panel-open' : ''}`}>
         <div className="chat-conv-list">
+          <div style={{ padding: 10, borderBottom: '1px solid var(--border)' }}>
+            <input
+              className="search-input"
+              style={{ padding: '9px 12px', fontSize: '0.85rem' }}
+              placeholder="Tìm theo tên khách hàng..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+          </div>
           {conversations.length === 0 && (
             <p className="chat-empty" style={{ padding: 20 }}>Chưa có hội thoại nào.</p>
           )}
-          {conversations.map(c => (
+          {conversations.length > 0 && filteredConversations.length === 0 && (
+            <p className="chat-empty" style={{ padding: 20 }}>Không tìm thấy hội thoại phù hợp.</p>
+          )}
+          {filteredConversations.map(c => (
             <button
               key={c.id}
               className={`chat-conv-item ${activeId === c.id ? 'active' : ''}`}

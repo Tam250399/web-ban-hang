@@ -29,6 +29,7 @@ namespace SalesManagerBE.Controllers
                 .Select(i => new
                 {
                     i.Id,
+                    i.CustomerId,
                     i.CustomerName,
                     i.InvoiceDate,
                     i.CreatedAt,
@@ -52,8 +53,11 @@ namespace SalesManagerBE.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateSalesInvoiceDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.CustomerName))
-                return BadRequest(new { message = "Vui lòng nhập tên khách hàng." });
+            if (dto.CustomerId <= 0)
+                return BadRequest(new { message = "Vui lòng chọn khách hàng." });
+            var customer = await _context.Customers.FindAsync(dto.CustomerId);
+            if (customer == null)
+                return NotFound(new { message = "Không tìm thấy khách hàng." });
             if (dto.Items == null || dto.Items.Count == 0)
                 return BadRequest(new { message = "Phiếu phải có ít nhất 1 sản phẩm." });
 
@@ -80,9 +84,10 @@ namespace SalesManagerBE.Controllers
             }
 
             var invoiceDateUtc = DateTime.SpecifyKind(dto.InvoiceDate, DateTimeKind.Utc);
-            var customerName = dto.CustomerName.Trim();
+            var customerName = customer.FullName;
             var invoice = new SalesInvoice
             {
+                CustomerId = customer.Id,
                 CustomerName = customerName,
                 InvoiceDate = invoiceDateUtc,
                 PreparedByName = dto.PreparedByName,
@@ -112,8 +117,11 @@ namespace SalesManagerBE.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] CreateSalesInvoiceDto dto)
         {
-            if (string.IsNullOrWhiteSpace(dto.CustomerName))
-                return BadRequest(new { message = "Vui lòng nhập tên khách hàng." });
+            if (dto.CustomerId <= 0)
+                return BadRequest(new { message = "Vui lòng chọn khách hàng." });
+            var customer = await _context.Customers.FindAsync(dto.CustomerId);
+            if (customer == null)
+                return NotFound(new { message = "Không tìm thấy khách hàng." });
             if (dto.Items == null || dto.Items.Count == 0)
                 return BadRequest(new { message = "Phiếu phải có ít nhất 1 sản phẩm." });
 
@@ -160,7 +168,8 @@ namespace SalesManagerBE.Controllers
             invoice.Items.Clear();
 
             var invoiceDateUtc = DateTime.SpecifyKind(dto.InvoiceDate, DateTimeKind.Utc);
-            var customerName = dto.CustomerName.Trim();
+            var customerName = customer.FullName;
+            invoice.CustomerId = customer.Id;
             invoice.CustomerName = customerName;
             invoice.InvoiceDate = invoiceDateUtc;
             invoice.PreparedByName = dto.PreparedByName;

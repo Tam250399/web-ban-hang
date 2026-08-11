@@ -11,6 +11,7 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
 
   const handleRoleChange = async (userId, roleId) => {
     setSavingId(userId)
@@ -36,12 +37,30 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(users.length / pageSize)
-  const paginated = users.slice((page - 1) * pageSize, page * pageSize)
+  const filtered = users.filter(u => {
+    const q = search.trim().toLowerCase()
+    if (!q) return true
+    return u.username?.toLowerCase().includes(q) ||
+      u.fullName?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.phoneNumber?.includes(q)
+  })
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="crud-section">
-      <h4 className="crud-title">Danh sách người dùng</h4>
+      <h4 className="crud-title">Danh sách người dùng <span className="count-badge">{filtered.length}</span></h4>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên đăng nhập, họ tên, email, SĐT..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
+      </div>
+
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
@@ -51,8 +70,10 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có người dùng</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                {users.length === 0 ? 'Chưa có người dùng' : 'Không tìm thấy người dùng phù hợp'}
+              </td></tr>
             )}
             {paginated.map((u, i) => {
               const isSelf = currentUser?.username === u.username
@@ -225,6 +246,7 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
 
   const openAdd = () => { setEditUser(null); setShowModal(true) }
   const openEdit = (u) => { setEditUser(u); setShowModal(true) }
@@ -254,16 +276,33 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(users.length / pageSize)
-  const paginated = users.slice((page - 1) * pageSize, page * pageSize)
+  const filtered = users.filter(u => {
+    const q = search.trim().toLowerCase()
+    if (!q) return true
+    return u.username?.toLowerCase().includes(q) ||
+      u.fullName?.toLowerCase().includes(q) ||
+      u.email?.toLowerCase().includes(q) ||
+      u.phoneNumber?.includes(q)
+  })
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div>
       <div className="list-header">
         <h4 className="crud-title" style={{ margin: 0 }}>
-          Danh sách người dùng <span className="count-badge">{users.length}</span>
+          Danh sách người dùng <span className="count-badge">{filtered.length}</span>
         </h4>
         <button className="btn-primary" style={{ whiteSpace: 'nowrap' }} onClick={openAdd}>+ Thêm mới</button>
+      </div>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên đăng nhập, họ tên, email, SĐT..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
       </div>
 
       <div className="admin-table-wrap">
@@ -275,8 +314,10 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
             </tr>
           </thead>
           <tbody>
-            {users.length === 0 && (
-              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có người dùng</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                {users.length === 0 ? 'Chưa có người dùng' : 'Không tìm thấy người dùng phù hợp'}
+              </td></tr>
             )}
             {paginated.map((u, i) => {
               const isSelf = currentUser?.username === u.username

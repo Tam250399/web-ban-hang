@@ -132,6 +132,7 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
 
   const openAdd = () => { setEditItem(null); setShowModal(true) }
   const openEdit = (item) => { setEditItem(item); setShowModal(true) }
@@ -156,16 +157,29 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(items.length / pageSize)
-  const paginated = items.slice((page - 1) * pageSize, page * pageSize)
+  const filtered = items.filter(item =>
+    item.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
+    item.description?.toLowerCase().includes(search.trim().toLowerCase())
+  )
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="crud-section">
       <div className="list-header">
         <h4 className="crud-title" style={{ margin: 0 }}>
-          {title} <span className="count-badge">{items.length}</span>
+          {title} <span className="count-badge">{filtered.length}</span>
         </h4>
         <button className="btn-primary" style={{ whiteSpace: 'nowrap' }} onClick={openAdd}>+ Thêm mới</button>
+      </div>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
       </div>
 
       <div className="admin-table-wrap">
@@ -174,8 +188,10 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
             <tr><th>#</th><th>Tên</th><th>Mô tả</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {items.length === 0 && (
-              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có dữ liệu</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                {items.length === 0 ? 'Chưa có dữ liệu' : 'Không tìm thấy kết quả phù hợp'}
+              </td></tr>
             )}
             {paginated.map((item, i) => (
               <tr key={item.id}>
@@ -233,6 +249,7 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
 
   const openAdd = () => { setEditItem(null); setShowModal(true) }
   const openEdit = (item) => { setEditItem(item); setShowModal(true) }
@@ -257,16 +274,29 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
     setDeleting(null)
   }
 
-  const totalPages = Math.ceil(items.length / pageSize)
-  const paginated = items.slice((page - 1) * pageSize, page * pageSize)
+  const filtered = items.filter(item =>
+    item.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
+    item.categoryName?.toLowerCase().includes(search.trim().toLowerCase())
+  )
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
     <div className="crud-section">
       <div className="list-header">
         <h4 className="crud-title" style={{ margin: 0 }}>
-          Danh mục tên sản phẩm <span className="count-badge">{items.length}</span>
+          Danh mục tên sản phẩm <span className="count-badge">{filtered.length}</span>
         </h4>
         <button className="btn-primary" style={{ whiteSpace: 'nowrap' }} onClick={openAdd}>+ Thêm mới</button>
+      </div>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên sản phẩm hoặc danh mục..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
       </div>
 
       <div className="admin-table-wrap">
@@ -275,8 +305,10 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
             <tr><th>#</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {items.length === 0 && (
-              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có dữ liệu</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                {items.length === 0 ? 'Chưa có dữ liệu' : 'Không tìm thấy kết quả phù hợp'}
+              </td></tr>
             )}
             {paginated.map((item, i) => (
               <tr key={item.id}>

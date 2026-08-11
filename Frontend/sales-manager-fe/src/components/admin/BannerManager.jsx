@@ -133,6 +133,7 @@ function BannerModal({ banner, onClose, onSaved }) {
 
 function BannerManager() {
   const [banners, setBanners] = useState([])
+  const [search, setSearch] = useState('')
   const [showModal, setShowModal] = useState(false)
   const [editingBanner, setEditingBanner] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -160,14 +161,25 @@ function BannerManager() {
     setDeleting(null)
   }
 
+  const filtered = banners.filter(b => b.title?.toLowerCase().includes(search.trim().toLowerCase()))
+
   return (
     <div>
       <div className="list-header">
         <h3 className="tab-title" style={{ marginBottom: 0 }}>
           Quản lý banner trang chủ
-          <span className="count-badge" style={{ marginLeft: 8 }}>{banners.length}</span>
+          <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
         </h3>
         <button className="btn-primary" onClick={openAdd}>+ Thêm banner</button>
+      </div>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tiêu đề banner..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
       </div>
 
       <div className="admin-table-wrap">
@@ -176,10 +188,12 @@ function BannerManager() {
             <tr><th>#</th><th>Ảnh</th><th>Tiêu đề</th><th>Thứ tự</th><th>Trạng thái</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {banners.length === 0 && (
-              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có banner nào</td></tr>
+            {filtered.length === 0 && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+                {banners.length === 0 ? 'Chưa có banner nào' : 'Không tìm thấy banner phù hợp'}
+              </td></tr>
             )}
-            {banners.map((b, i) => (
+            {filtered.map((b, i) => (
               <tr key={b.id}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
                 <td><img src={b.imageUrl} alt={b.title} style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 6 }} /></td>
