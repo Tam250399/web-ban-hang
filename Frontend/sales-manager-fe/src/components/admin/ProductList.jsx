@@ -5,7 +5,118 @@ import { uploadImage } from '../../services/uploadService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 import MoneyInput from '../common/MoneyInput'
+import OverflowMenu from '../common/OverflowMenu'
 import AddProduct from './AddProduct'
+
+const IMPORT_STATUS_LABEL = { New: 'Mới', Duplicate: 'Trùng mã', Invalid: 'Lỗi' }
+const IMPORT_STATUS_CLASS = { New: 'new', Duplicate: 'duplicate', Invalid: 'invalid' }
+
+function ImportPreviewModal({ result, onClose, onImported }) {
+  const [selected, setSelected] = useState(() => new Set(
+    result.rows.filter(r => r.status !== 'Invalid').map(r => r.rowNumber)
+  ))
+  const [committing, setCommitting] = useState(false)
+
+  const toggle = (rowNumber) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(rowNumber) ? next.delete(rowNumber) : next.add(rowNumber)
+      return next
+    })
+  }
+
+  const handleCommit = async () => {
+    const rows = result.rows
+      .filter(r => selected.has(r.rowNumber))
+      .map(r => ({
+        productCode: r.productCode,
+        productName: r.productName,
+        categoryName: r.categoryName || null,
+        unitName: r.unitName || null,
+        price: r.price,
+        stockQuantity: r.stockQuantity,
+        description: r.description || null,
+        overwrite: r.status === 'Duplicate',
+      }))
+    if (rows.length === 0) { toast.error('Chưa chọn dòng nào để nhập.'); return }
+    setCommitting(true)
+    try {
+      const res = await productService.commitImport(rows)
+      toast.success(res.message || 'Nhập dữ liệu thành công!')
+      onImported()
+    } catch (err) {
+      toast.error(err.message || 'Nhập dữ liệu thất bại.')
+      setCommitting(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Xem trước dữ liệu nhập</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div style={{ padding: '14px 24px 0' }}>
+          <div className="import-summary">
+            <span>Tổng <strong>{result.total}</strong> dòng</span>
+            <span className="import-status-badge new">Mới: {result.newCount}</span>
+            <span className="import-status-badge duplicate">Trùng mã: {result.duplicateCount}</span>
+            <span className="import-status-badge invalid">Lỗi: {result.invalidCount}</span>
+          </div>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text)', margin: '8px 0 0' }}>
+            Dòng "Trùng mã" nếu chọn sẽ <strong>ghi đè</strong> sản phẩm hiện có cùng mã. Dòng "Lỗi" không thể chọn.
+          </p>
+        </div>
+
+        <div className="admin-table-wrap" style={{ margin: '14px 24px', maxHeight: 360, overflowY: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ width: 36 }}></th>
+                <th>Dòng</th><th>Mã SP</th><th>Tên sản phẩm</th><th>Danh mục</th><th>ĐVT</th>
+                <th>Giá bán</th><th>Tồn kho</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.rows.map(r => (
+                <tr key={r.rowNumber}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.rowNumber)}
+                      disabled={r.status === 'Invalid'}
+                      onChange={() => toggle(r.rowNumber)}
+                    />
+                  </td>
+                  <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{r.rowNumber}</td>
+                  <td>{r.productCode || '-'}</td>
+                  <td>{r.productName || '-'}</td>
+                  <td>{r.categoryName || '-'}</td>
+                  <td>{r.unitName || '-'}</td>
+                  <td>{r.price?.toLocaleString('vi-VN')}đ</td>
+                  <td>{r.stockQuantity}</td>
+                  <td>
+                    <span className={`import-status-badge ${IMPORT_STATUS_CLASS[r.status]}`}>{IMPORT_STATUS_LABEL[r.status]}</span>
+                    {r.message && <div style={{ fontSize: '0.72rem', color: 'var(--primary)', marginTop: 3 }}>{r.message}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
+          <button className="btn-primary" onClick={handleCommit} disabled={committing || selected.size === 0}>
+            {committing ? 'Đang nhập...' : `Xác nhận nhập ${selected.size} sản phẩm`}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   const [form, setForm] = useState({
@@ -169,6 +280,36 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   const [pageSize, setPageSize]   = useState(10)
   const [search, setSearch]       = useState('')
   const [showAddModal, setShowAddModal] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const handleDownloadTemplate = async () => {
+    try { await productService.downloadTemplate() } catch (err) { toast.error(err.message || 'Tải mẫu thất bại.') }
+  }
+
+  const handleExport = async () => {
+    try { await productService.exportAll() } catch (err) { toast.error(err.message || 'Xuất file thất bại.') }
+  }
+
+  const handleImportFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    if (!file) return
+    setUploading(true)
+    try {
+      const result = await productService.previewImport(file)
+      setImportResult(result)
+    } catch (err) {
+      toast.error(err.message || 'Không đọc được file.')
+    }
+    setUploading(false)
+  }
+
+  const handleImported = () => {
+    setImportResult(null)
+    onRefresh()
+  }
 
   const filtered = products.filter(p =>
     p.productName?.toLowerCase().includes(search.toLowerCase()) ||
@@ -196,10 +337,10 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   return (
     <div>
       <div className="list-header">
-        <h3 className="tab-title" style={{ margin: 0 }}>
-          Danh sách sản phẩm <span className="count-badge">{products.length}</span>
-        </h3>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+          <h3 className="tab-title" style={{ margin: 0 }}>
+            Danh sách sản phẩm <span className="count-badge">{products.length}</span>
+          </h3>
           <input
             className="search-input"
             style={{ maxWidth: 280 }}
@@ -207,7 +348,24 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
           />
+        </div>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            onChange={handleImportFileChange}
+            style={{ display: 'none' }}
+          />
           <button className="btn-primary" style={{ whiteSpace: 'nowrap' }} onClick={() => setShowAddModal(true)}>+ Thêm mới</button>
+          <OverflowMenu
+            label="Thao tác Excel"
+            items={[
+              { label: '📥 Tải file mẫu', onClick: handleDownloadTemplate },
+              { label: '📤 Xuất Excel', onClick: handleExport },
+              { label: uploading ? 'Đang đọc...' : '📄 Nhập Excel', onClick: () => fileInputRef.current?.click(), disabled: uploading },
+            ]}
+          />
         </div>
       </div>
 
@@ -309,6 +467,14 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           onRefresh={onRefresh}
           onSuccess={() => { setShowAddModal(false); onRefresh() }}
           onClose={() => setShowAddModal(false)}
+        />
+      )}
+
+      {importResult && (
+        <ImportPreviewModal
+          result={importResult}
+          onClose={() => setImportResult(null)}
+          onImported={handleImported}
         />
       )}
     </div>

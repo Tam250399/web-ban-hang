@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Controllers
 {
@@ -11,7 +12,12 @@ namespace SalesManagerBE.Controllers
     public class ProductController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public ProductController(AppDbContext context) { _context = context; }
+        private readonly IProductExcelService _excelService;
+        public ProductController(AppDbContext context, IProductExcelService excelService)
+        {
+            _context = context;
+            _excelService = excelService;
+        }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -129,6 +135,170 @@ namespace SalesManagerBE.Controllers
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Đã xóa sản phẩm." });
+        }
+
+        [HttpGet("export")]
+        public async Task<IActionResult> Export()
+        {
+            var products = await _context.Products.OrderBy(p => p.ProductCode).ToListAsync();
+            var bytes = _excelService.ExportProducts(products);
+            var fileName = $"DanhSachSanPham_{DateTime.Now:ddMMyyyy}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpGet("import-template")]
+        public async Task<IActionResult> ImportTemplate()
+        {
+            var categories = await _context.ProductCategories.OrderBy(c => c.Name).Select(c => c.Name).ToListAsync();
+            var units = await _context.UnitTypes.OrderBy(u => u.Name).Select(u => u.Name).ToListAsync();
+            var bytes = _excelService.GenerateImportTemplate(categories, units);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "MauNhapSanPham.xlsx");
+        }
+
+        [HttpPost("import/preview")]
+        public async Task<IActionResult> ImportPreview(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Vui lòng chọn file." });
+
+            List<ProductImportRawRow> rawRows;
+            try
+            {
+                using var stream = file.OpenReadStream();
+                rawRows = _excelService.ParseImportFile(stream);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Không đọc được file. Vui lòng dùng đúng file mẫu (.xlsx)." });
+            }
+
+            if (rawRows.Count == 0)
+                return BadRequest(new { message = "File không có dữ liệu." });
+
+            var existingCodes = await _context.Products.Select(p => p.ProductCode).ToListAsync();
+            var categories = await _context.ProductCategories.ToListAsync();
+            var units = await _context.UnitTypes.ToListAsync();
+            var seenCodes = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            var preview = new List<ProductImportPreviewRowDto>();
+            foreach (var row in rawRows)
+            {
+                var messages = new List<string>();
+                var status = "New";
+
+                if (string.IsNullOrWhiteSpace(row.ProductCode)) messages.Add("Thiếu mã sản phẩm.");
+                if (string.IsNullOrWhiteSpace(row.ProductName)) messages.Add("Thiếu tên sản phẩm.");
+                if (row.Price <= 0) messages.Add("Giá bán phải lớn hơn 0.");
+
+                if (!string.IsNullOrWhiteSpace(row.CategoryName) &&
+                    !categories.Any(c => c.Name.Equals(row.CategoryName, StringComparison.OrdinalIgnoreCase)))
+                    messages.Add($"Danh mục \"{row.CategoryName}\" không tồn tại.");
+
+                if (!string.IsNullOrWhiteSpace(row.UnitName) &&
+                    !units.Any(u => u.Name.Equals(row.UnitName, StringComparison.OrdinalIgnoreCase)))
+                    messages.Add($"Đơn vị \"{row.UnitName}\" không tồn tại.");
+
+                if (messages.Count > 0)
+                {
+                    status = "Invalid";
+                }
+                else if (!seenCodes.Add(row.ProductCode.ToUpperInvariant()))
+                {
+                    status = "Invalid";
+                    messages.Add("Mã sản phẩm bị lặp lại trong file.");
+                }
+                else if (existingCodes.Any(c => c.Equals(row.ProductCode, StringComparison.OrdinalIgnoreCase)))
+                {
+                    status = "Duplicate";
+                    messages.Add("Mã sản phẩm đã tồn tại trong hệ thống.");
+                }
+
+                preview.Add(new ProductImportPreviewRowDto
+                {
+                    RowNumber = row.RowNumber,
+                    ProductCode = row.ProductCode,
+                    ProductName = row.ProductName,
+                    CategoryName = row.CategoryName,
+                    UnitName = row.UnitName,
+                    Price = row.Price,
+                    StockQuantity = row.StockQuantity,
+                    Description = row.Description,
+                    Status = status,
+                    Message = messages.Count > 0 ? string.Join(" ", messages) : null,
+                });
+            }
+
+            return Ok(new
+            {
+                rows = preview,
+                total = preview.Count,
+                newCount = preview.Count(r => r.Status == "New"),
+                duplicateCount = preview.Count(r => r.Status == "Duplicate"),
+                invalidCount = preview.Count(r => r.Status == "Invalid"),
+            });
+        }
+
+        [HttpPost("import/commit")]
+        public async Task<IActionResult> ImportCommit([FromBody] ProductImportCommitDto dto)
+        {
+            if (dto.Rows == null || dto.Rows.Count == 0)
+                return BadRequest(new { message = "Không có dữ liệu để nhập." });
+
+            var categories = await _context.ProductCategories.ToListAsync();
+            var units = await _context.UnitTypes.ToListAsync();
+            int created = 0, updated = 0, skipped = 0;
+
+            foreach (var row in dto.Rows)
+            {
+                if (string.IsNullOrWhiteSpace(row.ProductCode) || string.IsNullOrWhiteSpace(row.ProductName) || row.Price <= 0)
+                {
+                    skipped++;
+                    continue;
+                }
+
+                var category = categories.FirstOrDefault(c => c.Name.Equals(row.CategoryName, StringComparison.OrdinalIgnoreCase));
+                var unit = units.FirstOrDefault(u => u.Name.Equals(row.UnitName, StringComparison.OrdinalIgnoreCase));
+
+                var existing = await _context.Products.FirstOrDefaultAsync(p => p.ProductCode == row.ProductCode);
+                if (existing != null)
+                {
+                    if (!row.Overwrite) { skipped++; continue; }
+                    existing.ProductName = row.ProductName;
+                    existing.Category = category?.Name ?? row.CategoryName;
+                    existing.CategoryId = category?.Id;
+                    existing.Unit = unit?.Name ?? row.UnitName ?? existing.Unit;
+                    existing.UnitTypeId = unit?.Id;
+                    existing.Price = row.Price;
+                    existing.StockQuantity = row.StockQuantity;
+                    existing.Description = row.Description;
+                    updated++;
+                }
+                else
+                {
+                    _context.Products.Add(new Product
+                    {
+                        ProductCode = row.ProductCode,
+                        ProductName = row.ProductName,
+                        Category = category?.Name ?? row.CategoryName,
+                        CategoryId = category?.Id,
+                        Unit = unit?.Name ?? row.UnitName ?? "",
+                        UnitTypeId = unit?.Id,
+                        Price = row.Price,
+                        StockQuantity = row.StockQuantity,
+                        Description = row.Description,
+                    });
+                    created++;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new
+            {
+                message = $"Đã thêm mới {created} sản phẩm, cập nhật {updated}, bỏ qua {skipped}.",
+                created,
+                updated,
+                skipped,
+            });
         }
 
         [HttpGet("statistics")]
