@@ -14,6 +14,25 @@ namespace SalesManagerBE.Services
         private const string TemplateSheetName = "T3-22";
         private const int ItemsPerPage = 20;
         private const int FirstItemRow = 6;
+        private const double MinRowHeight = 21;
+        private const double MaxColumnBWidth = 45;
+
+        // Template cố định độ rộng cột B và chiều cao dòng (21pt/1 dòng) nên tên vật
+        // liệu dài sẽ wrap 2-3 dòng và tràn đè lên dòng kế tiếp. Nới cột B theo tên
+        // dài nhất trong trang rồi giãn chiều cao từng dòng theo đúng nội dung của nó.
+        private static void AutoFitItemRows(IXLWorksheet ws, int firstRow, int lastRow)
+        {
+            if (lastRow < firstRow) return;
+
+            ws.Column(2).AdjustToContents(firstRow, lastRow);
+            if (ws.Column(2).Width > MaxColumnBWidth) ws.Column(2).Width = MaxColumnBWidth;
+
+            ws.Rows(firstRow, lastRow).AdjustToContents();
+            foreach (var r in ws.Rows(firstRow, lastRow))
+            {
+                if (r.Height < MinRowHeight) r.Height = MinRowHeight;
+            }
+        }
 
         private readonly string _templatePath;
 
@@ -57,6 +76,8 @@ namespace SalesManagerBE.Services
                     ws.Cell(row, 5).Value = item.UnitPrice;
                     row++;
                 }
+
+                AutoFitItemRows(ws, FirstItemRow, row - 1);
 
                 ws.Cell("D30").Value = "Cửa hàng VLXD Đức Lợi";
                 ws.Cell("D31").Value = "";
@@ -161,6 +182,8 @@ namespace SalesManagerBE.Services
                             dateCell.Style.DateFormat.Format = "dd/MM/yyyy";
                         }
                     }
+
+                    AutoFitItemRows(ws, FirstItemRow, row - 1);
 
                     var minDate = page.Min(b => b.Date);
                     var maxDate = page.Max(b => b.Date);

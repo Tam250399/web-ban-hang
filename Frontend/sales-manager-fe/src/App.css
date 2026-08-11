@@ -1411,3 +1411,184 @@ button { font-family: inherit; cursor: pointer; }
   .chat-admin-layout:not(.panel-open) .chat-conv-panel { display: none; }
   .chat-back-btn { display: inline-flex; align-items: center; justify-content: center; }
 }
+
+/* ================================================================
+   ADMIN THEME — imported from Claude Design "Quản lý xuất nhập kho"
+   Scoped to `body.admin-theme` (toggled on <body> while
+   AdminDashboard is mounted, see AdminDashboard.jsx) instead of
+   .admin-shell so that portal-rendered panels (SearchableSelect's
+   dropdown, appended to document.body) still pick up the theme.
+   The storefront/auth pages never carry this class, so all shared
+   class names (.btn-primary, .search-input, .modal-overlay, ...)
+   keep their original vintage look outside the admin area.
+   ================================================================ */
+body.admin-theme {
+  --primary: oklch(0.55 0.17 262);
+  --primary-dark: oklch(0.48 0.17 262);
+  --accent: oklch(0.55 0.17 262);
+  --success: oklch(0.6 0.13 152);
+  --danger: oklch(0.55 0.19 24);
+  --ink: oklch(0.22 0.015 255);
+  --text-h: var(--ink);
+  --text: oklch(0.5 0.012 255);
+  --text-light: oklch(0.55 0.012 255);
+  --border: oklch(0.885 0.008 250);
+  --divider: oklch(0.92 0.006 250);
+  --divider-dark: oklch(0.34 0.02 258);
+  --bg: oklch(0.97 0.006 250);
+  --surface: oklch(0.995 0.002 250);
+  --radius: 10px;
+  --radius-lg: 16px;
+  --shadow: 0 1px 2px oklch(0.22 0.015 255 / 0.06);
+  --shadow-lg: 0 20px 40px -16px oklch(0.22 0.015 255 / 0.25);
+  --admin-dark: oklch(0.26 0.025 258);
+  --admin-dark-active: oklch(0.32 0.03 258);
+  --font-display: 'Space Grotesk', sans-serif;
+  --font-body: 'IBM Plex Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Space Grotesk', sans-serif;
+  background: var(--bg);
+}
+
+body.admin-theme input[type="checkbox"] { accent-color: var(--primary); }
+
+/* ---- Header / sidebar ---- */
+body.admin-theme .admin-header {
+  border-bottom: 1px solid oklch(1 0 0 / 0.08);
+  box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.1);
+}
+body.admin-theme .notif-bell { border-color: var(--border); }
+body.admin-theme .sidebar-btn { font-weight: 600; border-radius: 8px; border-left: none; margin-bottom: 3px; }
+body.admin-theme .sidebar-btn:hover { border-radius: 8px; }
+body.admin-theme .sidebar-btn.active {
+  background: oklch(0.55 0.17 262 / 0.18);
+  border-left: none;
+  border-radius: 8px;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+/* ---- Buttons ---- */
+body.admin-theme .btn-primary,
+body.admin-theme .btn-ghost,
+body.admin-theme .btn-admin,
+body.admin-theme .btn-edit-sm,
+body.admin-theme .btn-danger-sm,
+body.admin-theme .btn-danger,
+body.admin-theme .btn-outline {
+  font-family: var(--font-body);
+  letter-spacing: 0;
+}
+body.admin-theme .btn-primary { font-weight: 600; font-size: 14px; border-radius: 8px; box-shadow: 0 1px 2px oklch(0.55 0.17 262 / 0.25); }
+body.admin-theme .btn-primary:hover { transform: none; }
+body.admin-theme .btn-ghost { font-weight: 500; border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+body.admin-theme .btn-ghost:hover { background: var(--bg); color: var(--ink); }
+body.admin-theme .admin-header .btn-ghost, body.admin-theme .admin-header .btn-ghost:hover { color: #D8D3C7; border-color: #4A5560; }
+body.admin-theme .btn-edit-sm { font-weight: 600; border: 1px solid var(--border); border-radius: 7px; }
+body.admin-theme .btn-edit-sm:hover { background: oklch(0.94 0.03 262); border-color: oklch(0.86 0.05 262); color: oklch(0.4 0.14 262); }
+body.admin-theme .btn-danger-sm {
+  font-weight: 600; border-radius: 7px;
+  background: oklch(0.55 0.19 24 / 0.08); color: oklch(0.5 0.18 24); border: 1px solid oklch(0.85 0.08 24);
+}
+body.admin-theme .btn-danger-sm:hover { background: oklch(0.55 0.19 24); color: white; }
+body.admin-theme .btn-danger { font-weight: 600; border-radius: 8px; }
+
+/* ---- Inputs / forms ---- */
+body.admin-theme .form-card { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.05); }
+body.admin-theme .form-field span { font-weight: 500; }
+body.admin-theme .form-field input,
+body.admin-theme .form-field select,
+body.admin-theme .form-field textarea,
+body.admin-theme .search-input,
+body.admin-theme .role-select,
+body.admin-theme .searchable-select-trigger {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+}
+body.admin-theme .form-field input:focus,
+body.admin-theme .form-field select:focus,
+body.admin-theme .form-field textarea:focus,
+body.admin-theme .search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px oklch(0.55 0.17 262 / 0.12);
+}
+body.admin-theme .searchable-select-panel { border: 1px solid var(--border); border-radius: 8px; }
+body.admin-theme .searchable-select-option.active { background: oklch(0.94 0.03 262); color: var(--primary); }
+
+/* ---- Tabs ---- */
+body.admin-theme .sub-tabs { background: transparent; border: none; border-bottom: 1px solid var(--border); border-radius: 0; gap: 4px; width: 100%; }
+body.admin-theme .sub-tab-btn {
+  background: transparent; color: var(--text); border-radius: 0;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  font-weight: 500; display: flex; align-items: center; gap: 7px;
+}
+body.admin-theme .sub-tab-btn:hover { color: var(--ink); }
+body.admin-theme .sub-tab-btn.active { background: transparent; color: var(--ink); font-weight: 600; box-shadow: none; border-bottom-color: var(--primary); }
+body.admin-theme .sub-tab-count {
+  font-size: 11px; padding: 2px 7px; border-radius: 999px; font-weight: 600;
+  background: oklch(0.94 0.006 250); color: var(--text);
+}
+body.admin-theme .sub-tab-btn.active .sub-tab-count { background: oklch(0.94 0.03 262); color: var(--primary); }
+
+/* ---- Tables ---- */
+body.admin-theme .admin-table-wrap { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.05); background: var(--surface); }
+body.admin-theme .admin-table thead { background: oklch(0.965 0.008 255); }
+body.admin-theme .admin-table th {
+  color: var(--text); font-family: var(--font-body); font-size: 12px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em; border-bottom: 1px solid var(--border);
+}
+body.admin-theme .admin-table tbody tr { background: var(--surface); }
+body.admin-theme .admin-table td { border-bottom: 1px solid var(--divider); font-family: var(--font-body); }
+body.admin-theme .admin-table tbody tr:hover { background: oklch(0.975 0.005 255); }
+body.admin-theme .low-stock-row { background: oklch(0.55 0.19 24 / 0.07) !important; }
+body.admin-theme .editing-row { background: oklch(0.55 0.17 262 / 0.08) !important; }
+
+/* ---- Badges / pills ---- */
+body.admin-theme .count-badge { background: oklch(0.94 0.03 262); color: var(--primary); font-family: var(--font-body); }
+body.admin-theme .cat-tag { background: oklch(0.94 0.006 250); color: var(--text); font-family: var(--font-body); font-weight: 600; }
+body.admin-theme .badge-import,
+body.admin-theme .badge-export {
+  display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-body); font-weight: 600;
+}
+body.admin-theme .badge-import::before, body.admin-theme .badge-export::before {
+  content: ''; width: 5px; height: 5px; border-radius: 999px; display: inline-block;
+}
+body.admin-theme .badge-import { background: oklch(0.94 0.045 152); color: oklch(0.38 0.12 152); }
+body.admin-theme .badge-import::before { background: oklch(0.6 0.13 152); }
+body.admin-theme .badge-export { background: oklch(0.94 0.03 262); color: oklch(0.4 0.16 262); }
+body.admin-theme .badge-export::before { background: oklch(0.55 0.17 262); }
+
+/* ---- Pagination ---- */
+body.admin-theme .page-btn { border-radius: 7px; border-width: 1px; font-family: var(--font-body); }
+body.admin-theme .table-footer-size select { border-radius: 7px; border-width: 1px; font-family: var(--font-body); }
+
+/* ---- Modals ---- */
+body.admin-theme .modal-box,
+body.admin-theme .confirm-modal,
+body.admin-theme .invoice-modal,
+body.admin-theme .product-detail-modal,
+body.admin-theme .edit-product-modal {
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+body.admin-theme .invoice-modal-header { background: var(--admin-dark); }
+body.admin-theme .invoice-modal-header .hzd { background: var(--primary); height: 3px; }
+body.admin-theme .modal-close, body.admin-theme .invoice-modal-close { border-radius: 8px; }
+body.admin-theme .modal-close:hover, body.admin-theme .invoice-modal-close:hover { background: var(--primary); }
+
+/* ---- Stats ---- */
+body.admin-theme .stats-grid { background: var(--border); border: 1px solid var(--border); }
+body.admin-theme .stat-box { border-top: 3px solid var(--primary); }
+
+/* ---- Filter bar (search + date range) ---- */
+body.admin-theme .admin-filter-bar {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+  padding: 14px 16px; margin-bottom: 16px;
+}
+body.admin-theme .admin-filter-bar .search-input { max-width: 260px; margin: 0; flex: 1 1 220px; padding: 10px 14px; }
+body.admin-theme .admin-filter-date { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text); white-space: nowrap; }
+body.admin-theme .admin-filter-date input[type="date"], body.admin-theme .admin-filter-date input[type="month"] {
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px;
+  font-family: var(--font-body); color: var(--ink); background: var(--surface); outline: none;
+}
+body.admin-theme .admin-filter-date input:focus { border-color: var(--primary); }

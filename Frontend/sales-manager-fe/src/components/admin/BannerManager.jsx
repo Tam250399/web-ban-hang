@@ -6,40 +6,21 @@ import ConfirmModal from '../common/ConfirmModal'
 
 const EMPTY_FORM = { title: '', description: '', imageUrl: '', displayOrder: 0, isActive: true }
 
-function BannerManager() {
-  const [banners, setBanners] = useState([])
-  const [form, setForm] = useState(EMPTY_FORM)
-  const [editId, setEditId] = useState(null)
+function BannerModal({ banner, onClose, onSaved }) {
+  const isEdit = !!banner
+  const [form, setForm] = useState(banner ? {
+    title: banner.title,
+    description: banner.description || '',
+    imageUrl: banner.imageUrl,
+    displayOrder: banner.displayOrder,
+    isActive: banner.isActive,
+  } : EMPTY_FORM)
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
-  const [imagePreview, setImagePreview] = useState(null)
-  const [deleting, setDeleting] = useState(null)
-  const [confirmId, setConfirmId] = useState(null)
+  const [imagePreview, setImagePreview] = useState(banner?.imageUrl || null)
   const fileInputRef = useRef(null)
 
-  const load = () => bannerService.getAll().then(setBanners).catch(() => {})
-  useEffect(() => { load() }, [])
-
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
-
-  const reset = () => {
-    setForm(EMPTY_FORM)
-    setEditId(null)
-    setImagePreview(null)
-    if (fileInputRef.current) fileInputRef.current.value = ''
-  }
-
-  const startEdit = (b) => {
-    setEditId(b.id)
-    setForm({
-      title: b.title,
-      description: b.description || '',
-      imageUrl: b.imageUrl,
-      displayOrder: b.displayOrder,
-      isActive: b.isActive,
-    })
-    setImagePreview(b.imageUrl)
-  }
 
   const handleImageChange = async (e) => {
     const file = e.target.files[0]
@@ -69,15 +50,101 @@ function BannerManager() {
     setLoading(true)
     const payload = { ...form, displayOrder: +form.displayOrder || 0 }
     try {
-      await (editId ? bannerService.update(editId, payload) : bannerService.create(payload))
-      toast.success(editId ? 'Cập nhật thành công!' : 'Thêm banner thành công!')
-      reset()
-      load()
+      await (isEdit ? bannerService.update(banner.id, payload) : bannerService.create(payload))
+      toast.success(isEdit ? 'Cập nhật thành công!' : 'Thêm banner thành công!')
+      onSaved()
     } catch (err) {
       toast.error(err.message || 'Có lỗi xảy ra.')
+      setLoading(false)
     }
-    setLoading(false)
   }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>{isEdit ? 'Chỉnh sửa banner' : 'Thêm banner mới'}</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="add-product-form">
+          <label className="form-field">
+            <span>Tiêu đề <span className="required">*</span></span>
+            <input value={form.title} onChange={set('title')} required autoFocus placeholder="VD: Khuyến mãi xi măng tháng này" />
+          </label>
+
+          <label className="form-field">
+            <span>Mô tả</span>
+            <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn hiển thị trên banner..." />
+          </label>
+
+          <div className="form-row">
+            <label className="form-field">
+              <span>Thứ tự hiển thị</span>
+              <input type="number" value={form.displayOrder} onChange={set('displayOrder')} min="0" />
+            </label>
+            <label className="form-field">
+              <span>Trạng thái</span>
+              <select value={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.value === 'true' }))}>
+                <option value="true">Hiển thị</option>
+                <option value="false">Ẩn</option>
+              </select>
+            </label>
+          </div>
+
+          <div className="form-field">
+            <span>Ảnh banner <span className="required">*</span></span>
+            {imagePreview ? (
+              <div className="image-upload-preview">
+                <img src={imagePreview} alt="preview" />
+                {uploading && <div className="image-upload-overlay">Đang tải...</div>}
+                {!uploading && (
+                  <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                )}
+              </div>
+            ) : (
+              <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  onChange={handleImageChange}
+                  style={{ display: 'none' }}
+                  disabled={uploading}
+                />
+                <span className="image-upload-icon">🖼️</span>
+                <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+              </label>
+            )}
+          </div>
+
+          <div className="modal-footer">
+            <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
+            <button className="btn-primary" type="submit" disabled={loading || uploading}>
+              {loading ? 'Đang lưu...' : isEdit ? 'Lưu thay đổi' : 'Thêm banner'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function BannerManager() {
+  const [banners, setBanners] = useState([])
+  const [showModal, setShowModal] = useState(false)
+  const [editingBanner, setEditingBanner] = useState(null)
+  const [deleting, setDeleting] = useState(null)
+  const [confirmId, setConfirmId] = useState(null)
+
+  const load = () => bannerService.getAll().then(setBanners).catch(() => {})
+  useEffect(() => { load() }, [])
+
+  const openAdd = () => { setEditingBanner(null); setShowModal(true) }
+  const openEdit = (b) => { setEditingBanner(b); setShowModal(true) }
+  const closeModal = () => { setShowModal(false); setEditingBanner(null) }
+  const handleSaved = () => { closeModal(); load() }
 
   const handleDelete = async () => {
     const id = confirmId
@@ -95,105 +162,51 @@ function BannerManager() {
 
   return (
     <div>
-      <h3 className="tab-title">Quản lý banner trang chủ</h3>
-      <div className="crud-layout">
-        <div className="form-card" style={{ minWidth: 300 }}>
-          <h5 style={{ margin: '0 0 14px', fontWeight: 700 }}>
-            {editId ? '✏️ Chỉnh sửa banner' : '➕ Thêm banner mới'}
-          </h5>
-          <form onSubmit={handleSubmit} className="add-product-form">
-            <label className="form-field">
-              <span>Tiêu đề <span className="required">*</span></span>
-              <input value={form.title} onChange={set('title')} required placeholder="VD: Khuyến mãi xi măng tháng này" />
-            </label>
-
-            <label className="form-field">
-              <span>Mô tả</span>
-              <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn hiển thị trên banner..." />
-            </label>
-
-            <div className="form-row">
-              <label className="form-field">
-                <span>Thứ tự hiển thị</span>
-                <input type="number" value={form.displayOrder} onChange={set('displayOrder')} min="0" />
-              </label>
-              <label className="form-field">
-                <span>Trạng thái</span>
-                <select value={form.isActive} onChange={e => setForm(f => ({ ...f, isActive: e.target.value === 'true' }))}>
-                  <option value="true">Hiển thị</option>
-                  <option value="false">Ẩn</option>
-                </select>
-              </label>
-            </div>
-
-            <div className="form-field">
-              <span>Ảnh banner <span className="required">*</span></span>
-              {imagePreview ? (
-                <div className="image-upload-preview">
-                  <img src={imagePreview} alt="preview" />
-                  {uploading && <div className="image-upload-overlay">Đang tải...</div>}
-                  {!uploading && (
-                    <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
-                  )}
-                </div>
-              ) : (
-                <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/gif"
-                    onChange={handleImageChange}
-                    style={{ display: 'none' }}
-                    disabled={uploading}
-                  />
-                  <span className="image-upload-icon">🖼️</span>
-                  <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
-                </label>
-              )}
-            </div>
-
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="btn-primary" type="submit" disabled={loading || uploading} style={{ flex: 1 }}>
-                {loading ? '...' : editId ? 'Lưu' : 'Thêm banner'}
-              </button>
-              {editId && <button type="button" className="btn-ghost" onClick={reset}>Hủy</button>}
-            </div>
-          </form>
-        </div>
-
-        <div style={{ flex: 1 }}>
-          <div className="admin-table-wrap">
-            <table className="admin-table">
-              <thead>
-                <tr><th>#</th><th>Ảnh</th><th>Tiêu đề</th><th>Thứ tự</th><th>Trạng thái</th><th>Thao tác</th></tr>
-              </thead>
-              <tbody>
-                {banners.length === 0 && (
-                  <tr><td colSpan={6} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có banner nào</td></tr>
-                )}
-                {banners.map((b, i) => (
-                  <tr key={b.id} className={editId === b.id ? 'editing-row' : ''}>
-                    <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
-                    <td><img src={b.imageUrl} alt={b.title} style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 6 }} /></td>
-                    <td><strong>{b.title}</strong></td>
-                    <td>{b.displayOrder}</td>
-                    <td>{b.isActive ? <span style={{ color: 'var(--success)' }}>Hiển thị</span> : <span style={{ color: 'var(--text)' }}>Ẩn</span>}</td>
-                    <td>
-                      <div className="action-btns">
-                        <button className="btn-edit-sm" onClick={() => startEdit(b)}>✏️ Sửa</button>
-                        <button className="btn-danger-sm" onClick={() => setConfirmId(b.id)} disabled={deleting === b.id}>
-                          {deleting === b.id ? '...' : '🗑️ Xóa'}
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="list-header">
+        <h3 className="tab-title" style={{ marginBottom: 0 }}>
+          Quản lý banner trang chủ
+          <span className="count-badge" style={{ marginLeft: 8 }}>{banners.length}</span>
+        </h3>
+        <button className="btn-primary" onClick={openAdd}>+ Thêm banner</button>
       </div>
+
+      <div className="admin-table-wrap">
+        <table className="admin-table">
+          <thead>
+            <tr><th>#</th><th>Ảnh</th><th>Tiêu đề</th><th>Thứ tự</th><th>Trạng thái</th><th>Thao tác</th></tr>
+          </thead>
+          <tbody>
+            {banners.length === 0 && (
+              <tr><td colSpan={6} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có banner nào</td></tr>
+            )}
+            {banners.map((b, i) => (
+              <tr key={b.id}>
+                <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
+                <td><img src={b.imageUrl} alt={b.title} style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 6 }} /></td>
+                <td><strong>{b.title}</strong></td>
+                <td>{b.displayOrder}</td>
+                <td>{b.isActive ? <span style={{ color: 'var(--success)' }}>Hiển thị</span> : <span style={{ color: 'var(--text)' }}>Ẩn</span>}</td>
+                <td>
+                  <div className="action-btns">
+                    <button className="btn-edit-sm" onClick={() => openEdit(b)}>✏️ Sửa</button>
+                    <button className="btn-danger-sm" onClick={() => setConfirmId(b.id)} disabled={deleting === b.id}>
+                      {deleting === b.id ? '...' : '🗑️ Xóa'}
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {showModal && (
+        <BannerModal
+          banner={editingBanner}
+          onClose={closeModal}
+          onSaved={handleSaved}
+        />
+      )}
 
       {confirmId && (
         <ConfirmModal

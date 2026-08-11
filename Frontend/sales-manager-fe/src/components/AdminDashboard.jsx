@@ -44,6 +44,14 @@ function AdminDashboard({ user, onBackToHome }) {
     loadStats()
   }, [])
 
+  // Theme riêng cho khu vực quản trị (bảng màu/typography khác trang bán hàng).
+  // Gắn class lên <body> thay vì .admin-shell để các panel render qua Portal
+  // (SearchableSelect...) vẫn nằm trong scope theme này.
+  useEffect(() => {
+    document.body.classList.add('admin-theme')
+    return () => document.body.classList.remove('admin-theme')
+  }, [])
+
   // Kết nối chat + theo dõi hội thoại ngay khi vào Admin Dashboard, không phụ
   // thuộc tab đang mở, để chuông thông báo trên header luôn cập nhật realtime.
   useEffect(() => {

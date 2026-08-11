@@ -13,11 +13,9 @@ const currentUser = () => {
   try { return JSON.parse(localStorage.getItem('salesManagerUser') || 'null') } catch { return null }
 }
 
-function ImportPanel({ products, transactions, reload }) {
+function ImportModal({ products, onClose, onSaved }) {
   const [form, setForm] = useState(EMPTY_IMPORT_FORM)
   const [loading, setLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
 
@@ -33,26 +31,25 @@ function ImportPanel({ products, transactions, reload }) {
         unitPrice: +form.unitPrice,
       })
       toast.success('Nhập kho thành công!')
-      setForm(EMPTY_IMPORT_FORM)
-      setPage(1)
-      reload()
+      onSaved()
     } catch (err) {
       toast.error(err.message || 'Có lỗi xảy ra.')
+      setLoading(false)
     }
-    setLoading(false)
   }
 
-  const totalPages = Math.ceil(transactions.length / pageSize)
-  const paginated = transactions.slice((page - 1) * pageSize, page * pageSize)
-
   return (
-    <div className="stock-layout">
-      <div className="form-card">
-        <h4>Tạo phiếu nhập kho</h4>
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Tạo phiếu nhập kho</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
         <form onSubmit={handleSubmit} className="stock-form">
           <label className="form-field">
             <span>Sản phẩm <span className="required">*</span></span>
-            <select value={form.productId} onChange={set('productId')} required>
+            <select value={form.productId} onChange={set('productId')} required autoFocus>
               <option value="">-- Chọn sản phẩm --</option>
               {products.map(p => (
                 <option key={p.id} value={p.id}>{p.productCode} - {p.productName}</option>
@@ -76,17 +73,75 @@ function ImportPanel({ products, transactions, reload }) {
             <input type="text" value={form.note} onChange={set('note')} placeholder="Nhà cung cấp..." />
           </label>
 
-          <button className="btn-primary" type="submit" disabled={loading}>
-            {loading ? 'Đang xử lý...' : 'Xác nhận nhập kho'}
-          </button>
+          <div className="modal-footer">
+            <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
+            <button className="btn-primary" type="submit" disabled={loading}>
+              {loading ? 'Đang xử lý...' : 'Xác nhận nhập kho'}
+            </button>
+          </div>
         </form>
+      </div>
+    </div>
+  )
+}
+
+function ImportPanel({ products, transactions, reload }) {
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [search, setSearch] = useState('')
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [showModal, setShowModal] = useState(false)
+
+  const handleSaved = () => {
+    setShowModal(false)
+    setPage(1)
+    reload()
+  }
+
+  const filtered = transactions.filter(t => {
+    const tDate = t.transactionDate.slice(0, 10)
+    const matchSearch = !search.trim() || t.productName?.toLowerCase().includes(search.trim().toLowerCase())
+    const matchFrom = !fromDate || tDate >= fromDate
+    const matchTo = !toDate || tDate <= toDate
+    return matchSearch && matchFrom && matchTo
+  })
+
+  const totalPages = Math.ceil(filtered.length / pageSize)
+  const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
+  const hasFilters = search || fromDate || toDate
+
+  const clearFilters = () => { setSearch(''); setFromDate(''); setToDate(''); setPage(1) }
+
+  return (
+    <div>
+      <div className="list-header">
+        <h4>
+          Lịch sử nhập kho
+          <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
+        </h4>
+        <button className="btn-primary" onClick={() => setShowModal(true)}>+ Thêm phiếu nhập</button>
       </div>
 
       <div>
-        <h4 style={{ marginBottom: 12 }}>
-          Lịch sử nhập kho
-          <span className="count-badge" style={{ marginLeft: 8 }}>{transactions.length}</span>
-        </h4>
+        <div className="admin-filter-bar">
+          <input
+            className="search-input"
+            placeholder="Tìm theo sản phẩm..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+          />
+          <label className="admin-filter-date">
+            <span>Từ ngày</span>
+            <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
+          </label>
+          <label className="admin-filter-date">
+            <span>Đến ngày</span>
+            <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
+          </label>
+          {hasFilters && <button type="button" className="btn-ghost" onClick={clearFilters}>Xóa lọc</button>}
+        </div>
+
         <div className="admin-table-wrap">
           <table className="admin-table">
             <thead>
@@ -106,18 +161,28 @@ function ImportPanel({ products, transactions, reload }) {
                   <td>{t.note || '-'}</td>
                 </tr>
               ))}
-              {transactions.length === 0 && (
-                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>Chưa có giao dịch nhập kho nào</td></tr>
+              {filtered.length === 0 && (
+                <tr><td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>
+                  {transactions.length === 0 ? 'Chưa có giao dịch nhập kho nào' : 'Không tìm thấy giao dịch phù hợp'}
+                </td></tr>
               )}
             </tbody>
           </table>
         </div>
         <Pagination
-          page={page} totalPages={totalPages} total={transactions.length} pageSize={pageSize}
+          page={page} totalPages={totalPages} total={filtered.length} pageSize={pageSize}
           onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
           label="giao dịch" onPage={setPage}
         />
       </div>
+
+      {showModal && (
+        <ImportModal
+          products={products}
+          onClose={() => setShowModal(false)}
+          onSaved={handleSaved}
+        />
+      )}
     </div>
   )
 }
@@ -271,8 +336,7 @@ function CreateInvoiceModal({ products, invoice, onClose, onSaved }) {
   )
 }
 
-function ExportPanel({ products }) {
-  const [invoices, setInvoices] = useState([])
+function ExportPanel({ products, invoices, reload }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
@@ -286,9 +350,6 @@ function ExportPanel({ products }) {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
   const [downloading, setDownloading] = useState(false)
-
-  const loadInvoices = () => salesInvoiceService.getAll().then(setInvoices).catch(() => {})
-  useEffect(() => { loadInvoices() }, [])
 
   const filtered = invoices.filter(inv => {
     const matchSearch = inv.customerName?.toLowerCase().includes(search.trim().toLowerCase())
@@ -306,7 +367,7 @@ function ExportPanel({ products }) {
     setShowModal(false)
     setModalInvoice(null)
     setPage(1)
-    loadInvoices()
+    reload()
   }
 
   const openCreate = () => { setModalInvoice(null); setShowModal(true) }
@@ -331,7 +392,7 @@ function ExportPanel({ products }) {
       await salesInvoiceService.remove(id)
       toast.success('Đã xóa phiếu bán hàng!')
       setSelectedIds(list => list.filter(x => x !== id))
-      loadInvoices()
+      reload()
     } catch (err) {
       toast.error(err.message || 'Xóa thất bại.')
     }
@@ -378,7 +439,7 @@ function ExportPanel({ products }) {
       <div className="list-header">
         <h4>
           Lịch sử phiếu bán hàng
-          <span className="count-badge" style={{ marginLeft: 8 }}>{invoices.length}</span>
+          <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
         </h4>
         <div style={{ display: 'flex', gap: 8 }}>
           {selectedIds.length > 0 && (
@@ -390,28 +451,32 @@ function ExportPanel({ products }) {
         </div>
       </div>
 
-      <div className="product-controls" style={{ marginBottom: 16 }}>
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center' }}>
-          <input
-            className="search-input"
-            style={{ maxWidth: 260 }}
-            placeholder="Tìm theo tên khách hàng..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1) }}
-          />
-          <label className="form-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-            <span>Tháng</span>
-            <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setPage(1) }} />
-          </label>
-          <label className="form-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-            <span>Từ ngày</span>
-            <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
-          </label>
-          <label className="form-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, whiteSpace: 'nowrap' }}>
-            <span>Đến ngày</span>
-            <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
-          </label>
-        </div>
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên khách hàng..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
+        <label className="admin-filter-date">
+          <span>Tháng</span>
+          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setPage(1) }} />
+        </label>
+        <label className="admin-filter-date">
+          <span>Từ ngày</span>
+          <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
+        </label>
+        <label className="admin-filter-date">
+          <span>Đến ngày</span>
+          <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
+        </label>
+        {(search || filterMonth || fromDate || toDate) && (
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={() => { setSearch(''); setFilterMonth(''); setFromDate(''); setToDate(''); setPage(1) }}
+          >Xóa lọc</button>
+        )}
       </div>
 
       <div className="admin-table-wrap">
@@ -483,32 +548,35 @@ function ExportPanel({ products }) {
   )
 }
 
-const SUB_TABS = [
-  { key: 'import', label: '📥 Nhập kho' },
-  { key: 'export', label: '📤 Xuất kho' },
-]
-
 function StockManager({ products }) {
   const [sub, setSub] = useState('import')
   const [transactions, setTransactions] = useState([])
+  const [invoices, setInvoices] = useState([])
 
   const loadTransactions = () => stockService.getAll().then(setTransactions).catch(() => {})
-  useEffect(() => { loadTransactions() }, [])
+  const loadInvoices = () => salesInvoiceService.getAll().then(setInvoices).catch(() => {})
+  useEffect(() => { loadTransactions(); loadInvoices() }, [])
 
   const importTransactions = transactions.filter(t => t.type === 'Import')
+
+  const subTabs = [
+    { key: 'import', label: '📥 Nhập kho', count: importTransactions.length },
+    { key: 'export', label: '📤 Xuất kho', count: invoices.length },
+  ]
 
   return (
     <div>
       <h3 className="tab-title">Quản lý nhập / xuất kho</h3>
 
       <div className="sub-tabs">
-        {SUB_TABS.map(t => (
+        {subTabs.map(t => (
           <button
             key={t.key}
             className={`sub-tab-btn ${sub === t.key ? 'active' : ''}`}
             onClick={() => setSub(t.key)}
           >
             {t.label}
+            <span className="sub-tab-count">{t.count}</span>
           </button>
         ))}
       </div>
@@ -516,7 +584,7 @@ function StockManager({ products }) {
       <div style={{ marginTop: 20 }}>
         {sub === 'import'
           ? <ImportPanel products={products} transactions={importTransactions} reload={loadTransactions} />
-          : <ExportPanel products={products} />}
+          : <ExportPanel products={products} invoices={invoices} reload={loadInvoices} />}
       </div>
     </div>
   )
