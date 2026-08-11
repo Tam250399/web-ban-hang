@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Hubs
 {
@@ -14,10 +15,12 @@ namespace SalesManagerBE.Hubs
     {
         private const string AdminsGroup = "Admins";
         private readonly AppDbContext _context;
+        private readonly ChatPresenceService _presence;
 
-        public ChatHub(AppDbContext context)
+        public ChatHub(AppDbContext context, ChatPresenceService presence)
         {
             _context = context;
+            _presence = presence;
         }
 
         private int UserId => int.Parse(Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -33,8 +36,22 @@ namespace SalesManagerBE.Hubs
             {
                 var conversation = await GetOrCreateConversationAsync(UserId);
                 await Groups.AddToGroupAsync(Context.ConnectionId, ConvGroup(conversation.Id));
+
+                if (_presence.MarkConnected(UserId))
+                {
+                    await Clients.Group(AdminsGroup).SendAsync("CustomerPresenceChanged", UserId, true);
+                }
             }
             await base.OnConnectedAsync();
+        }
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
+        {
+            if (!IsAdmin && _presence.MarkDisconnected(UserId))
+            {
+                await Clients.Group(AdminsGroup).SendAsync("CustomerPresenceChanged", UserId, false);
+            }
+            await base.OnDisconnectedAsync(exception);
         }
 
         // Khách hàng gửi tin nhắn về shop (conversation của chính họ). Có thể kèm ảnh
@@ -153,6 +170,7 @@ namespace SalesManagerBE.Hubs
                 LastMessageAt = c.LastMessageAt,
                 LastMessage = FormatLastMessage(last),
                 UnreadCount = unread,
+                IsOnline = _presence.IsOnline(c.CustomerId),
             };
         }
 

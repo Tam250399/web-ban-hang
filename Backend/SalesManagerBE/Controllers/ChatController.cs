@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Controllers
 {
@@ -14,7 +15,12 @@ namespace SalesManagerBE.Controllers
     public class ChatController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public ChatController(AppDbContext context) { _context = context; }
+        private readonly ChatPresenceService _presence;
+        public ChatController(AppDbContext context, ChatPresenceService presence)
+        {
+            _context = context;
+            _presence = presence;
+        }
 
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
@@ -77,6 +83,7 @@ namespace SalesManagerBE.Controllers
                     LastMessageAt = c.LastMessageAt,
                     LastMessage = FormatLastMessage(last),
                     UnreadCount = unread,
+                    IsOnline = _presence.IsOnline(c.CustomerId),
                 });
             }
 

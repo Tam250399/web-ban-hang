@@ -23,6 +23,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
   const [dragOver, setDragOver] = useState(false)
   const bodyRef = useRef(null)
   const fileInputRef = useRef(null)
+  const inputRef = useRef(null)
   const activeIdRef = useRef(activeId)
   useEffect(() => { activeIdRef.current = activeId }, [activeId])
 
@@ -48,9 +49,20 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
     return () => chatService.off('ReceiveMessage', handleReceive)
   }, [])
 
+  // Phụ thuộc cả loadingMsgs vì bong bóng tin nhắn chỉ thực sự render ra DOM sau
+  // khi loadingMsgs chuyển false (loadingMsgs=false đến ở một lượt render khác,
+  // trễ hơn lúc messages được set) — nếu chỉ phụ thuộc [messages] thì lúc effect
+  // chạy, danh sách tin nhắn vẫn còn ẩn sau "Đang tải...", scrollHeight đo được
+  // rất nhỏ và không có lần chạy lại nào để cuộn xuống đúng vị trí.
   useEffect(() => {
-    if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
-  }, [messages])
+    if (!loadingMsgs && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
+  }, [messages, loadingMsgs])
+
+  // Focus lại ô nhập sau khi gửi: gọi .focus() ngay sau setSending(false) không ăn
+  // vì lúc đó React chưa kịp render lại để bỏ thuộc tính disabled trên input.
+  useEffect(() => {
+    if (!sending) inputRef.current?.focus()
+  }, [sending])
 
   const openConversation = async (id) => {
     if (activeId) chatService.leaveConversation(activeId).catch(() => {})
@@ -154,7 +166,10 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
               className={`chat-conv-item ${activeId === c.id ? 'active' : ''}`}
               onClick={() => openConversation(c.id)}
             >
-              <div className="chat-conv-avatar">{(c.customerName || '?')[0].toUpperCase()}</div>
+              <div className="chat-conv-avatar">
+                {(c.customerName || '?')[0].toUpperCase()}
+                {c.isOnline && <span className="chat-online-dot" title="Đang online" />}
+              </div>
               <div className="chat-conv-info">
                 <div className="chat-conv-top">
                   <strong>{c.customerName}</strong>
@@ -180,7 +195,10 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
             <>
               <div className="chat-panel-header">
                 <button type="button" className="chat-back-btn" onClick={closeConversation}>←</button>
-                <span>{active?.customerName || 'Khách hàng'}</span>
+                <span>
+                  {active?.customerName || 'Khách hàng'}
+                  {active?.isOnline && <span className="chat-online-dot" title="Đang online" />}
+                </span>
               </div>
               <div className="chat-panel-body" ref={bodyRef}>
                 {dragOver && <div className="chat-drop-hint">📷 Thả ảnh để gửi</div>}
@@ -223,6 +241,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
                   📎
                 </button>
                 <input
+                  ref={inputRef}
                   value={input}
                   onChange={e => setInput(e.target.value)}
                   onPaste={handlePaste}

@@ -56,15 +56,25 @@ function AdminDashboard({ user, onBackToHome }) {
         return [merged, ...others].sort((a, b) => new Date(b.lastMessageAt) - new Date(a.lastMessageAt))
       })
     }
+    const handlePresence = (customerId, isOnline) => {
+      setConversations(prev => prev.map(c => c.customerId === customerId ? { ...c, isOnline } : c))
+    }
     chatService.on('ConversationUpdated', handleUpdated)
+    chatService.on('CustomerPresenceChanged', handlePresence)
     chatService.connect().catch(() => {})
 
-    return () => chatService.off('ConversationUpdated', handleUpdated)
+    return () => {
+      chatService.off('ConversationUpdated', handleUpdated)
+      chatService.off('CustomerPresenceChanged', handlePresence)
+    }
   }, [])
 
   const unreadTotal = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
 
   const switchTab = (key) => {
+    // Rời tab Chat thì bỏ chọn hội thoại đang mở, để lần sau vào lại Chat
+    // không tự động focus vào hội thoại đã mở trước đó.
+    if (tab === 'chat' && key !== 'chat') setActiveConversationId(null)
     setTab(key)
     if (key === 'stats') loadStats()
     if (key === 'categories') { loadCategories(); loadUnitTypes() }

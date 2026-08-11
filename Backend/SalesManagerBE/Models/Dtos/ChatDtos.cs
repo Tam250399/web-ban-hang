@@ -19,6 +19,7 @@ namespace SalesManagerBE.Models.Dtos
         public DateTime LastMessageAt { get; set; }
         public string? LastMessage { get; set; }
         public int UnreadCount { get; set; }
+        public bool IsOnline { get; set; }
     }
 
     public class SendMessageDto

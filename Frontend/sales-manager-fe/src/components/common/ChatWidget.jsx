@@ -17,6 +17,7 @@ function ChatWidget({ user }) {
   const [dragOver, setDragOver] = useState(false)
   const bodyRef = useRef(null)
   const fileInputRef = useRef(null)
+  const inputRef = useRef(null)
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
 
@@ -50,6 +51,12 @@ function ChatWidget({ user }) {
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
   }, [messages, open])
+
+  // Focus lại ô nhập sau khi gửi: gọi .focus() ngay sau setSending(false) không ăn
+  // vì lúc đó React chưa kịp render lại để bỏ thuộc tính disabled trên input.
+  useEffect(() => {
+    if (!sending) inputRef.current?.focus()
+  }, [sending])
 
   const toggleOpen = () => {
     setOpen(o => {
@@ -180,6 +187,7 @@ function ChatWidget({ user }) {
               📎
             </button>
             <input
+              ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onPaste={handlePaste}
