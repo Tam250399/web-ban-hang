@@ -4,18 +4,15 @@ import { BASE_URL, request } from './apiClient'
 const CHAT = `${BASE_URL}/chat`
 const HUB_URL = '/chathub'
 
-function authHeaders() {
-  const token = localStorage.getItem('salesManagerToken')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
 let connection = null
 let startPromise = null
 
 function getConnection() {
   if (!connection) {
+    // Không truyền accessTokenFactory: cookie access_token (HttpOnly) tự động được gửi
+    // kèm cùng-origin (withCredentials mặc định = true của SignalR client).
     connection = new signalR.HubConnectionBuilder()
-      .withUrl(HUB_URL, { accessTokenFactory: () => localStorage.getItem('salesManagerToken') || '' })
+      .withUrl(HUB_URL)
       .withAutomaticReconnect()
       .build()
   }
@@ -23,9 +20,9 @@ function getConnection() {
 }
 
 export const chatService = {
-  getMyConversation:       ()   => request(`${CHAT}/me`, { headers: authHeaders() }),
-  getConversations:        ()   => request(`${CHAT}/conversations`, { headers: authHeaders() }),
-  getConversationMessages: (id) => request(`${CHAT}/conversations/${id}/messages`, { headers: authHeaders() }),
+  getMyConversation:       ()   => request(`${CHAT}/me`),
+  getConversations:        ()   => request(`${CHAT}/conversations`),
+  getConversationMessages: (id) => request(`${CHAT}/conversations/${id}/messages`),
 
   // Idempotent: nhiều lệnh gọi chồng nhau (vd. React StrictMode chạy effect 2 lần)
   // đều dùng chung một promise start() thay vì gọi conn.start() song song, vì

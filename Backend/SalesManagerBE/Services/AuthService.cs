@@ -66,8 +66,12 @@ namespace SalesManagerBE.Services
 
         private string GenerateJwtToken(User user)
         {
+            var jwtKey = _configuration["Jwt:Key"];
+            if (string.IsNullOrWhiteSpace(jwtKey))
+                throw new InvalidOperationException("Jwt:Key chưa được cấu hình.");
+
             var tokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.ASCII.GetBytes(_configuration["Jwt:Key"] ?? "Key_Bi_Mat_Sieu_Cap_Vu_Tru_2026_This_Is_A_Very_Long_Key");
+            var key = Encoding.UTF8.GetBytes(jwtKey);
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
@@ -76,6 +80,8 @@ namespace SalesManagerBE.Services
                     new Claim(ClaimTypes.Name, user.Username),
                     new Claim(ClaimTypes.Role, user.Role?.RoleName ?? "Customer")
                 }),
+                Issuer = _configuration["Jwt:Issuer"] ?? "SalesManagerBE",
+                Audience = _configuration["Jwt:Audience"] ?? "SalesManagerFE",
                 Expires = DateTime.UtcNow.AddDays(7),
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
@@ -84,16 +90,37 @@ namespace SalesManagerBE.Services
             return tokenHandler.WriteToken(token);
         }
 
+        // Định dạng lưu trữ: {số vòng lặp}.{salt base64}.{hash base64} — PBKDF2/HMAC-SHA256 với salt ngẫu nhiên theo từng user.
+        private const int Pbkdf2Iterations = 100_000;
+        private const int Pbkdf2SaltSize = 16;
+        private const int Pbkdf2HashSize = 32;
+
         public static string HashPassword(string password)
         {
-            using var sha256 = SHA256.Create();
-            var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-            return Convert.ToHexString(bytes);
+            var salt = RandomNumberGenerator.GetBytes(Pbkdf2SaltSize);
+            var hash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, Pbkdf2Iterations, HashAlgorithmName.SHA256, Pbkdf2HashSize);
+            return $"{Pbkdf2Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
         }
 
         private static bool VerifyPassword(string password, string storedHash)
         {
-            return string.Equals(HashPassword(password), storedHash, StringComparison.OrdinalIgnoreCase);
+            var parts = storedHash.Split('.');
+            if (parts.Length != 3 || !int.TryParse(parts[0], out var iterations))
+                return false;
+
+            byte[] salt, expectedHash;
+            try
+            {
+                salt = Convert.FromBase64String(parts[1]);
+                expectedHash = Convert.FromBase64String(parts[2]);
+            }
+            catch (FormatException)
+            {
+                return false;
+            }
+
+            var actualHash = Rfc2898DeriveBytes.Pbkdf2(Encoding.UTF8.GetBytes(password), salt, iterations, HashAlgorithmName.SHA256, expectedHash.Length);
+            return CryptographicOperations.FixedTimeEquals(actualHash, expectedHash);
         }
     }
 

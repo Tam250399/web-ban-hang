@@ -7,26 +7,34 @@ import Register from './components/Register'
 import AdminDashboard from './components/AdminDashboard'
 import ChatWidget from './components/common/ChatWidget'
 import { chatService } from './services/chatService'
+import { authService } from './services/authService'
+
+const GUEST_USER = { username: 'guest', fullName: 'Khách' }
 
 function App() {
   const [view, setView] = useState('home')
-  const [user, setUser] = useState(null)
+  // Mặc định là khách để trang chủ hiện ngay không cần chờ mạng; nếu có phiên đăng
+  // nhập hợp lệ (cookie HttpOnly), state sẽ được nâng cấp ngay sau khi server xác nhận.
+  const [user, setUser] = useState(GUEST_USER)
 
+  // Khôi phục phiên đăng nhập bằng cách hỏi thẳng server qua cookie HttpOnly,
+  // thay vì tin vào dữ liệu người dùng tự lưu trong localStorage (dễ bị chỉnh sửa qua devtools).
   useEffect(() => {
-    const savedUser = localStorage.getItem('salesManagerUser')
-    const savedToken = localStorage.getItem('salesManagerToken')
-    if (savedUser && savedToken) {
-      setUser(JSON.parse(savedUser))
-      return
-    }
-    setUser({ username: 'guest', fullName: 'Khách' })
+    authService.me()
+      .then((data) => {
+        setUser(data)
+        localStorage.setItem('salesManagerUser', JSON.stringify(data))
+      })
+      .catch(() => {
+        localStorage.removeItem('salesManagerUser')
+      })
   }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem('salesManagerToken')
+    authService.logout().catch(() => {})
     localStorage.removeItem('salesManagerUser')
     chatService.disconnect()
-    setUser({ username: 'guest', fullName: 'Khách' })
+    setUser(GUEST_USER)
     setView('home')
     toast.success('Đã đăng xuất')
   }
@@ -37,6 +45,7 @@ function App() {
         <Login
           onSwitchToRegister={() => setView('register')}
           onLoginSuccess={(userData) => {
+            localStorage.setItem('salesManagerUser', JSON.stringify(userData))
             setUser(userData)
             setView(userData.role === 'Admin' ? 'admin' : 'home')
           }}

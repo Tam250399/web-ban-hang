@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import '../App.css'
-
-const API_BASE_URL = 'http://localhost:5000'
+import { authService } from '../services/authService'
 
 function Register({ onSwitchToLogin }) {
   const [form, setForm] = useState({
@@ -23,27 +22,11 @@ function Register({ onSwitchToLogin }) {
     setMessage({ type: '', text: '' })
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-      })
-
-      const contentType = response.headers.get('content-type') || ''
-      const data = contentType.includes('application/json')
-        ? await response.json()
-        : await response.text()
-
-      if (!response.ok) {
-        const errorMessage = typeof data === 'string' ? data : data?.message || 'Đăng ký thất bại.'
-        setMessage({ type: 'error', text: errorMessage })
-        return
-      }
-
+      const data = await authService.register(form)
       setMessage({ type: 'success', text: data?.message || 'Đăng ký thành công.' })
       setForm({ username: '', password: '', fullName: '', email: '', phoneNumber: '' })
     } catch (error) {
-      setMessage({ type: 'error', text: 'Không thể kết nối tới backend.' })
+      setMessage({ type: 'error', text: error.message || 'Không thể kết nối tới backend.' })
     }
   }
 

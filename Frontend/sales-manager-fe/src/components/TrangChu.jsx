@@ -2,8 +2,7 @@ import { useEffect, useState } from 'react'
 import '../App.css'
 import Carousel from './Carousel'
 import { bannerService } from '../services/bannerService'
-
-const API = 'http://localhost:5000/api'
+import { productService } from '../services/productService'
 
 const CATEGORY_ICONS = {
   'Xi măng': '🏗️',
@@ -124,8 +123,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
   const [banners, setBanners]             = useState([])
 
   useEffect(() => {
-    fetch(`${API}/product`)
-      .then(r => r.json())
+    productService.getAll()
       .then(data => { setProducts(data); setLoading(false) })
       .catch(() => setLoading(false))
     bannerService.getActive().then(setBanners).catch(() => {})

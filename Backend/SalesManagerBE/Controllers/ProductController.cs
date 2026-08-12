@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
@@ -9,6 +10,7 @@ namespace SalesManagerBE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Staff")]
     public class ProductController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -20,6 +22,7 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetAll()
         {
             var products = await _context.Products
@@ -38,6 +41,7 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _context.Products.Include(p => p.ProductCategory).Include(p => p.UnitType).FirstOrDefaultAsync(p => p.Id == id);

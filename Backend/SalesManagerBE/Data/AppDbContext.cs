@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Models;
-using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Data
 {
@@ -45,17 +44,9 @@ namespace SalesManagerBE.Data
                     .HasForeignKey(e => e.RoleId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasData(
-                    new User
-                    {
-                        Id = 1,
-                        Username = "admin",
-                        PasswordHash = AuthService.HashPassword("Admin@123"),
-                        FullName = "Quản trị viên",
-                        RoleId = 1,
-                        CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-                    }
-                );
+                // Không seed tài khoản admin có sẵn ở đây: tài khoản admin đầu tiên được
+                // tạo lúc khởi động (xem Program.cs) từ mật khẩu do AdminBootstrap:Password
+                // cung cấp, để không có mật khẩu thật nào bị commit vào mã nguồn.
             });
 
             // ProductCategory seed

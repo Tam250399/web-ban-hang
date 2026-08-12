@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
@@ -8,6 +9,7 @@ namespace SalesManagerBE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Staff")]
     public class BannerController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -15,6 +17,7 @@ namespace SalesManagerBE.Controllers
 
         // Dùng cho trang chủ — chỉ lấy banner đang bật, sắp theo thứ tự hiển thị
         [HttpGet]
+        [AllowAnonymous]
         public async Task<IActionResult> GetActive() =>
             Ok(await _context.Banners
                 .Where(b => b.IsActive)

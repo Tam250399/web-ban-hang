@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
@@ -8,6 +9,7 @@ namespace SalesManagerBE.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin,Staff")]
     public class CategoryController : ControllerBase
     {
         private readonly AppDbContext _context;

@@ -7,6 +7,7 @@ export async function uploadImage(file) {
   const res = await fetch(`${BASE_URL}/upload/image`, {
     method: 'POST',
     body: formData,
+    credentials: 'include',
   })
 
   const isJson = res.headers.get('content-type')?.includes('application/json')

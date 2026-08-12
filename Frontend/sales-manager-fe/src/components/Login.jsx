@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 import '../App.css'
-
-const API_BASE_URL = 'http://localhost:5000'
+import { authService } from '../services/authService'
 
 function EyeIcon() {
   return (
@@ -64,30 +63,11 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
     setFormError('')
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/Auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      })
-
-      const contentType = response.headers.get('content-type') || ''
-      const data = contentType.includes('application/json')
-        ? await response.json()
-        : await response.text()
-
-      if (!response.ok) {
-        const errorMessage = typeof data === 'string' ? data : data?.message || 'Đăng nhập thất bại.'
-        setFormError(errorMessage)
-        setSubmitting(false)
-        return
-      }
-
-      localStorage.setItem('salesManagerToken', data?.token || '')
-      localStorage.setItem('salesManagerUser', JSON.stringify(data?.user || { username }))
+      const data = await authService.login(username, password)
       toast.success(`Đăng nhập thành công! Xin chào ${data?.user?.fullName || data?.user?.username || username}`)
       onLoginSuccess(data?.user || { username })
     } catch (error) {
-      setFormError('Không thể kết nối tới backend.')
+      setFormError(error.message || 'Không thể kết nối tới backend.')
       setSubmitting(false)
     }
   }
