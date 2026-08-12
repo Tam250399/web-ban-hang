@@ -133,15 +133,35 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
   )
 }
 
+function EyeIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
+      <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  )
+}
+
 // ---- Modal thêm/sửa user ----
 function UserFormModal({ user, roles, onSave, onClose }) {
   const isEdit = !!user
-  const emptyForm = { username: '', password: '', fullName: '', email: '', phoneNumber: '' }
+  const emptyForm = { username: '', password: 'Abc@123', fullName: '', email: '', phoneNumber: '' }
   const [form, setForm] = useState(
     isEdit
       ? { username: user.username, password: '', fullName: user.fullName || '', email: user.email || '', phoneNumber: user.phoneNumber || '' }
       : emptyForm
   )
+  const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
 
   const defaultRoleId = roles.find(r => r.roleName === 'Customer')?.id || roles[0]?.id || ''
@@ -159,7 +179,7 @@ function UserFormModal({ user, roles, onSave, onClose }) {
           roleId: user.roleId,
         }, true)
       } else {
-        await onSave(null, { ...form, roleId: +defaultRoleId }, false)
+        await onSave(null, { ...form, email: form.email ? `${form.email}@gmail.com` : '', roleId: +defaultRoleId }, false)
       }
     } catch (err) {
       toast.error(err.message || 'Có lỗi xảy ra.')
@@ -189,13 +209,24 @@ function UserFormModal({ user, roles, onSave, onClose }) {
             </label>
             <label className="form-field">
               <span>Mật khẩu {!isEdit && <span className="required">*</span>}</span>
-              <input
-                type="password"
-                value={form.password}
-                onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                required={!isEdit}
-                placeholder={isEdit ? 'Để trống nếu không đổi mật khẩu' : 'Nhập mật khẩu...'}
-              />
+              <div className="auth-password-wrap">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  className="auth-input-password"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  required={!isEdit}
+                  placeholder={isEdit ? 'Để trống nếu không đổi mật khẩu' : 'Nhập mật khẩu...'}
+                />
+                <button
+                  type="button"
+                  aria-label="Ẩn hiện mật khẩu"
+                  onClick={() => setShowPassword(s => !s)}
+                  className="auth-eye-btn"
+                >
+                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                </button>
+              </div>
             </label>
             <label className="form-field">
               <span>Họ tên</span>
@@ -208,12 +239,24 @@ function UserFormModal({ user, roles, onSave, onClose }) {
             <div className="form-row">
               <label className="form-field">
                 <span>Email</span>
-                <input
-                  type="email"
-                  value={form.email}
-                  onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="Nhập email..."
-                />
+                {isEdit ? (
+                  <input
+                    type="email"
+                    value={form.email}
+                    onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                    placeholder="Nhập email..."
+                  />
+                ) : (
+                  <div className="email-split-input">
+                    <input
+                      type="text"
+                      value={form.email}
+                      onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                      placeholder="Nhập tên..."
+                    />
+                    <span className="email-suffix">@gmail.com</span>
+                  </div>
+                )}
               </label>
               <label className="form-field">
                 <span>Số điện thoại</span>

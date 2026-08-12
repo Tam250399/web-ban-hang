@@ -13,7 +13,7 @@ namespace SalesManagerBE.Hubs
     [Authorize]
     public class ChatHub : Hub
     {
-        private const string AdminsGroup = "Admins";
+        public const string AdminsGroup = "Admins";
         private readonly AppDbContext _context;
         private readonly ChatPresenceService _presence;
 

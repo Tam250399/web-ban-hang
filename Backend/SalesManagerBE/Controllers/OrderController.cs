@@ -1,8 +1,10 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
+using SalesManagerBE.Hubs;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
 
@@ -14,7 +16,12 @@ namespace SalesManagerBE.Controllers
     public class OrderController : ControllerBase
     {
         private readonly AppDbContext _context;
-        public OrderController(AppDbContext context) { _context = context; }
+        private readonly IHubContext<ChatHub> _hub;
+        public OrderController(AppDbContext context, IHubContext<ChatHub> hub)
+        {
+            _context = context;
+            _hub = hub;
+        }
 
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         private bool IsStaff => User.IsInRole("Admin") || User.IsInRole("Staff");
@@ -64,6 +71,15 @@ namespace SalesManagerBE.Controllers
 
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
+
+            await _hub.Clients.Group(ChatHub.AdminsGroup).SendAsync("NewOrder", new
+            {
+                order.Id,
+                order.RecipientName,
+                order.PhoneNumber,
+                total = order.Items.Sum(i => i.Quantity * i.UnitPrice),
+                order.CreatedAt,
+            });
 
             return Ok(new { message = "Đặt hàng thành công! Chúng tôi sẽ liên hệ xác nhận sớm.", orderId = order.Id });
         }

@@ -126,7 +126,16 @@ namespace SalesManagerBE.Controllers
             if (user == null) return NotFound();
 
             _context.Users.Remove(user);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                // Vd. user đã gửi tin nhắn chat (FK_Messages_Users_SenderId dùng Restrict để
+                // giữ nguyên vẹn lịch sử chat) hoặc còn dữ liệu liên quan khác chặn xóa cứng.
+                return BadRequest(new { message = "Không thể xóa người dùng này vì còn dữ liệu liên quan (tin nhắn, đơn hàng...)." });
+            }
             return Ok(new { message = "Đã xóa người dùng." });
         }
     }
