@@ -36,7 +36,8 @@ namespace SalesManagerBE.Controllers
                     i.InvoiceDate,
                     i.CreatedAt,
                     itemCount = i.Items.Count,
-                    total = i.Items.Sum(t => t.Quantity * t.UnitPrice)
+                    total = i.Items.Sum(t => t.Quantity * t.UnitPrice),
+                    fromOrderId = i.Orders.Select(o => (int?)o.Id).FirstOrDefault()
                 })
                 .ToListAsync();
             return Ok(invoices);

@@ -5,9 +5,11 @@ import TrangChu from './components/TrangChu'
 import Login from './components/Login'
 import Register from './components/Register'
 import AdminDashboard from './components/AdminDashboard'
+import MyOrders from './components/MyOrders'
 import ChatWidget from './components/common/ChatWidget'
 import { chatService } from './services/chatService'
 import { authService } from './services/authService'
+import { CartProvider } from './context/CartContext'
 
 const GUEST_USER = { username: 'guest', fullName: 'Khách' }
 
@@ -58,6 +60,9 @@ function App() {
     if (view === 'admin' && user?.role === 'Admin') {
       return <AdminDashboard user={user} onBackToHome={() => setView('home')} />
     }
+    if (view === 'my-orders' && user && user.username !== 'guest') {
+      return <MyOrders onBack={() => setView('home')} />
+    }
     return (
       <TrangChu
         user={user}
@@ -65,12 +70,13 @@ function App() {
         onRegisterClick={() => setView('register')}
         onLogoutClick={handleLogout}
         onAdminClick={() => setView('admin')}
+        onMyOrdersClick={() => setView('my-orders')}
       />
     )
   }
 
   return (
-    <>
+    <CartProvider>
       <Toaster
         position="top-right"
         toastOptions={{
@@ -82,7 +88,7 @@ function App() {
       />
       {renderView()}
       <ChatWidget key={user?.id ?? user?.username ?? 'anon'} user={user} />
-    </>
+    </CartProvider>
   )
 }
 

@@ -49,7 +49,7 @@ namespace SalesManagerBE.Services
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
-            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName), null);
+            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, phoneNumber: user.PhoneNumber), null);
         }
 
         public async Task<AuthResult> LoginAsync(LoginDto dto)
@@ -61,7 +61,7 @@ namespace SalesManagerBE.Services
             }
 
             var token = GenerateJwtToken(user);
-            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName), null, token);
+            return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName, user.PhoneNumber), null, token);
         }
 
         private string GenerateJwtToken(User user)
@@ -142,17 +142,19 @@ namespace SalesManagerBE.Services
 
     public class UserInfo
     {
-        public UserInfo(int id, string username, string? fullName, string? role = null)
+        public UserInfo(int id, string username, string? fullName, string? role = null, string? phoneNumber = null)
         {
             Id = id;
             Username = username;
             FullName = fullName;
             Role = role;
+            PhoneNumber = phoneNumber;
         }
 
         public int Id { get; set; }
         public string Username { get; set; }
         public string? FullName { get; set; }
         public string? Role { get; set; }
+        public string? PhoneNumber { get; set; }
     }
 }

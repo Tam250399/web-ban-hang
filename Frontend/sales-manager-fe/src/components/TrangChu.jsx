@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
+import toast from 'react-hot-toast'
 import '../App.css'
 import Carousel from './Carousel'
 import { bannerService } from '../services/bannerService'
 import { productService } from '../services/productService'
+import { useCart } from '../context/cart-context'
+import CartDrawer from './common/CartDrawer'
 
 const CATEGORY_ICONS = {
   'Xi măng': '🏗️',
@@ -14,11 +17,12 @@ const CATEGORY_ICONS = {
   'Sơn': '🎨',
 }
 
-function ProductDetailModal({ product, onClose }) {
+function ProductDetailModal({ product, onClose, onAddToCart }) {
   const catName  = product.categoryName  || product.category  || 'Khác'
   const unitName = product.unitTypeName  || product.unit      || ''
   const icon     = CATEGORY_ICONS[catName] || '📦'
   const inStock  = product.stockQuantity >= 50
+  const outOfStock = product.stockQuantity <= 0
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -66,9 +70,18 @@ function ProductDetailModal({ product, onClose }) {
               )}
             </div>
 
-            <button className="btn-primary product-detail-cta" onClick={onClose}>
-              Đóng
-            </button>
+            <div className="product-detail-cta-row">
+              <button
+                className="btn-primary product-detail-cta"
+                onClick={() => onAddToCart(product)}
+                disabled={outOfStock}
+              >
+                {outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}
+              </button>
+              <button className="btn-ghost product-detail-cta" onClick={onClose}>
+                Đóng
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -76,10 +89,11 @@ function ProductDetailModal({ product, onClose }) {
   )
 }
 
-function ProductCard({ product, onClick }) {
+function ProductCard({ product, onClick, onAddToCart }) {
   const catName  = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
   const icon = CATEGORY_ICONS[catName] || '📦'
+  const outOfStock = product.stockQuantity <= 0
   return (
     <div className="product-card" onClick={onClick} style={{ cursor: 'pointer' }}>
       <div className="product-img-placeholder">
@@ -94,7 +108,7 @@ function ProductCard({ product, onClick }) {
         )}
         <span className="tag chip-rotate product-code-chip">{product.productCode}</span>
         {product.stockQuantity < 50 && (
-          <span className="low-stock-badge">Sắp hết</span>
+          <span className="low-stock-badge">{outOfStock ? 'Hết hàng' : 'Sắp hết'}</span>
         )}
       </div>
       <div className="product-info">
@@ -108,12 +122,20 @@ function ProductCard({ product, onClick }) {
           </div>
           <span className="product-stock">Còn: {product.stockQuantity} {unitName}</span>
         </div>
+        <button
+          type="button"
+          className="btn-add-cart"
+          onClick={e => { e.stopPropagation(); onAddToCart(product) }}
+          disabled={outOfStock}
+        >
+          {outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}
+        </button>
       </div>
     </div>
   )
 }
 
-function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminClick }) {
+function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminClick, onMyOrdersClick }) {
   const [products, setProducts]           = useState([])
   const [loading, setLoading]             = useState(true)
   const [search, setSearch]               = useState('')
@@ -121,6 +143,13 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
   const [menuOpen, setMenuOpen]           = useState(false)
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [banners, setBanners]             = useState([])
+  const [cartOpen, setCartOpen]           = useState(false)
+  const { addItem, totalCount } = useCart()
+
+  const handleAddToCart = (product) => {
+    addItem(product, 1)
+    toast.success(`Đã thêm "${product.productName}" vào giỏ hàng.`)
+  }
 
   useEffect(() => {
     productService.getAll()
@@ -162,12 +191,19 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           </nav>
 
           <div className="header-actions">
+            <button className="cart-icon-btn" onClick={() => setCartOpen(true)} aria-label="Giỏ hàng">
+              🛒
+              {totalCount > 0 && <span className="cart-icon-badge">{totalCount}</span>}
+            </button>
             {isLoggedIn ? (
               <>
                 <span className="user-greeting">
                   Xin chào, <strong>{user.fullName || user.username}</strong>
                   {isAdmin && <span className="role-badge">Admin</span>}
                 </span>
+                {!isAdmin && (
+                  <button className="btn-ghost" onClick={onMyOrdersClick}>📦 Đơn hàng</button>
+                )}
                 {isAdmin && (
                   <button className="btn-admin" onClick={onAdminClick}>⚙️ Quản trị</button>
                 )}
@@ -193,12 +229,18 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           <a href="#about" onClick={() => setMenuOpen(false)}>ℹ️ Về chúng tôi</a>
           <a href="#contact" onClick={() => setMenuOpen(false)}>📞 Liên hệ</a>
           <div className="mobile-divider" />
+          <button onClick={() => { setMenuOpen(false); setCartOpen(true) }}>
+            🛒 Giỏ hàng {totalCount > 0 && `(${totalCount})`}
+          </button>
           {isLoggedIn ? (
             <>
               <span style={{ padding: '8px 14px', fontSize: '0.88rem', color: 'var(--text)' }}>
                 Xin chào, <strong>{user.fullName || user.username}</strong>
                 {isAdmin && <span className="role-badge" style={{ marginLeft: 6 }}>Admin</span>}
               </span>
+              {!isAdmin && (
+                <button onClick={() => { setMenuOpen(false); onMyOrdersClick() }}>📦 Đơn hàng của tôi</button>
+              )}
               {isAdmin && (
                 <button onClick={() => { setMenuOpen(false); onAdminClick() }}>⚙️ Quản trị Admin</button>
               )}
@@ -295,7 +337,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         ) : (
           <div className="product-grid">
             {filtered.map(p => (
-              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} />
+              <ProductCard key={p.id} product={p} onClick={() => setSelectedProduct(p)} onAddToCart={handleAddToCart} />
             ))}
           </div>
         )}
@@ -353,8 +395,21 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
       </section>
 
       {selectedProduct && (
-        <ProductDetailModal product={selectedProduct} onClose={() => setSelectedProduct(null)} />
+        <ProductDetailModal
+          product={selectedProduct}
+          onClose={() => setSelectedProduct(null)}
+          onAddToCart={(p) => { handleAddToCart(p); setSelectedProduct(null) }}
+        />
       )}
+
+      <CartDrawer
+        open={cartOpen}
+        onClose={() => setCartOpen(false)}
+        user={user}
+        isLoggedIn={isLoggedIn}
+        onLoginClick={onLoginClick}
+        onOrdered={onMyOrdersClick}
+      />
 
       {/* FOOTER */}
       <footer className="site-footer">

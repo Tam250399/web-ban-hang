@@ -19,6 +19,8 @@ namespace SalesManagerBE.Data
         public DbSet<Banner> Banners => Set<Banner>();
         public DbSet<Conversation> Conversations => Set<Conversation>();
         public DbSet<Message> Messages => Set<Message>();
+        public DbSet<Order> Orders => Set<Order>();
+        public DbSet<OrderItem> OrderItems => Set<OrderItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -214,6 +216,41 @@ namespace SalesManagerBE.Data
                 entity.HasOne(e => e.Customer)
                     .WithMany(c => c.Invoices)
                     .HasForeignKey(e => e.CustomerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // Order config
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.RecipientName).IsRequired().HasMaxLength(150);
+                entity.Property(e => e.PhoneNumber).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Address).HasMaxLength(300);
+                entity.Property(e => e.Status).IsRequired().HasMaxLength(20);
+                entity.HasOne(e => e.User)
+                    .WithMany()
+                    .HasForeignKey(e => e.UserId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.SalesInvoice)
+                    .WithMany(si => si.Orders)
+                    .HasForeignKey(e => e.SalesInvoiceId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // OrderItem config
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ProductName).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Quantity).HasPrecision(18, 2);
+                entity.Property(e => e.UnitPrice).HasPrecision(18, 2);
+                entity.HasOne(e => e.Order)
+                    .WithMany(o => o.Items)
+                    .HasForeignKey(e => e.OrderId)
+                    .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.Product)
+                    .WithMany()
+                    .HasForeignKey(e => e.ProductId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
         }

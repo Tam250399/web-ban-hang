@@ -136,6 +136,10 @@ namespace SalesManagerBE.Controllers
         {
             var product = await _context.Products.FindAsync(id);
             if (product == null) return NotFound();
+
+            if (await _context.OrderItems.AnyAsync(i => i.ProductId == id))
+                return BadRequest(new { message = "Không thể xóa sản phẩm đã có trong đơn hàng." });
+
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Đã xóa sản phẩm." });

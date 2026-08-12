@@ -337,18 +337,9 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
   return (
     <div>
       <div className="list-header">
-        <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-          <h3 className="tab-title" style={{ margin: 0 }}>
-            Danh sách sản phẩm <span className="count-badge">{products.length}</span>
-          </h3>
-          <input
-            className="search-input"
-            style={{ maxWidth: 280 }}
-            placeholder="Tìm theo tên, mã, danh mục..."
-            value={search}
-            onChange={e => { setSearch(e.target.value); setPage(1) }}
-          />
-        </div>
+        <h3 className="tab-title" style={{ margin: 0 }}>
+          Danh sách sản phẩm <span className="count-badge">{filtered.length}</span>
+        </h3>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <input
             ref={fileInputRef}
@@ -367,6 +358,18 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
             ]}
           />
         </div>
+      </div>
+
+      <div className="admin-filter-bar">
+        <input
+          className="search-input"
+          placeholder="Tìm theo tên, mã, danh mục..."
+          value={search}
+          onChange={e => { setSearch(e.target.value); setPage(1) }}
+        />
+        {search && (
+          <button type="button" className="btn-ghost" onClick={() => { setSearch(''); setPage(1) }}>Xóa lọc</button>
+        )}
       </div>
 
       <div className="admin-table-wrap">

@@ -3,6 +3,7 @@ import '../App.css'
 import { productService } from '../services/productService'
 import { categoryService } from '../services/categoryService'
 import { chatService } from '../services/chatService'
+import { orderService } from '../services/orderService'
 import ProductList from './admin/ProductList'
 import StockManager from './admin/StockManager'
 import Statistics from './admin/Statistics'
@@ -11,9 +12,11 @@ import BannerManager from './admin/BannerManager'
 import SystemManager from './admin/SystemManager'
 import ChatManager from './admin/ChatManager'
 import CustomerManager from './admin/CustomerManager'
+import OrderManager from './admin/OrderManager'
 
 const TABS = [
   { key: 'list',       label: '📋 Sản phẩm' },
+  { key: 'orders',     label: '🛒 Đơn hàng' },
   { key: 'stock',      label: '📦 Nhập/Xuất kho' },
   { key: 'customers',  label: '👥 Khách hàng' },
   { key: 'categories', label: '🏷️ Danh mục' },
@@ -33,17 +36,20 @@ function AdminDashboard({ user, onBackToHome }) {
   const [activeConversationId, setActiveConversationId] = useState(null)
   const activeConversationIdRef = useRef(activeConversationId)
   useEffect(() => { activeConversationIdRef.current = activeConversationId }, [activeConversationId])
+  const [pendingOrdersCount, setPendingOrdersCount] = useState(0)
 
   const loadProducts   = () => productService.getAll().then(setProducts).catch(() => {})
   const loadCategories = () => categoryService.getCategories().then(setCategories).catch(() => {})
   const loadUnitTypes  = () => categoryService.getUnitTypes().then(setUnitTypes).catch(() => {})
   const loadStats      = () => productService.getStatistics().then(setStats).catch(() => {})
+  const loadPendingOrders = () => orderService.getAll('Pending').then(list => setPendingOrdersCount(list.length)).catch(() => {})
 
   useEffect(() => {
     loadProducts()
     loadCategories()
     loadUnitTypes()
     loadStats()
+    loadPendingOrders()
   }, [])
 
   // Theme riêng cho khu vực quản trị (bảng màu/typography khác trang bán hàng).
@@ -87,6 +93,7 @@ function AdminDashboard({ user, onBackToHome }) {
     if (tab === 'chat' && key !== 'chat') setActiveConversationId(null)
     setTab(key)
     if (key === 'stats') loadStats()
+    if (key === 'orders') loadPendingOrders()
     if (key === 'categories') { loadCategories(); loadUnitTypes() }
     window.scrollTo(0, 0)
   }
@@ -132,6 +139,9 @@ function AdminDashboard({ user, onBackToHome }) {
               onClick={() => switchTab(t.key)}
             >
               {t.label}
+              {t.key === 'orders' && pendingOrdersCount > 0 && (
+                <span className="count-badge" style={{ marginLeft: 6 }}>{pendingOrdersCount}</span>
+              )}
             </button>
           ))}
 
@@ -158,6 +168,9 @@ function AdminDashboard({ user, onBackToHome }) {
               unitTypes={unitTypes}
               onRefresh={() => { loadProducts(); loadStats() }}
             />
+          )}
+          {tab === 'orders' && (
+            <OrderManager onChanged={() => { loadProducts(); loadStats(); loadPendingOrders() }} />
           )}
           {tab === 'stock' && <StockManager products={products} />}
           {tab === 'customers' && <CustomerManager />}

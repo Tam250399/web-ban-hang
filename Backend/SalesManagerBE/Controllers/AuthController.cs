@@ -79,7 +79,7 @@ namespace SalesManagerBE.Controllers
             var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Id == userId);
             if (user == null) return Unauthorized();
 
-            return Ok(new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName));
+            return Ok(new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName, user.PhoneNumber));
         }
     }
 }

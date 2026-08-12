@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Controllers
 {
@@ -13,10 +14,12 @@ namespace SalesManagerBE.Controllers
     public class StockController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IStockExcelService _excelService;
 
-        public StockController(AppDbContext context)
+        public StockController(AppDbContext context, IStockExcelService excelService)
         {
             _context = context;
+            _excelService = excelService;
         }
 
         [HttpGet]
@@ -118,6 +121,104 @@ namespace SalesManagerBE.Controllers
             _context.StockTransactions.Remove(transaction);
             await _context.SaveChangesAsync();
             return Ok(new { message = "Đã xóa giao dịch." });
+        }
+
+        [HttpGet("import-template")]
+        public async Task<IActionResult> ImportTemplate()
+        {
+            var products = await _context.Products.OrderBy(p => p.ProductCode).ToListAsync();
+            var bytes = _excelService.GenerateImportTemplate(products);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "MauNhapKho.xlsx");
+        }
+
+        [HttpPost("import/preview")]
+        public async Task<IActionResult> ImportPreview(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest(new { message = "Vui lòng chọn file." });
+
+            List<StockImportRawRow> rawRows;
+            try
+            {
+                using var stream = file.OpenReadStream();
+                rawRows = _excelService.ParseImportFile(stream);
+            }
+            catch
+            {
+                return BadRequest(new { message = "Không đọc được file. Vui lòng dùng đúng file mẫu (.xlsx)." });
+            }
+
+            if (rawRows.Count == 0)
+                return BadRequest(new { message = "File không có dữ liệu." });
+
+            var products = await _context.Products.ToListAsync();
+            var preview = new List<StockImportPreviewRowDto>();
+
+            foreach (var row in rawRows)
+            {
+                var messages = new List<string>();
+                var product = products.FirstOrDefault(p => p.ProductCode.Equals(row.ProductCode, StringComparison.OrdinalIgnoreCase));
+
+                if (string.IsNullOrWhiteSpace(row.ProductCode)) messages.Add("Thiếu mã sản phẩm.");
+                else if (product == null) messages.Add($"Không tìm thấy sản phẩm mã \"{row.ProductCode}\".");
+                if (row.Quantity <= 0) messages.Add("Số lượng phải lớn hơn 0.");
+                if (row.UnitPrice < 0) messages.Add("Đơn giá không hợp lệ.");
+
+                preview.Add(new StockImportPreviewRowDto
+                {
+                    RowNumber = row.RowNumber,
+                    ProductCode = row.ProductCode,
+                    ProductName = product?.ProductName,
+                    ProductId = product?.Id,
+                    Quantity = row.Quantity,
+                    UnitPrice = row.UnitPrice,
+                    Note = row.Note,
+                    Status = messages.Count > 0 ? "Invalid" : "Valid",
+                    Message = messages.Count > 0 ? string.Join(" ", messages) : null,
+                });
+            }
+
+            return Ok(new
+            {
+                rows = preview,
+                total = preview.Count,
+                validCount = preview.Count(r => r.Status == "Valid"),
+                invalidCount = preview.Count(r => r.Status == "Invalid"),
+            });
+        }
+
+        [HttpPost("import/commit")]
+        public async Task<IActionResult> ImportCommit([FromBody] StockImportCommitDto dto)
+        {
+            if (dto.Rows == null || dto.Rows.Count == 0)
+                return BadRequest(new { message = "Không có dữ liệu để nhập." });
+
+            var productIds = dto.Rows.Select(r => r.ProductId).Distinct().ToList();
+            var products = await _context.Products.Where(p => productIds.Contains(p.Id)).ToDictionaryAsync(p => p.Id);
+
+            int created = 0, skipped = 0;
+            foreach (var row in dto.Rows)
+            {
+                if (row.Quantity <= 0 || !products.TryGetValue(row.ProductId, out var product))
+                {
+                    skipped++;
+                    continue;
+                }
+
+                product.StockQuantity += row.Quantity;
+                _context.StockTransactions.Add(new StockTransaction
+                {
+                    ProductId = row.ProductId,
+                    Type = "Import",
+                    Quantity = row.Quantity,
+                    UnitPrice = row.UnitPrice,
+                    Note = row.Note,
+                });
+                created++;
+            }
+
+            await _context.SaveChangesAsync();
+            return Ok(new { message = $"Đã nhập kho {created} dòng, bỏ qua {skipped}.", created, skipped });
         }
     }
 }

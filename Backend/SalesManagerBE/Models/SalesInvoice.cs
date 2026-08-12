@@ -10,5 +10,7 @@ namespace SalesManagerBE.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public Customer? Customer { get; set; }
         public List<StockTransaction> Items { get; set; } = new();
+        // Đơn hàng online (nếu có) đã được xác nhận thành phiếu này — xem OrderController.Confirm.
+        public List<Order> Orders { get; set; } = new();
     }
 }

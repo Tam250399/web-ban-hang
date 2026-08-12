@@ -1,12 +1,17 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { stockService } from '../../services/stockService'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
 import { customerService } from '../../services/customerService'
 import Pagination from '../common/Pagination'
 import SearchableSelect from '../common/SearchableSelect'
+import MultiSearchableSelect from '../common/MultiSearchableSelect'
 import ConfirmModal from '../common/ConfirmModal'
 import MoneyInput from '../common/MoneyInput'
+import OverflowMenu from '../common/OverflowMenu'
+
+const IMPORT_STATUS_LABEL = { Valid: 'Hợp lệ', Invalid: 'Lỗi' }
+const IMPORT_STATUS_CLASS = { Valid: 'new', Invalid: 'invalid' }
 
 const EMPTY_IMPORT_FORM = { productId: '', quantity: '', unitPrice: '', note: '' }
 const today = () => new Date().toISOString().slice(0, 10)
@@ -99,16 +104,121 @@ function ImportModal({ products, transaction, onClose, onSaved }) {
   )
 }
 
+function StockImportPreviewModal({ result, onClose, onImported }) {
+  const [selected, setSelected] = useState(() => new Set(
+    result.rows.filter(r => r.status !== 'Invalid').map(r => r.rowNumber)
+  ))
+  const [committing, setCommitting] = useState(false)
+
+  const toggle = (rowNumber) => {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(rowNumber) ? next.delete(rowNumber) : next.add(rowNumber)
+      return next
+    })
+  }
+
+  const handleCommit = async () => {
+    const rows = result.rows
+      .filter(r => selected.has(r.rowNumber) && r.status !== 'Invalid')
+      .map(r => ({
+        productId: r.productId,
+        quantity: r.quantity,
+        unitPrice: r.unitPrice,
+        note: r.note || null,
+      }))
+    if (rows.length === 0) { toast.error('Chưa chọn dòng nào để nhập.'); return }
+    setCommitting(true)
+    try {
+      const res = await stockService.commitImport(rows)
+      toast.success(res.message || 'Nhập kho thành công!')
+      onImported()
+    } catch (err) {
+      toast.error(err.message || 'Nhập kho thất bại.')
+      setCommitting(false)
+    }
+  }
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <h3>Xem trước dữ liệu nhập kho</h3>
+          <button className="modal-close" onClick={onClose}>✕</button>
+        </div>
+
+        <div style={{ padding: '14px 24px 0' }}>
+          <div className="import-summary">
+            <span>Tổng <strong>{result.total}</strong> dòng</span>
+            <span className="import-status-badge new">Hợp lệ: {result.validCount}</span>
+            <span className="import-status-badge invalid">Lỗi: {result.invalidCount}</span>
+          </div>
+          <p style={{ fontSize: '0.8rem', color: 'var(--text)', margin: '8px 0 0' }}>
+            Mỗi dòng hợp lệ sẽ tạo 1 phiếu nhập kho và cộng thêm số lượng vào tồn kho sản phẩm tương ứng.
+          </p>
+        </div>
+
+        <div className="admin-table-wrap" style={{ margin: '14px 24px', maxHeight: 360, overflowY: 'auto' }}>
+          <table className="admin-table">
+            <thead>
+              <tr>
+                <th style={{ width: 36 }}></th>
+                <th>Dòng</th><th>Mã SP</th><th>Tên sản phẩm</th>
+                <th>SL</th><th>Đơn giá</th><th>Ghi chú</th><th>Trạng thái</th>
+              </tr>
+            </thead>
+            <tbody>
+              {result.rows.map(r => (
+                <tr key={r.rowNumber}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selected.has(r.rowNumber)}
+                      disabled={r.status === 'Invalid'}
+                      onChange={() => toggle(r.rowNumber)}
+                    />
+                  </td>
+                  <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{r.rowNumber}</td>
+                  <td>{r.productCode || '-'}</td>
+                  <td>{r.productName || '-'}</td>
+                  <td>{r.quantity}</td>
+                  <td>{r.unitPrice?.toLocaleString('vi-VN')}đ</td>
+                  <td>{r.note || '-'}</td>
+                  <td>
+                    <span className={`import-status-badge ${IMPORT_STATUS_CLASS[r.status]}`}>{IMPORT_STATUS_LABEL[r.status]}</span>
+                    {r.message && <div style={{ fontSize: '0.72rem', color: 'var(--primary)', marginTop: 3 }}>{r.message}</div>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="modal-footer">
+          <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
+          <button className="btn-primary" onClick={handleCommit} disabled={committing || selected.size === 0}>
+            {committing ? 'Đang nhập...' : `Xác nhận nhập kho ${selected.size} dòng`}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 function ImportPanel({ products, transactions, reload }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState(null)
   const [deleting, setDeleting] = useState(false)
+  const [importResult, setImportResult] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const fileInputRef = useRef(null)
 
   const openAdd = () => { setEditingTransaction(null); setShowModal(true) }
   const openEdit = (t) => { setEditingTransaction(t); setShowModal(true) }
@@ -134,6 +244,30 @@ function ImportPanel({ products, transactions, reload }) {
     setDeleting(false)
   }
 
+  const handleDownloadTemplate = async () => {
+    try { await stockService.downloadTemplate() } catch (err) { toast.error(err.message || 'Tải mẫu thất bại.') }
+  }
+
+  const handleImportFileChange = async (e) => {
+    const file = e.target.files[0]
+    if (fileInputRef.current) fileInputRef.current.value = ''
+    if (!file) return
+    setUploading(true)
+    try {
+      const result = await stockService.previewImport(file)
+      setImportResult(result)
+    } catch (err) {
+      toast.error(err.message || 'Không đọc được file.')
+    }
+    setUploading(false)
+  }
+
+  const handleImported = () => {
+    setImportResult(null)
+    setPage(1)
+    reload()
+  }
+
   const filtered = transactions.filter(t => {
     const tDate = t.transactionDate.slice(0, 10)
     const matchSearch = !search.trim() || t.productName?.toLowerCase().includes(search.trim().toLowerCase())
@@ -145,6 +279,7 @@ function ImportPanel({ products, transactions, reload }) {
   const totalPages = Math.ceil(filtered.length / pageSize)
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
   const hasFilters = search || fromDate || toDate
+  const advancedCount = [fromDate, toDate].filter(Boolean).length
 
   const clearFilters = () => { setSearch(''); setFromDate(''); setToDate(''); setPage(1) }
 
@@ -155,7 +290,23 @@ function ImportPanel({ products, transactions, reload }) {
           Lịch sử nhập kho
           <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
         </h4>
-        <button className="btn-primary" onClick={openAdd}>+ Thêm phiếu nhập</button>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".xlsx"
+            onChange={handleImportFileChange}
+            style={{ display: 'none' }}
+          />
+          <button className="btn-primary" onClick={openAdd}>+ Thêm phiếu nhập</button>
+          <OverflowMenu
+            label="Thao tác Excel"
+            items={[
+              { label: '📥 Tải file mẫu', onClick: handleDownloadTemplate },
+              { label: uploading ? 'Đang đọc...' : '📄 Nhập Excel', onClick: () => fileInputRef.current?.click(), disabled: uploading },
+            ]}
+          />
+        </div>
       </div>
 
       <div>
@@ -166,16 +317,28 @@ function ImportPanel({ products, transactions, reload }) {
             value={search}
             onChange={e => { setSearch(e.target.value); setPage(1) }}
           />
-          <label className="admin-filter-date">
-            <span>Từ ngày</span>
-            <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
-          </label>
-          <label className="admin-filter-date">
-            <span>Đến ngày</span>
-            <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
-          </label>
+          <button
+            type="button"
+            className={`btn-advanced-toggle ${showAdvanced ? 'active' : ''}`}
+            onClick={() => setShowAdvanced(v => !v)}
+          >
+          <span className="toggle-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span> Nâng cao
+            {advancedCount > 0 && <span className="advanced-count">{advancedCount}</span>}
+          </button>
           {hasFilters && <button type="button" className="btn-ghost" onClick={clearFilters}>Xóa lọc</button>}
         </div>
+        {showAdvanced && (
+          <div className="advanced-filter-panel">
+            <label className="admin-filter-date">
+              <span>Từ ngày</span>
+              <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
+            </label>
+            <label className="admin-filter-date">
+              <span>Đến ngày</span>
+              <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
+            </label>
+          </div>
+        )}
 
         <div className="admin-table-wrap">
           <table className="admin-table">
@@ -233,6 +396,14 @@ function ImportPanel({ products, transactions, reload }) {
           message="Bạn có chắc muốn xóa giao dịch nhập kho này không? Tồn kho sản phẩm liên quan sẽ được điều chỉnh lại."
           onConfirm={handleDelete}
           onCancel={() => setConfirmDeleteId(null)}
+        />
+      )}
+
+      {importResult && (
+        <StockImportPreviewModal
+          result={importResult}
+          onClose={() => setImportResult(null)}
+          onImported={handleImported}
         />
       )}
     </div>
@@ -402,7 +573,9 @@ function ExportPanel({ products, customers, invoices, reload }) {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [filterMonth, setFilterMonth] = useState('')
-  const [filterCustomerId, setFilterCustomerId] = useState('')
+  const [filterCustomerId, setFilterCustomerId] = useState([])
+  const [filterSource, setFilterSource] = useState('')
+  const [showAdvanced, setShowAdvanced] = useState(false)
   const [selectedIds, setSelectedIds] = useState([])
   const [modalInvoice, setModalInvoice] = useState(null)
   const [showModal, setShowModal] = useState(false)
@@ -415,12 +588,15 @@ function ExportPanel({ products, customers, invoices, reload }) {
 
   const filtered = invoices.filter(inv => {
     const matchSearch = inv.customerName?.toLowerCase().includes(search.trim().toLowerCase())
-    const matchCustomer = !filterCustomerId || String(inv.customerId) === filterCustomerId
+    const matchCustomer = filterCustomerId.length === 0 || filterCustomerId.includes(String(inv.customerId))
     const invDate = inv.invoiceDate.slice(0, 10)
     const matchFrom = !fromDate || invDate >= fromDate
     const matchTo = !toDate || invDate <= toDate
     const matchMonth = !filterMonth || invDate.slice(0, 7) === filterMonth
-    return matchSearch && matchCustomer && matchFrom && matchTo && matchMonth
+    const matchSource = !filterSource
+      || (filterSource === 'online' && !!inv.fromOrderId)
+      || (filterSource === 'manual' && !inv.fromOrderId)
+    return matchSearch && matchCustomer && matchFrom && matchTo && matchMonth && matchSource
   })
 
   const totalPages = Math.ceil(filtered.length / pageSize)
@@ -521,35 +697,59 @@ function ExportPanel({ products, customers, invoices, reload }) {
           value={search}
           onChange={e => { setSearch(e.target.value); setPage(1) }}
         />
-        <div style={{ minWidth: 220 }}>
-          <SearchableSelect
-            value={filterCustomerId}
-            onChange={(val) => { setFilterCustomerId(val); setPage(1) }}
-            options={customerFilterOptions}
-            placeholder="-- Tất cả khách hàng --"
-            searchPlaceholder="Tìm theo tên khách hàng..."
-          />
-        </div>
-        <label className="admin-filter-date">
-          <span>Tháng</span>
-          <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setPage(1) }} />
-        </label>
-        <label className="admin-filter-date">
-          <span>Từ ngày</span>
-          <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
-        </label>
-        <label className="admin-filter-date">
-          <span>Đến ngày</span>
-          <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
-        </label>
-        {(search || filterCustomerId || filterMonth || fromDate || toDate) && (
+        <button
+          type="button"
+          className={`btn-advanced-toggle ${showAdvanced ? 'active' : ''}`}
+          onClick={() => setShowAdvanced(v => !v)}
+        >
+          <span className="toggle-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span> Nâng cao
+          {[filterCustomerId.length > 0, filterMonth, fromDate, toDate, filterSource].filter(Boolean).length > 0 && (
+            <span className="advanced-count">{[filterCustomerId.length > 0, filterMonth, fromDate, toDate, filterSource].filter(Boolean).length}</span>
+          )}
+        </button>
+        {(search || filterCustomerId.length > 0 || filterMonth || fromDate || toDate || filterSource) && (
           <button
             type="button"
             className="btn-ghost"
-            onClick={() => { setSearch(''); setFilterCustomerId(''); setFilterMonth(''); setFromDate(''); setToDate(''); setPage(1) }}
+            onClick={() => { setSearch(''); setFilterCustomerId([]); setFilterMonth(''); setFromDate(''); setToDate(''); setFilterSource(''); setPage(1) }}
           >Xóa lọc</button>
         )}
       </div>
+      {showAdvanced && (
+        <div className="advanced-filter-panel">
+          <div style={{ minWidth: 260 }}>
+            <MultiSearchableSelect
+              values={filterCustomerId}
+              onChange={(vals) => { setFilterCustomerId(vals); setPage(1) }}
+              options={customerFilterOptions}
+              placeholder="-- Tất cả khách hàng --"
+              searchPlaceholder="Tìm theo tên khách hàng..."
+            />
+          </div>
+          <select
+            className="search-input"
+            value={filterSource}
+            onChange={e => { setFilterSource(e.target.value); setPage(1) }}
+            style={{ minWidth: 140, maxWidth: 180 }}
+          >
+            <option value="">-- Tất cả nguồn --</option>
+            <option value="online">🛒 Online</option>
+            <option value="manual">Thủ công</option>
+          </select>
+          <label className="admin-filter-date">
+            <span>Tháng</span>
+            <input type="month" value={filterMonth} onChange={e => { setFilterMonth(e.target.value); setPage(1) }} />
+          </label>
+          <label className="admin-filter-date">
+            <span>Từ ngày</span>
+            <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
+          </label>
+          <label className="admin-filter-date">
+            <span>Đến ngày</span>
+            <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
+          </label>
+        </div>
+      )}
 
       <div className="admin-table-wrap">
         <table className="admin-table">
@@ -558,7 +758,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
               <th style={{ width: 36 }}>
                 <input type="checkbox" checked={allPageSelected} onChange={toggleSelectAllOnPage} />
               </th>
-              <th>#</th><th>Khách hàng</th><th>Ngày</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Thao tác</th>
+              <th>#</th><th>Khách hàng</th><th>Nguồn</th><th>Ngày</th><th>Sản phẩm</th><th>Tổng tiền</th><th>Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -569,6 +769,11 @@ function ExportPanel({ products, customers, invoices, reload }) {
                 </td>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                 <td><strong>{inv.customerName}</strong></td>
+                <td>
+                  {inv.fromOrderId
+                    ? <span className="order-source-badge online">🛒 Đơn #{inv.fromOrderId}</span>
+                    : <span className="order-source-badge manual">Thủ công</span>}
+                </td>
                 <td>{new Date(inv.invoiceDate).toLocaleDateString('vi-VN')}</td>
                 <td>{inv.itemCount}</td>
                 <td className="tag"><strong>{inv.total?.toLocaleString('vi-VN')}đ</strong></td>
@@ -586,7 +791,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
             ))}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>
+                <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-light)', padding: 24 }}>
                   {invoices.length === 0 ? 'Chưa có phiếu bán hàng nào — bấm "+ Thêm phiếu" để tạo phiếu đầu tiên' : 'Không tìm thấy phiếu phù hợp'}
                 </td>
               </tr>
