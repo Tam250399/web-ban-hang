@@ -34,11 +34,16 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
           không tự lấy được inset đúng — phải bọc thêm SafeAreaProvider mới ở đây. */}
       <SafeAreaProvider>
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-          <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </TouchableOpacity>
+          {/* ── Header cố định ── */}
+          <View style={styles.headerRow}>
+            <Text style={styles.headerTitle}>Chi tiết sản phẩm</Text>
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+              <Text style={styles.closeBtnText}>✕</Text>
+            </TouchableOpacity>
+          </View>
 
-          <ScrollView contentContainerStyle={styles.body}>
+          {/* ── Nội dung cuộn ── */}
+          <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
             <View style={styles.imageWrap}>
               {product.imageUrl ? (
                 <Image source={{ uri: resolveMediaUrl(product.imageUrl) }} style={styles.image} resizeMode="cover" />
@@ -79,20 +84,21 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
                 </View>
               )}
             </View>
-
-            <View style={styles.ctaRow}>
-              <TouchableOpacity
-                style={[styles.addBtn, outOfStock && styles.addBtnDisabled]}
-                onPress={() => onAddToCart(product)}
-                disabled={outOfStock}
-              >
-                <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.closeCta} onPress={onClose}>
-                <Text style={styles.closeCtaText}>Đóng</Text>
-              </TouchableOpacity>
-            </View>
           </ScrollView>
+
+          {/* ── Nút CTA cố định dưới cùng ── */}
+          <View style={styles.ctaRow}>
+            <TouchableOpacity
+              style={[styles.addBtn, outOfStock && styles.addBtnDisabled]}
+              onPress={() => onAddToCart(product)}
+              disabled={outOfStock}
+            >
+              <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.closeCta} onPress={onClose}>
+              <Text style={styles.closeCtaText}>Đóng</Text>
+            </TouchableOpacity>
+          </View>
         </SafeAreaView>
       </SafeAreaProvider>
     </Modal>
@@ -101,13 +107,18 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.bg },
-  closeBtn: {
-    position: 'absolute', top: 14, right: 14, zIndex: 10,
-    width: 32, height: 32, borderRadius: 16, backgroundColor: brand.white,
-    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: brand.ink,
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 12,
+    borderBottomWidth: 1, borderBottomColor: brand.cardBorder,
   },
-  closeBtnText: { color: brand.ink, fontSize: 14 },
-  body: { padding: 20, paddingTop: 60 },
+  headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 16, color: brand.ink },
+  closeBtn: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: '#fee2e2',
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fca5a5',
+  },
+  closeBtnText: { color: '#dc2626', fontSize: 14, fontWeight: '700' },
+  body: { padding: 20, paddingBottom: 12 },
   imageWrap: {
     width: '100%', height: 220, backgroundColor: '#E3DFD4', borderRadius: 16,
     borderWidth: 1.5, borderColor: brand.ink, alignItems: 'center', justifyContent: 'center',
@@ -135,7 +146,7 @@ const styles = StyleSheet.create({
   okText: { color: brand.success },
   descBlock: { gap: 4, paddingVertical: 8 },
   descText: { fontFamily: fonts.body, fontSize: 13, color: brand.ink, lineHeight: 20 },
-  ctaRow: { flexDirection: 'row', gap: 10 },
+  ctaRow: { flexDirection: 'row', gap: 10, paddingHorizontal: 20, paddingVertical: 12, borderTopWidth: 1, borderTopColor: brand.cardBorder },
   addBtn: { flex: 1, backgroundColor: brand.primary, borderRadius: 10, paddingVertical: 14, alignItems: 'center' },
   addBtnDisabled: { opacity: 0.5 },
   addBtnText: { color: brand.white, fontFamily: fonts.displayExtraBold, fontSize: 15 },

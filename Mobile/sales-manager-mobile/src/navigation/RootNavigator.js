@@ -14,13 +14,19 @@ export default function RootNavigator() {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Home" component={CustomerTabs} />
-        <Stack.Screen name="Login" component={LoginScreen} />
-        <Stack.Screen name="Register" component={RegisterScreen} />
+        {/* ── Auth screens: tắt gesture back để không vuốt ngược về Home/Login ── */}
+        <Stack.Group screenOptions={{ gestureEnabled: false }}>
+          <Stack.Screen name="Home" component={CustomerTabs} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Register" component={RegisterScreen} />
+        </Stack.Group>
+
+        {/* ── Main screens: cho phép gesture back bình thường ── */}
         <Stack.Screen name="MyOrders" component={MyOrdersScreen} options={{ headerShown: true, title: 'Đơn hàng của tôi' }} />
         <Stack.Screen name="Admin" component={AdminDashboardScreen} />
-        <Stack.Screen name="StockForm" component={StockFormScreen} options={{ presentation: 'modal' }} />
-        <Stack.Screen name="StockImportForm" component={StockImportFormScreen} options={{ presentation: 'modal' }} />
+        {/* ── Form screens: tắt vuốt xuống đóng modal để không bị mất dữ liệu ── */}
+        <Stack.Screen name="StockForm" component={StockFormScreen} options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
+        <Stack.Screen name="StockImportForm" component={StockImportFormScreen} options={{ presentation: 'fullScreenModal', gestureEnabled: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   )

@@ -24,7 +24,7 @@ export default function AccountScreen({ navigation }) {
       <Text style={styles.username}>@{user.username}</Text>
 
       {user.role !== 'Admin' && (
-        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('MyOrders')}>
+        <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Orders')}>
           <Text style={styles.rowText}>Đơn hàng của tôi</Text>
         </TouchableOpacity>
       )}

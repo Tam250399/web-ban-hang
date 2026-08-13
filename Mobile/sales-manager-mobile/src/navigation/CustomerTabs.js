@@ -1,7 +1,9 @@
 import { Text } from 'react-native'
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import HomeScreen from '../screens/HomeScreen'
-import ProductsScreen from '../screens/ProductsScreen'
+import MyOrdersScreen from '../screens/MyOrdersScreen'
+import CustomerChatScreen from '../screens/CustomerChatScreen'
 import StockExportTabScreen from '../screens/StockExportTabScreen'
 import CartScreen from '../screens/CartScreen'
 import AdminChatScreen from '../screens/AdminChatScreen'
@@ -10,33 +12,61 @@ import { useAuth } from '../context/auth-context'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
-const Tab = createBottomTabNavigator()
+const Tab = createMaterialTopTabNavigator()
 
-// Thanh tab dưới cùng khớp thiết kế: nền tối #1F1D1A, icon emoji, active = vàng accent.
-// Với Admin, 2 tab giữa đổi vai trò: "Sản phẩm" -> "Xuất kho", "Giỏ hàng" -> "Chat"
-// (Admin không mua hàng nên giỏ hàng/duyệt sản phẩm không có ý nghĩa với họ).
 export default function CustomerTabs() {
   const { user } = useAuth()
-  const isAdmin = user.role === 'Admin'
+  const isAdmin = user?.role === 'Admin'
+  const insets = useSafeAreaInsets()
 
-  const TAB_ICONS = { Home: '🏠', Products: isAdmin ? '📤' : '🏗️', Cart: isAdmin ? '💬' : '🛒', Account: '👤' }
-  const TAB_LABELS = { Home: 'Trang chủ', Products: isAdmin ? 'Xuất kho' : 'Sản phẩm', Cart: isAdmin ? 'Chat' : 'Giỏ hàng', Account: 'Tài khoản' }
+  const TAB_ICONS = {
+    Home: '🏠',
+    Orders: '📋',
+    Products: isAdmin ? '📤' : '💬',
+    Cart: isAdmin ? '💬' : '🛒',
+    Account: '👤',
+  }
+  const TAB_LABELS = {
+    Home: 'Trang chủ',
+    Orders: 'Đơn hàng',
+    Products: isAdmin ? 'Xuất kho' : 'Chat',
+    Cart: isAdmin ? 'Chat' : 'Giỏ hàng',
+    Account: 'Tài khoản',
+  }
 
   return (
     <Tab.Navigator
+      tabBarPosition="bottom"
       screenOptions={({ route }) => ({
-        headerShown: false,
+        swipeEnabled: true,
+        lazy: true,
+        tabBarScrollEnabled: false,
+        tabBarPressColor: 'transparent',
+        tabBarIndicatorStyle: { backgroundColor: brand.accent, height: 2.5, top: 0 },
+        tabBarStyle: {
+          backgroundColor: brand.ink,
+          borderTopColor: '#3A3630',
+          borderTopWidth: 1,
+          height: 62 + insets.bottom,
+          paddingBottom: insets.bottom,
+          elevation: 0,
+        },
+        tabBarItemStyle: { height: 60, paddingVertical: 0 },
+        tabBarIcon: () => <Text style={{ fontSize: 19 }}>{TAB_ICONS[route.name]}</Text>,
+        tabBarLabel: ({ color }) => (
+          <Text style={{ fontSize: 11, fontFamily: fonts.displayBold, color, marginTop: -2 }}>
+            {TAB_LABELS[route.name]}
+          </Text>
+        ),
         tabBarActiveTintColor: brand.accent,
         tabBarInactiveTintColor: brand.textFaint,
-        tabBarStyle: { backgroundColor: brand.ink, borderTopColor: '#3A3630', height: 62, paddingBottom: 8, paddingTop: 6 },
-        tabBarIcon: () => <Text style={{ fontSize: 18 }}>{TAB_ICONS[route.name]}</Text>,
-        tabBarLabel: ({ color }) => (
-          <Text style={{ fontSize: 9.5, fontFamily: fonts.displayBold, color }}>{TAB_LABELS[route.name]}</Text>
-        ),
+        tabBarShowIcon: true,
+        tabBarIconStyle: { marginTop: 6, width: 24, height: 24 },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen} />
-      <Tab.Screen name="Products" component={isAdmin ? StockExportTabScreen : ProductsScreen} />
+      {!isAdmin && <Tab.Screen name="Orders" component={MyOrdersScreen} />}
+      <Tab.Screen name="Products" component={isAdmin ? StockExportTabScreen : CustomerChatScreen} />
       <Tab.Screen name="Cart" component={isAdmin ? AdminChatScreen : CartScreen} />
       <Tab.Screen name="Account" component={AccountScreen} />
     </Tab.Navigator>

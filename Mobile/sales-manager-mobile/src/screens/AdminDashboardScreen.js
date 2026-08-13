@@ -19,9 +19,15 @@ const PANELS = {
   stats: StatisticsPanel,
 }
 
-export default function AdminDashboardScreen({ navigation }) {
+export default function AdminDashboardScreen({ navigation, route }) {
   const { user } = useAuth()
-  const [navTab, setNavTab] = useState('stock')
+  const [navTab, setNavTab] = useState(route?.params?.initialTab || 'stock')
+
+  useEffect(() => {
+    if (route?.params?.initialTab) {
+      setNavTab(route.params.initialTab)
+    }
+  }, [route?.params?.initialTab])
 
   useEffect(() => {
     if (user.role !== 'Admin') navigation.replace('Home')

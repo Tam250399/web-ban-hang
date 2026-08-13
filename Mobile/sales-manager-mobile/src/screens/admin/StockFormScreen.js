@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import {
+  ActivityIndicator, Modal, Platform, ScrollView,
+  StyleSheet, Text, TextInput, TouchableOpacity, View,
+} from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import DateTimePicker from '@react-native-community/datetimepicker'
 import Toast from 'react-native-toast-message'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
 import { customerService } from '../../services/customerService'
@@ -16,7 +20,26 @@ function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
-const today = () => new Date().toISOString().slice(0, 10)
+function formatDDMMYYYY(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${day}-${month}-${year}`
+}
+
+function formatYYYYMMDD(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return ''
+  const day = String(d.getDate()).padStart(2, '0')
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const year = d.getFullYear()
+  return `${year}-${month}-${day}`
+}
+
 const emptyItem = () => ({ key: Math.random().toString(36).slice(2), productId: '', quantity: '1', unitPrice: 0 })
 
 export default function StockFormScreen({ navigation, route }) {
@@ -31,7 +54,8 @@ export default function StockFormScreen({ navigation, route }) {
 
   const [customerId, setCustomerId] = useState('')
   const [customerName, setCustomerName] = useState('')
-  const [invoiceDate, setInvoiceDate] = useState(today())
+  const [invoiceDate, setInvoiceDate] = useState(new Date())
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const [items, setItems] = useState([emptyItem()])
 
   const [customerPickerOpen, setCustomerPickerOpen] = useState(false)
@@ -49,7 +73,7 @@ export default function StockFormScreen({ navigation, route }) {
         if (invoice) {
           setCustomerId(String(invoice.customerId))
           setCustomerName(invoice.customerName || '')
-          setInvoiceDate(invoice.invoiceDate?.slice(0, 10) || today())
+          setInvoiceDate(invoice.invoiceDate ? new Date(invoice.invoiceDate) : new Date())
           setItems(
             invoice.items?.length
               ? invoice.items.map((it) => ({
@@ -85,6 +109,15 @@ export default function StockFormScreen({ navigation, route }) {
     [items]
   )
 
+  const handleDateChange = (event, selectedDate) => {
+    if (Platform.OS === 'android') {
+      setShowDatePicker(false)
+    }
+    if (selectedDate) {
+      setInvoiceDate(selectedDate)
+    }
+  }
+
   const handleSave = async () => {
     if (!customerId) {
       Toast.show({ type: 'error', text1: 'Vui lòng chọn khách hàng' })
@@ -100,7 +133,7 @@ export default function StockFormScreen({ navigation, route }) {
     try {
       const payload = {
         customerId: Number(customerId),
-        invoiceDate,
+        invoiceDate: formatYYYYMMDD(invoiceDate),
         preparedByName: user?.fullName || user?.username || '',
         items: validItems.map((it) => ({
           productId: Number(it.productId),
@@ -135,23 +168,16 @@ export default function StockFormScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>Đức Lợi</Text>
-          </View>
-          <View style={styles.headerTop}>
-            <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu bán hàng' : 'Phiếu bán hàng'}</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.closeBtnText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.headerAccent} />
+          <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu bán hàng' : 'Tạo phiếu bán hàng'}</Text>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
         </View>
-      </SafeAreaView>
 
-      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
         <View style={styles.field}>
           <Text style={styles.fieldLabel}>Khách hàng</Text>
           <PickerField
@@ -160,9 +186,18 @@ export default function StockFormScreen({ navigation, route }) {
             onPress={() => setCustomerPickerOpen(true)}
           />
         </View>
+
+        {/* ── Ô chọn ngày tháng dạng DD-MM-YYYY ── */}
         <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Ngày (YYYY-MM-DD)</Text>
-          <TextInput style={styles.dateInput} value={invoiceDate} onChangeText={setInvoiceDate} placeholder="2026-08-13" placeholderTextColor={admin.textMuted} />
+          <Text style={styles.fieldLabel}>Ngày xuất phiếu</Text>
+          <TouchableOpacity
+            style={styles.datePickerBtn}
+            onPress={() => setShowDatePicker(true)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.datePickerText}>📅  {formatDDMMYYYY(invoiceDate)}</Text>
+            <Text style={styles.datePickerChevron}>▼</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.itemsSection}>
@@ -222,6 +257,39 @@ export default function StockFormScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
+      {/* ── Native Date Picker (Android / iOS) ── */}
+      {Platform.OS === 'android' && showDatePicker && (
+        <DateTimePicker
+          value={invoiceDate}
+          mode="date"
+          display="default"
+          onChange={handleDateChange}
+        />
+      )}
+
+      {Platform.OS === 'ios' && (
+        <Modal visible={showDatePicker} transparent animationType="slide">
+          <TouchableOpacity style={styles.iosModalOverlay} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
+            <View style={styles.iosModalContent}>
+              <View style={styles.iosModalHeader}>
+                <Text style={styles.iosModalTitle}>Chọn ngày xuất phiếu</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                  <Text style={styles.iosDoneText}>Xong</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={invoiceDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                locale="vi-VN"
+                style={styles.iosPicker}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+
       <SearchableSelectModal
         visible={customerPickerOpen}
         onClose={() => setCustomerPickerOpen(false)}
@@ -238,68 +306,76 @@ export default function StockFormScreen({ navigation, route }) {
         title="Chọn sản phẩm"
         searchPlaceholder="Tìm theo tên hoặc mã..."
       />
-    </View>
+      </SafeAreaView>
+    </SafeAreaProvider>
   )
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: admin.bg },
   loadingRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: admin.bg },
-  headerSafeArea: { backgroundColor: admin.dark },
-  header: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 16, position: 'relative' },
-  tag: {
-    alignSelf: 'flex-start', backgroundColor: admin.primary, borderRadius: 8,
-    paddingHorizontal: 10, paddingVertical: 3, marginBottom: 8, transform: [{ rotate: '-2deg' }],
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: admin.divider,
+    backgroundColor: admin.bg,
   },
-  tagText: { color: admin.white, fontFamily: fonts.adminDisplay, fontSize: 9.5 },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: { color: '#F5F2EA', fontFamily: fonts.adminDisplayBold, fontSize: 19 },
-  closeBtn: {
-    width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  closeBtnText: { color: '#F5F2EA', fontSize: 13 },
-  headerAccent: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: admin.primary },
+  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
+  closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
   body: { flex: 1 },
-  bodyContent: { padding: 16, gap: 14, paddingBottom: 32 },
+  bodyContent: { padding: 16, gap: 14, paddingBottom: 40 },
   field: { gap: 6 },
-  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 11.5, color: admin.text },
-  dateInput: {
-    paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: admin.border,
-    borderRadius: 8, backgroundColor: admin.card, fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
+  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.text },
+  datePickerBtn: {
+    height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
+    borderRadius: 8, backgroundColor: admin.card, flexDirection: 'row',
+    alignItems: 'center', justifyContent: 'space-between',
   },
+  datePickerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13.5, color: admin.text },
+  datePickerChevron: { fontSize: 10, color: admin.textMuted },
   itemsSection: { gap: 10, borderTopWidth: 1, borderTopColor: admin.divider, paddingTop: 12 },
   itemCard: { backgroundColor: admin.card, borderWidth: 1, borderColor: admin.border, borderRadius: 10, padding: 11, gap: 8 },
   itemProductField: { backgroundColor: admin.white },
   itemRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-end' },
   qtyField: { width: 70, gap: 4 },
   priceField: { flex: 1, gap: 4 },
-  smallLabel: { fontFamily: fonts.adminBody, fontSize: 10.5, color: admin.textMuted },
+  smallLabel: { fontFamily: fonts.adminBody, fontSize: 11, color: admin.textMuted },
   qtyInput: {
-    borderWidth: 1, borderColor: admin.border, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 7,
-    fontSize: 12.5, color: admin.text, backgroundColor: admin.white, fontFamily: fonts.adminBody,
+    height: 44, borderWidth: 1, borderColor: admin.border, borderRadius: 8, paddingHorizontal: 10,
+    fontSize: 13, color: admin.text, backgroundColor: admin.white, fontFamily: fonts.adminBody,
   },
-  removeBtn: { paddingVertical: 8, paddingHorizontal: 6 },
-  removeBtnText: { color: admin.dangerText, fontFamily: fonts.adminBodySemiBold, fontSize: 11.5 },
+  removeBtn: { height: 44, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center' },
+  removeBtnText: { color: admin.dangerText, fontFamily: fonts.adminBodySemiBold, fontSize: 12 },
   removeBtnDisabled: { opacity: 0.4 },
-  itemLineTotal: { textAlign: 'right', fontFamily: fonts.adminDisplayBold, fontSize: 13, color: admin.text },
+  itemLineTotal: { textAlign: 'right', fontFamily: fonts.adminDisplayBold, fontSize: 13.5, color: admin.text },
   addLineBtn: {
-    paddingVertical: 9, borderWidth: 1, borderStyle: 'dashed', borderColor: admin.border,
-    borderRadius: 8, alignItems: 'center',
+    height: 44, borderWidth: 1, borderStyle: 'dashed', borderColor: admin.border,
+    borderRadius: 8, alignItems: 'center', justifyContent: 'center',
   },
-  addLineText: { color: admin.primary, fontFamily: fonts.adminBodySemiBold, fontSize: 12 },
+  addLineText: { color: admin.primary, fontFamily: fonts.adminBodySemiBold, fontSize: 12.5 },
   totalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
     borderTopWidth: 1, borderTopColor: admin.border, borderStyle: 'dashed', paddingTop: 12,
   },
-  totalLabel: { fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted },
+  totalLabel: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
   totalValue: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: admin.text },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
   cancelBtn: {
-    flex: 1, paddingVertical: 12, borderWidth: 1, borderColor: admin.border,
-    backgroundColor: admin.card, borderRadius: 9, alignItems: 'center',
+    flex: 1, height: 44, borderWidth: 1, borderColor: admin.border,
+    backgroundColor: admin.card, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
   cancelBtnText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: admin.text },
-  saveBtn: { flex: 1, paddingVertical: 12, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center' },
+  saveBtn: { flex: 1, height: 44, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   saveBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.white },
+
+  // iOS Picker Modal
+  iosModalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' },
+  iosModalContent: { backgroundColor: '#fff', borderTopLeftRadius: 16, borderTopRightRadius: 16, paddingBottom: 20 },
+  iosModalHeader: {
+    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#e2e8f0',
+  },
+  iosModalTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 15, color: admin.text },
+  iosDoneText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: admin.primary },
+  iosPicker: { height: 200 },
 })

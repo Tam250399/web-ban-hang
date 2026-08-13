@@ -1,17 +1,47 @@
+import { useCallback, useEffect, useState } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../context/auth-context'
 import { useCart } from '../context/cart-context'
+import { orderService } from '../services/orderService'
+import { chatService } from '../services/chatService'
 import HazardStripe from '../components/ui/HazardStripe'
 import BrandTag from '../components/ui/BrandTag'
 import { OutlineButton, PrimaryButton } from '../components/ui/Buttons'
 import ProductCatalog from '../components/home/ProductCatalog'
+import AdminNotificationModal from '../components/admin/AdminNotificationModal'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
 export default function HomeScreen({ navigation }) {
-  const { isGuest } = useAuth()
+  const { isGuest, user } = useAuth()
   const { totalCount } = useCart()
+  const isAdmin = user?.role === 'Admin'
+
+  // ── Admin notification counts & modal ──
+  const [pendingOrderCount, setPendingOrderCount] = useState(0)
+  const [chatUnreadCount, setChatUnreadCount] = useState(0)
+  const [notifModalOpen, setNotifModalOpen] = useState(false)
+
+  const loadAdminCounts = useCallback(() => {
+    if (!isAdmin) return
+    orderService.getAll('Pending')
+      .then((orders) => setPendingOrderCount(orders?.length || 0))
+      .catch(() => {})
+    chatService.getConversations()
+      .then((convs) => {
+        const total = (convs || []).reduce((sum, c) => sum + (c.unreadCount || 0), 0)
+        setChatUnreadCount(total)
+      })
+      .catch(() => {})
+  }, [isAdmin])
+
+  useEffect(() => {
+    loadAdminCounts()
+    // Refresh khi quay lại tab Home
+    const unsubscribe = navigation.addListener('focus', loadAdminCounts)
+    return unsubscribe
+  }, [loadAdminCounts, navigation])
 
   return (
     <View style={styles.root}>
@@ -24,14 +54,28 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.storeName} numberOfLines={1}>Cửa Hàng VLXD Đức Lợi</Text>
             <Text style={styles.storeSubtitle} numberOfLines={1}>Nhà phân phối xi măng Sài Sơn</Text>
           </View>
-          <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
-            <Text style={styles.cartIcon}>🛒</Text>
-            {totalCount > 0 && (
-              <View style={styles.cartBadge}>
-                <Text style={styles.cartBadgeText}>{totalCount > 99 ? '99+' : totalCount}</Text>
-              </View>
-            )}
-          </TouchableOpacity>
+
+          {isAdmin ? (
+            <TouchableOpacity style={styles.notifBtn} onPress={() => setNotifModalOpen(true)}>
+              <Text style={styles.notifIcon}>🔔</Text>
+              {(pendingOrderCount + chatUnreadCount) > 0 && (
+                <View style={[styles.notifBadge, styles.orderBadge]}>
+                  <Text style={styles.notifBadgeText}>
+                    {(pendingOrderCount + chatUnreadCount) > 99 ? '99+' : (pendingOrderCount + chatUnreadCount)}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
+              <Text style={styles.cartIcon}>🛒</Text>
+              {totalCount > 0 && (
+                <View style={styles.cartBadge}>
+                  <Text style={styles.cartBadgeText}>{totalCount > 99 ? '99+' : totalCount}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
         </View>
 
         {isGuest && (
@@ -41,6 +85,15 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
       </SafeAreaView>
+
+      <AdminNotificationModal
+        visible={notifModalOpen}
+        onClose={() => {
+          setNotifModalOpen(false)
+          loadAdminCounts()
+        }}
+        navigation={navigation}
+      />
 
       <HazardStripe />
 
@@ -93,6 +146,20 @@ const styles = StyleSheet.create({
   headerTitles: { flex: 1, minWidth: 0 },
   storeName: { color: '#F5F2EA', fontFamily: fonts.displayExtraBold, fontSize: 14 },
   storeSubtitle: { color: brand.accent, fontFamily: fonts.mono, fontSize: 10.5, marginTop: 2 },
+
+  // ── Admin notification icons ──
+  adminNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  notifBtn: { padding: 4, position: 'relative' },
+  notifIcon: { fontSize: 20 },
+  notifBadge: {
+    position: 'absolute', top: -4, right: -6, minWidth: 16, height: 16, borderRadius: 999,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+  },
+  orderBadge: { backgroundColor: brand.primary },
+  chatBadge: { backgroundColor: '#366bd3' },
+  notifBadgeText: { color: brand.white, fontSize: 9, fontFamily: fonts.bodyBold },
+
+  // ── Customer cart icon ──
   cartBtn: { padding: 4 },
   cartIcon: { fontSize: 20 },
   cartBadge: {
@@ -100,6 +167,7 @@ const styles = StyleSheet.create({
     backgroundColor: brand.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
   },
   cartBadgeText: { color: brand.white, fontSize: 10, fontFamily: fonts.bodyBold },
+
   guestRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16 },
   guestBtn: { flex: 1, paddingVertical: 9 },
   guestBtnSolid: { flex: 1, paddingVertical: 9 },
@@ -117,3 +185,4 @@ const styles = StyleSheet.create({
   statValue: { color: brand.accent, fontFamily: fonts.monoBold, fontSize: 19 },
   statLabel: { color: brand.textFaint, fontSize: 10, marginTop: 2 },
 })
+

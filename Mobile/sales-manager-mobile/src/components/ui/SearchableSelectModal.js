@@ -74,8 +74,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: admin.divider,
   },
   title: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text },
-  closeBtn: { width: 28, height: 28, borderRadius: 7, backgroundColor: admin.card, alignItems: 'center', justifyContent: 'center' },
-  closeBtnText: { color: admin.text, fontSize: 13 },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
+  closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
   search: {
     margin: 16, marginBottom: 8, paddingHorizontal: 14, paddingVertical: 11,
     borderWidth: 1, borderColor: admin.border, borderRadius: 10,

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import { stockService } from '../../services/stockService'
 import { productService } from '../../services/productService'
@@ -101,91 +101,86 @@ export default function StockImportFormScreen({ navigation, route }) {
   }
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
+    <SafeAreaProvider>
+      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.closeBtnText}>✕</Text>
+          <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</Text>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+            <Text style={styles.closeBtnText}>✕</Text>
+          </TouchableOpacity>
+        </View>
+
+        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Sản phẩm</Text>
+            <PickerField label={productLabel} placeholder="-- Chọn sản phẩm --" onPress={() => setProductPickerOpen(true)} />
+          </View>
+
+          <View style={styles.row}>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Số lượng</Text>
+              <TextInput style={styles.input} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Đơn giá</Text>
+              <MoneyField value={unitPrice} onChangeValue={setUnitPrice} />
+            </View>
+          </View>
+
+          <View style={styles.field}>
+            <Text style={styles.fieldLabel}>Ghi chú</Text>
+            <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Nhà cung cấp..." placeholderTextColor={admin.textMuted} />
+          </View>
+
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
+              <Text style={styles.cancelBtnText}>Hủy</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+              <Text style={styles.saveBtnText}>{saving ? 'Đang xử lý...' : isEdit ? 'Lưu thay đổi' : 'Xác nhận nhập kho'}</Text>
             </TouchableOpacity>
           </View>
-          <View style={styles.headerAccent} />
-        </View>
+        </ScrollView>
+
+        <SearchableSelectModal
+          visible={productPickerOpen}
+          onClose={() => setProductPickerOpen(false)}
+          onSelect={handleSelectProduct}
+          options={productOptions}
+          title="Chọn sản phẩm"
+          searchPlaceholder="Tìm theo tên hoặc mã..."
+        />
       </SafeAreaView>
-
-      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Sản phẩm</Text>
-          <PickerField label={productLabel} placeholder="-- Chọn sản phẩm --" onPress={() => setProductPickerOpen(true)} />
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Số lượng</Text>
-            <TextInput style={styles.input} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
-          </View>
-          <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Đơn giá</Text>
-            <MoneyField value={unitPrice} onChangeValue={setUnitPrice} />
-          </View>
-        </View>
-
-        <View style={styles.field}>
-          <Text style={styles.fieldLabel}>Ghi chú</Text>
-          <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Nhà cung cấp..." placeholderTextColor={admin.textMuted} />
-        </View>
-
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
-            <Text style={styles.cancelBtnText}>Hủy</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-            <Text style={styles.saveBtnText}>{saving ? 'Đang xử lý...' : isEdit ? 'Lưu thay đổi' : 'Xác nhận nhập kho'}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-
-      <SearchableSelectModal
-        visible={productPickerOpen}
-        onClose={() => setProductPickerOpen(false)}
-        onSelect={handleSelectProduct}
-        options={productOptions}
-        title="Chọn sản phẩm"
-        searchPlaceholder="Tìm theo tên hoặc mã..."
-      />
-    </View>
+    </SafeAreaProvider>
   )
 }
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: admin.bg },
   loadingRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: admin.bg },
-  headerSafeArea: { backgroundColor: admin.dark },
-  header: { paddingHorizontal: 18, paddingTop: 10, paddingBottom: 16, position: 'relative' },
-  headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' },
-  headerTitle: { color: '#F5F2EA', fontFamily: fonts.adminDisplayBold, fontSize: 17 },
-  closeBtn: {
-    width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(255,255,255,0.08)',
-    alignItems: 'center', justifyContent: 'center',
+  header: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: admin.divider,
+    backgroundColor: admin.bg,
   },
-  closeBtnText: { color: '#F5F2EA', fontSize: 13 },
-  headerAccent: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, backgroundColor: admin.primary },
+  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text },
+  closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
+  closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
   body: { flex: 1 },
-  bodyContent: { padding: 16, gap: 14, paddingBottom: 32 },
+  bodyContent: { padding: 16, gap: 14, paddingBottom: 40 },
   row: { flexDirection: 'row', gap: 12 },
   field: { flex: 1, gap: 6 },
-  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 11.5, color: admin.text },
+  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.text },
   input: {
-    paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: admin.border,
+    height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
     borderRadius: 8, backgroundColor: admin.card, fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
   },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
   cancelBtn: {
-    flex: 1, paddingVertical: 12, borderWidth: 1, borderColor: admin.border,
-    backgroundColor: admin.card, borderRadius: 9, alignItems: 'center',
+    flex: 1, height: 44, borderWidth: 1, borderColor: admin.border,
+    backgroundColor: admin.card, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
   cancelBtnText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: admin.text },
-  saveBtn: { flex: 1, paddingVertical: 12, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center' },
+  saveBtn: { flex: 1, height: 44, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   saveBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.white },
 })

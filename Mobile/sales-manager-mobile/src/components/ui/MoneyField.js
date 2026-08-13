@@ -33,12 +33,12 @@ export default function MoneyField({ value, onChangeValue, style, ...rest }) {
 
 const styles = StyleSheet.create({
   wrap: {
-    flexDirection: 'row', alignItems: 'center',
+    flexDirection: 'row', alignItems: 'center', height: 44,
     borderWidth: 1, borderColor: admin.border, borderRadius: 8, backgroundColor: admin.card,
-    paddingRight: 10,
+    paddingRight: 12,
   },
   input: {
-    flex: 1, paddingHorizontal: 12, paddingVertical: 10,
+    flex: 1, height: '100%', paddingHorizontal: 12, paddingVertical: 0,
     fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
   },
   suffix: { fontFamily: fonts.adminBodySemiBold, fontSize: 12.5, color: admin.textMuted },
