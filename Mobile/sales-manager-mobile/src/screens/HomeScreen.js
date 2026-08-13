@@ -1,14 +1,16 @@
 import { useCallback, useEffect, useState } from 'react'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../context/auth-context'
 import { useCart } from '../context/cart-context'
 import { orderService } from '../services/orderService'
 import { chatService } from '../services/chatService'
+import { bannerService } from '../services/bannerService'
 import HazardStripe from '../components/ui/HazardStripe'
 import BrandTag from '../components/ui/BrandTag'
-import { OutlineButton, PrimaryButton } from '../components/ui/Buttons'
+import { PrimaryButton } from '../components/ui/Buttons'
 import ProductCatalog from '../components/home/ProductCatalog'
+import BannerCarousel from '../components/home/BannerCarousel'
 import AdminNotificationModal from '../components/admin/AdminNotificationModal'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
@@ -22,6 +24,14 @@ export default function HomeScreen({ navigation }) {
   const [pendingOrderCount, setPendingOrderCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [notifModalOpen, setNotifModalOpen] = useState(false)
+
+  // ── Banner do Admin quản lý — cùng nguồn dữ liệu với web nên cập nhật
+  // trên web (BannerManager) sẽ tự phản ánh sang mobile ở lần tải lại sau. ──
+  const [banners, setBanners] = useState([])
+
+  useEffect(() => {
+    bannerService.getActive().then(setBanners).catch(() => {})
+  }, [])
 
   const loadAdminCounts = useCallback(() => {
     if (!isAdmin) return
@@ -42,6 +52,24 @@ export default function HomeScreen({ navigation }) {
     const unsubscribe = navigation.addListener('focus', loadAdminCounts)
     return unsubscribe
   }, [loadAdminCounts, navigation])
+
+  // ── Vuốt xuống để tải lại toàn bộ dữ liệu trang chủ: banner + danh sách sản
+  // phẩm (qua reloadKey truyền xuống ProductCatalog) + số thông báo admin. ──
+  const [refreshing, setRefreshing] = useState(false)
+  const [catalogReloadKey, setCatalogReloadKey] = useState(0)
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    setCatalogReloadKey((k) => k + 1)
+    loadAdminCounts()
+    try {
+      const data = await bannerService.getActive()
+      setBanners(data)
+    } catch {
+      // giữ nguyên banner cũ nếu tải lại lỗi
+    }
+    setRefreshing(false)
+  }, [loadAdminCounts])
 
   return (
     <View style={styles.root}>
@@ -80,8 +108,7 @@ export default function HomeScreen({ navigation }) {
 
         {isGuest && (
           <View style={styles.guestRow}>
-            <OutlineButton title="Đăng nhập" dark style={styles.guestBtn} onPress={() => navigation.navigate('Login')} />
-            <PrimaryButton title="Đăng ký" style={styles.guestBtnSolid} onPress={() => navigation.navigate('Register')} />
+            <PrimaryButton title="Đăng nhập" style={styles.guestBtnSolid} onPress={() => navigation.navigate('Login')} />
           </View>
         )}
       </SafeAreaView>
@@ -97,29 +124,35 @@ export default function HomeScreen({ navigation }) {
 
       <HazardStripe />
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
-        <View style={styles.hero}>
-          <BrandTag label="Nhà phân phối xi măng Sài Sơn" style={styles.heroTag} />
-          <Text style={styles.heroTitle}>
-            Vật liệu chất lượng — <Text style={styles.heroTitleAccent}>Giá tốt nhất</Text>
-          </Text>
-          <Text style={styles.heroText}>
-            Chuyên bán buôn - bán lẻ vật liệu xây dựng chính hãng. Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
-          </Text>
-          <View style={styles.heroActions}>
-            <PrimaryButton title="Xem sản phẩm" style={styles.heroBtn} onPress={() => navigation.navigate('Products')} />
-            {isGuest && (
-              <OutlineButton title="Tạo tài khoản" dark style={styles.heroBtn} onPress={() => navigation.navigate('Register')} />
-            )}
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[brand.primary]} tintColor={brand.primary} />
+        }
+      >
+        {/* Có banner do Admin bật thì hiện carousel banner, không thì hiện hero
+            mặc định — giống hệt hành vi TrangChu.jsx bên web. */}
+        {banners.length > 0 ? (
+          <BannerCarousel banners={banners} />
+        ) : (
+          <View style={styles.hero}>
+            <BrandTag label="Nhà phân phối xi măng Sài Sơn" style={styles.heroTag} />
+            <Text style={styles.heroTitle}>
+              Vật liệu chất lượng — <Text style={styles.heroTitleAccent}>Giá tốt nhất</Text>
+            </Text>
+            <Text style={styles.heroText}>
+              Chuyên bán buôn - bán lẻ vật liệu xây dựng chính hãng. Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
+            </Text>
+            <View style={styles.statsRow}>
+              <Stat value="500+" label="Loại sản phẩm" />
+              <Stat value="1.200+" label="Khách hàng" />
+              <Stat value="10+" label="Năm kinh nghiệm" />
+            </View>
           </View>
-          <View style={styles.statsRow}>
-            <Stat value="500+" label="Loại sản phẩm" />
-            <Stat value="1.200+" label="Khách hàng" />
-            <Stat value="10+" label="Năm kinh nghiệm" />
-          </View>
-        </View>
+        )}
 
-        <ProductCatalog />
+        <ProductCatalog reloadKey={catalogReloadKey} />
       </ScrollView>
     </View>
   )
@@ -135,17 +168,17 @@ function Stat({ value, label }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: brand.bg },
-  headerSafeArea: { backgroundColor: brand.ink },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
+  headerSafeArea: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 },
   logo: {
     width: 40, height: 40, borderRadius: 10, backgroundColor: brand.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  logoText: { color: '#F5F2EA', fontFamily: fonts.monoBold, fontSize: 15 },
+  logoText: { color: '#FFFFFF', fontFamily: fonts.monoBold, fontSize: 15 },
   headerTitles: { flex: 1, minWidth: 0 },
-  storeName: { color: '#F5F2EA', fontFamily: fonts.displayExtraBold, fontSize: 14 },
-  storeSubtitle: { color: brand.accent, fontFamily: fonts.mono, fontSize: 10.5, marginTop: 2 },
+  storeName: { color: '#0F172A', fontFamily: fonts.displayExtraBold, fontSize: 15 },
+  storeSubtitle: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 11, marginTop: 1 },
 
   // ── Admin notification icons ──
   adminNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
@@ -156,7 +189,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
   },
   orderBadge: { backgroundColor: brand.primary },
-  chatBadge: { backgroundColor: '#366bd3' },
+  chatBadge: { backgroundColor: '#2563EB' },
   notifBadgeText: { color: brand.white, fontSize: 9, fontFamily: fonts.bodyBold },
 
   // ── Customer cart icon ──
@@ -173,16 +206,14 @@ const styles = StyleSheet.create({
   guestBtnSolid: { flex: 1, paddingVertical: 9 },
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 24 },
-  hero: { backgroundColor: brand.ink, paddingHorizontal: 18, paddingTop: 26, paddingBottom: 24 },
+  hero: { backgroundColor: '#0F172A', paddingHorizontal: 18, paddingTop: 26, paddingBottom: 24 },
   heroTag: { marginBottom: 14 },
   heroTitle: { color: brand.white, fontFamily: fonts.displayExtraBold, fontSize: 26, lineHeight: 30, marginBottom: 10 },
   heroTitleAccent: { color: brand.primary },
-  heroText: { color: '#B9B2A0', fontFamily: fonts.body, fontSize: 12.5, lineHeight: 19, marginBottom: 18 },
-  heroActions: { flexDirection: 'row', gap: 10, marginBottom: 22 },
-  heroBtn: { flex: 1, paddingVertical: 11 },
+  heroText: { color: '#94A3B8', fontFamily: fonts.body, fontSize: 13, lineHeight: 20, marginBottom: 18 },
   statsRow: { flexDirection: 'row', gap: 18 },
   stat: {},
-  statValue: { color: brand.accent, fontFamily: fonts.monoBold, fontSize: 19 },
-  statLabel: { color: brand.textFaint, fontSize: 10, marginTop: 2 },
+  statValue: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 19 },
+  statLabel: { color: '#94A3B8', fontSize: 10.5, marginTop: 2 },
 })
 

@@ -8,14 +8,13 @@ import { CartProvider } from './src/context/CartContext'
 import RootNavigator from './src/navigation/RootNavigator'
 import { useAppFonts } from './src/theme/fonts'
 import { brand } from './src/theme/colors'
+import { toastConfig } from './src/components/ui/toastConfig'
 
 export default function App() {
   const [fontsLoaded] = useAppFonts()
 
-  // Mọi màn hình trong thiết kế đều có phần đầu nền tối (dark header), nên
-  // dùng chung nền tối + status bar light trong lúc chờ font để tránh nháy trắng.
   if (!fontsLoaded) {
-    return <View style={{ flex: 1, backgroundColor: brand.ink }} />
+    return <View style={{ flex: 1, backgroundColor: brand.bg }} />
   }
 
   return (
@@ -23,8 +22,8 @@ export default function App() {
       <AuthProvider>
         <CartProvider>
           <RootNavigator />
-          <StatusBar style="light" />
-          <Toast />
+          <StatusBar style="dark" />
+          <Toast config={toastConfig} />
         </CartProvider>
       </AuthProvider>
     </SafeAreaProvider>

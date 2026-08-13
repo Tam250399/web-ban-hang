@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
@@ -12,20 +12,32 @@ const ALL_CATEGORY = 'Tất cả'
 
 // Danh sách sản phẩm có tìm kiếm + lọc danh mục + xem chi tiết — dùng chung cho
 // cả phần "Danh mục sản phẩm" trên Trang chủ lẫn tab Sản phẩm.
-export default function ProductCatalog({ hideHeading }) {
+// `reloadKey` đổi giá trị (vd. khi vuốt-để-làm-mới ở màn cha) sẽ khiến danh
+// sách được tải lại ngầm, không hiện lại spinner toàn màn như lần tải đầu.
+export default function ProductCatalog({ hideHeading, reloadKey }) {
   const { addItem } = useCart()
   const [search, setSearch] = useState('')
   const [activeCategory, setActiveCategory] = useState(ALL_CATEGORY)
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [detailProduct, setDetailProduct] = useState(null)
+  const isFirstLoad = useRef(true)
 
-  useEffect(() => {
-    productService.getAll()
+  const load = useCallback(() => {
+    return productService.getAll()
       .then(setAllProducts)
       .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách sản phẩm' }))
-      .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => {
+    if (isFirstLoad.current) {
+      isFirstLoad.current = false
+      setLoading(true)
+      load().finally(() => setLoading(false))
+    } else {
+      load()
+    }
+  }, [reloadKey, load])
 
   // Suy ra danh mục trực tiếp từ danh sách sản phẩm (giống TrangChu.jsx bên web)
   // thay vì gọi categoryService riêng — endpoint đó chỉ dành cho Admin/Staff nên

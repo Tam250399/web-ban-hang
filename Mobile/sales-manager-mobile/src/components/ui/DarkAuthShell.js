@@ -1,10 +1,8 @@
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import HazardStripe from './HazardStripe'
-import { brand } from '../../theme/colors'
 
-// Khung chung cho Login/Register: nền tối, sọc chéo vàng/đen, nội dung cuộn được
-// và tự tránh bàn phím — tương ứng .auth-shell + .hzd bên web.
+// Khung chung cho Login/Register với nền F1F5F9 đậm hơn 1 tông để nổi bật Card trắng
 export default function DarkAuthShell({ children }) {
   return (
     <SafeAreaView style={styles.shell} edges={['top', 'bottom']}>
@@ -22,7 +20,7 @@ export default function DarkAuthShell({ children }) {
 }
 
 const styles = StyleSheet.create({
-  shell: { flex: 1, backgroundColor: brand.ink },
+  shell: { flex: 1, backgroundColor: '#E2E8F0' }, // Đậm hơn 1 tông (Slate 200) làm nổi bật card trắng
   flex: { flex: 1 },
-  scroll: { flexGrow: 1, justifyContent: 'center', padding: 22 },
+  scroll: { flexGrow: 1, justifyContent: 'center', padding: 20 },
 })

@@ -184,6 +184,7 @@ export default function StockFormScreen({ navigation, route }) {
             label={customerName}
             placeholder="-- Chọn khách hàng --"
             onPress={() => setCustomerPickerOpen(true)}
+            textStyle={styles.boldText}
           />
         </View>
 
@@ -211,12 +212,13 @@ export default function StockFormScreen({ navigation, route }) {
                   placeholder="-- Chọn sản phẩm --"
                   onPress={() => setProductPickerKey(it.key)}
                   style={styles.itemProductField}
+                  textStyle={styles.boldText}
                 />
                 <View style={styles.itemRow}>
                   <View style={styles.qtyField}>
                     <Text style={styles.smallLabel}>SL</Text>
                     <TextInput
-                      style={styles.qtyInput}
+                      style={[styles.qtyInput, styles.boldText]}
                       keyboardType="numeric"
                       value={it.quantity}
                       onChangeText={(v) => updateItem(it.key, { quantity: v })}
@@ -227,6 +229,7 @@ export default function StockFormScreen({ navigation, route }) {
                     <MoneyField
                       value={it.unitPrice}
                       onChangeValue={(v) => updateItem(it.key, { unitPrice: v })}
+                      inputStyle={styles.boldText}
                     />
                   </View>
                   <TouchableOpacity onPress={() => removeRow(it.key)} disabled={items.length === 1} style={styles.removeBtn}>
@@ -237,8 +240,9 @@ export default function StockFormScreen({ navigation, route }) {
               </View>
             )
           })}
-          <TouchableOpacity style={styles.addLineBtn} onPress={addRow}>
-            <Text style={styles.addLineText}>+ Thêm dòng</Text>
+          <TouchableOpacity style={styles.addLineBtn} onPress={addRow} activeOpacity={0.85}>
+            <Text style={styles.addLineIcon}>＋</Text>
+            <Text style={styles.addLineText}>Thêm dòng</Text>
           </TouchableOpacity>
         </View>
 
@@ -324,47 +328,56 @@ const styles = StyleSheet.create({
   closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
   body: { flex: 1 },
   bodyContent: { padding: 16, gap: 14, paddingBottom: 40 },
+  // Toàn bộ chữ trong màn này dùng font đậm (adminBodyBold) thay vì
+  // regular/semi-bold như mặc định của các field dùng chung (PickerField,
+  // MoneyField) — style này ghi đè qua prop textStyle/inputStyle của chúng.
+  boldText: { fontFamily: fonts.adminBodyBold },
   field: { gap: 6 },
-  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.text },
+  fieldLabel: { fontFamily: fonts.adminBodyBold, fontSize: 12, color: admin.text },
   datePickerBtn: {
     height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
     borderRadius: 8, backgroundColor: admin.card, flexDirection: 'row',
     alignItems: 'center', justifyContent: 'space-between',
   },
-  datePickerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13.5, color: admin.text },
-  datePickerChevron: { fontSize: 10, color: admin.textMuted },
+  datePickerText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: admin.text },
+  datePickerChevron: { fontFamily: fonts.adminBodyBold, fontSize: 10, color: admin.textMuted },
   itemsSection: { gap: 10, borderTopWidth: 1, borderTopColor: admin.divider, paddingTop: 12 },
   itemCard: { backgroundColor: admin.card, borderWidth: 1, borderColor: admin.border, borderRadius: 10, padding: 11, gap: 8 },
   itemProductField: { backgroundColor: admin.white },
   itemRow: { flexDirection: 'row', gap: 8, alignItems: 'flex-end' },
   qtyField: { width: 70, gap: 4 },
   priceField: { flex: 1, gap: 4 },
-  smallLabel: { fontFamily: fonts.adminBody, fontSize: 11, color: admin.textMuted },
+  smallLabel: { fontFamily: fonts.adminBodyBold, fontSize: 11, color: admin.textMuted },
   qtyInput: {
     height: 44, borderWidth: 1, borderColor: admin.border, borderRadius: 8, paddingHorizontal: 10,
     fontSize: 13, color: admin.text, backgroundColor: admin.white, fontFamily: fonts.adminBody,
   },
   removeBtn: { height: 44, paddingHorizontal: 8, justifyContent: 'center', alignItems: 'center' },
-  removeBtnText: { color: admin.dangerText, fontFamily: fonts.adminBodySemiBold, fontSize: 12 },
+  removeBtnText: { color: admin.dangerText, fontFamily: fonts.adminBodyBold, fontSize: 12 },
   removeBtnDisabled: { opacity: 0.4 },
   itemLineTotal: { textAlign: 'right', fontFamily: fonts.adminDisplayBold, fontSize: 13.5, color: admin.text },
+  // Nút "Thêm dòng" dạng nổi bật: nền đặc màu primary + bóng đổ, thay cho
+  // kiểu viền đứt nhạt nhòa trước đây.
   addLineBtn: {
-    height: 44, borderWidth: 1, borderStyle: 'dashed', borderColor: admin.border,
-    borderRadius: 8, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 6, height: 46, backgroundColor: admin.primary,
+    borderRadius: 10, alignItems: 'center', justifyContent: 'center',
+    shadowColor: admin.primary, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8,
+    elevation: 4,
   },
-  addLineText: { color: admin.primary, fontFamily: fonts.adminBodySemiBold, fontSize: 12.5 },
+  addLineIcon: { color: admin.white, fontFamily: fonts.adminBodyBold, fontSize: 16, lineHeight: 18 },
+  addLineText: { color: admin.white, fontFamily: fonts.adminBodyBold, fontSize: 13.5 },
   totalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
     borderTopWidth: 1, borderTopColor: admin.border, borderStyle: 'dashed', paddingTop: 12,
   },
-  totalLabel: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
+  totalLabel: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.textMuted },
   totalValue: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: admin.text },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
   cancelBtn: {
     flex: 1, height: 44, borderWidth: 1, borderColor: admin.border,
     backgroundColor: admin.card, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
-  cancelBtnText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: admin.text },
+  cancelBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.text },
   saveBtn: { flex: 1, height: 44, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   saveBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.white },
 

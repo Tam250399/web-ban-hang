@@ -212,7 +212,6 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
             ) : (
               <>
                 <button className="btn-ghost" onClick={onLoginClick}>Đăng nhập</button>
-                <button className="btn-primary" onClick={onRegisterClick}>Đăng ký</button>
               </>
             )}
           </div>
@@ -249,7 +248,6 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
           ) : (
             <>
               <button onClick={() => { setMenuOpen(false); onLoginClick() }}>🔐 Đăng nhập</button>
-              <button className="btn-primary" onClick={() => { setMenuOpen(false); onRegisterClick() }}>Đăng ký miễn phí</button>
             </>
           )}
         </div>
@@ -272,9 +270,6 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
               </p>
               <div className="hero-btns">
                 <a href="#products" className="btn-primary">Xem sản phẩm</a>
-                {!isLoggedIn && (
-                  <button className="btn-outline" onClick={onRegisterClick}>Tạo tài khoản</button>
-                )}
               </div>
             </div>
             <div className="hero-stats">
@@ -383,13 +378,6 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
             <p>📞 0901 234 567</p>
             <p>✉️ info@vlxdpro.vn</p>
             <p>🕐 Thứ 2 - Thứ 7: 7:00 - 18:00</p>
-          </div>
-          <div className="contact-cta">
-            <h3>Bắt đầu ngay hôm nay</h3>
-            <p>Đăng ký tài khoản để nhận báo giá ưu đãi và theo dõi đơn hàng</p>
-            {!isLoggedIn && (
-              <button className="btn-primary" onClick={onRegisterClick}>Đăng ký miễn phí</button>
-            )}
           </div>
         </div>
       </section>

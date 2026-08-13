@@ -42,14 +42,18 @@ export default function CustomerTabs() {
         lazy: true,
         tabBarScrollEnabled: false,
         tabBarPressColor: 'transparent',
-        tabBarIndicatorStyle: { backgroundColor: brand.accent, height: 2.5, top: 0 },
+        tabBarIndicatorStyle: { backgroundColor: brand.primary, height: 3, top: 0 },
         tabBarStyle: {
-          backgroundColor: brand.ink,
-          borderTopColor: '#3A3630',
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E2E8F0',
           borderTopWidth: 1,
           height: 62 + insets.bottom,
           paddingBottom: insets.bottom,
-          elevation: 0,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -3 },
+          shadowOpacity: 0.05,
+          shadowRadius: 8,
         },
         tabBarItemStyle: { height: 60, paddingVertical: 0 },
         tabBarIcon: () => <Text style={{ fontSize: 19 }}>{TAB_ICONS[route.name]}</Text>,
@@ -58,8 +62,8 @@ export default function CustomerTabs() {
             {TAB_LABELS[route.name]}
           </Text>
         ),
-        tabBarActiveTintColor: brand.accent,
-        tabBarInactiveTintColor: brand.textFaint,
+        tabBarActiveTintColor: brand.primary,
+        tabBarInactiveTintColor: '#94A3B8',
         tabBarShowIcon: true,
         tabBarIconStyle: { marginTop: 6, width: 24, height: 24 },
       })}

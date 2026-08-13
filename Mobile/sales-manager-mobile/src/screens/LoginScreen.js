@@ -1,18 +1,20 @@
 import { useState } from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import Toast from 'react-native-toast-message'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/auth-context'
 import DarkAuthShell from '../components/ui/DarkAuthShell'
-import BrandTag from '../components/ui/BrandTag'
 import FormField from '../components/ui/FormField'
-import { PrimaryButton } from '../components/ui/Buttons'
 import { EyeIcon, EyeOffIcon } from '../components/ui/icons'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useAuth()
+  const {
+    login, biometricSupported, biometricLabel, biometricEnabled,
+    enableBiometricLogin, loginWithBiometric,
+  } = useAuth()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -21,6 +23,19 @@ export default function LoginScreen({ navigation }) {
   const [passwordError, setPasswordError] = useState('')
   const [formError, setFormError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [bioSubmitting, setBioSubmitting] = useState(false)
+
+  const promptEnableBiometric = () => {
+    if (!biometricSupported || biometricEnabled) return
+    Alert.alert(
+      `Đăng nhập bằng ${biometricLabel}?`,
+      `Lần sau bạn có thể đăng nhập nhanh bằng ${biometricLabel} thay vì gõ mật khẩu.`,
+      [
+        { text: 'Để sau', style: 'cancel' },
+        { text: 'Bật ngay', onPress: () => enableBiometricLogin() },
+      ]
+    )
+  }
 
   const handleSubmit = async () => {
     let uErr = ''
@@ -41,6 +56,7 @@ export default function LoginScreen({ navigation }) {
       Toast.show({ type: 'success', text1: `Xin chào ${user.fullName || user.username}` })
       login(user)
       navigation.navigate('Home')
+      promptEnableBiometric()
     } catch (error) {
       setFormError(error.message || 'Không thể kết nối tới backend.')
     } finally {
@@ -48,12 +64,48 @@ export default function LoginScreen({ navigation }) {
     }
   }
 
+  const handleBiometricLogin = async () => {
+    setBioSubmitting(true)
+    try {
+      const ok = await loginWithBiometric()
+      if (ok) navigation.navigate('Home')
+    } finally {
+      setBioSubmitting(false)
+    }
+  }
+
   return (
     <DarkAuthShell>
       <View style={styles.card}>
-        <BrandTag />
-        <Text style={styles.title}>Đăng nhập</Text>
-        <Text style={styles.subtitle}>Chào mừng bạn trở lại với Vật Liệu Xây Dựng</Text>
+        {/* ── Giao diện tinh gọn, không rườm rà ── */}
+        <View style={styles.headerBlock}>
+          <LinearGradient colors={['#EA580C', '#F97316']} style={styles.logoBadge}>
+            <Text style={styles.logoIcon}>🏪</Text>
+          </LinearGradient>
+          <Text style={styles.title}>Đăng nhập</Text>
+          <Text style={styles.subtitle}>VLXD Đức Lợi • Hệ thống quản lý & mua hàng</Text>
+        </View>
+
+        {biometricSupported && biometricEnabled && (
+          <>
+            <TouchableOpacity
+              style={[styles.bioBtn, bioSubmitting && styles.submitBtnDisabled]}
+              onPress={handleBiometricLogin}
+              disabled={bioSubmitting}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.bioBtnIcon}>{biometricLabel === 'Face ID' ? '🙂' : '👆'}</Text>
+              <Text style={styles.bioBtnText}>
+                {bioSubmitting ? 'Đang xác thực...' : `Đăng nhập bằng ${biometricLabel}`}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.dividerRow}>
+              <View style={styles.dividerLine} />
+              <Text style={styles.dividerText}>hoặc</Text>
+              <View style={styles.dividerLine} />
+            </View>
+          </>
+        )}
 
         <View style={styles.form}>
           <FormField
@@ -87,7 +139,9 @@ export default function LoginScreen({ navigation }) {
 
           <View style={styles.row}>
             <TouchableOpacity style={styles.checkboxRow} onPress={() => setRemember((r) => !r)}>
-              <View style={[styles.checkbox, remember && styles.checkboxChecked]} />
+              <View style={[styles.checkbox, remember && styles.checkboxChecked]}>
+                {remember && <Text style={styles.checkmark}>✓</Text>}
+              </View>
               <Text style={styles.checkboxLabel}>Nhớ đăng nhập</Text>
             </TouchableOpacity>
             <TouchableOpacity>
@@ -101,19 +155,17 @@ export default function LoginScreen({ navigation }) {
             </View>
           )}
 
-          <PrimaryButton
-            title={submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
+          <TouchableOpacity
+            style={[styles.submitBtn, submitting && styles.submitBtnDisabled]}
             onPress={handleSubmit}
-            loading={submitting}
-            style={styles.submit}
-          />
+            disabled={submitting}
+            activeOpacity={0.85}
+          >
+            <LinearGradient colors={['#EA580C', '#C2410C']} style={styles.submitGradient}>
+              <Text style={styles.submitText}>{submitting ? 'Đang xử lý...' : 'Đăng nhập'}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
 
-          <View style={styles.switchRow}>
-            <Text style={styles.switchText}>Chưa có tài khoản? </Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Register')}>
-              <Text style={styles.switchLink}>Đăng ký ngay</Text>
-            </TouchableOpacity>
-          </View>
         </View>
       </View>
     </DarkAuthShell>
@@ -123,38 +175,93 @@ export default function LoginScreen({ navigation }) {
 const styles = StyleSheet.create({
   card: {
     width: '100%',
-    backgroundColor: brand.white,
-    borderRadius: 20,
-    borderWidth: 1.5,
-    borderColor: brand.cardBorder,
-    padding: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    paddingHorizontal: 22,
+    paddingVertical: 24,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 12,
   },
+  headerBlock: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  logoBadge: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    alignItems: 'center',
+    justify: 'center',
+    marginBottom: 10,
+  },
+  logoIcon: { fontSize: 24 },
   title: {
-    marginTop: 14,
-    marginBottom: 6,
     fontFamily: fonts.displayExtraBold,
-    fontSize: 28,
-    color: brand.ink,
+    fontSize: 24,
+    color: '#0F172A',
+    textAlign: 'center',
+    marginBottom: 3,
   },
   subtitle: {
-    marginBottom: 22,
-    fontSize: 13,
-    lineHeight: 19,
-    color: brand.textMuted,
-    fontFamily: fonts.body,
+    fontSize: 12.5,
+    color: '#64748B',
+    fontFamily: fonts.bodyBold,
+    textAlign: 'center',
   },
-  form: { gap: 16 },
-  eyeBtn: { position: 'absolute', right: 10, padding: 4 },
-  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: -4 },
+  bioBtn: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    borderWidth: 1.5, borderColor: brand.primary, borderRadius: 12, paddingVertical: 13,
+  },
+  bioBtnIcon: { fontSize: 17 },
+  bioBtnText: { color: brand.primary, fontFamily: fonts.bodyBold, fontSize: 14.5 },
+  dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
+  dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },
+  dividerText: { fontSize: 12, color: '#94A3B8', fontFamily: fonts.body },
+  form: { gap: 14 },
+  eyeBtn: { position: 'absolute', right: 12, height: '100%', justifyContent: 'center' },
+  row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
   checkboxRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  checkbox: { width: 15, height: 15, borderRadius: 4, borderWidth: 1.5, borderColor: brand.textMuted },
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderRadius: 5,
+    borderWidth: 1.5,
+    borderColor: '#94A3B8',
+    alignItems: 'center',
+    justify: 'center',
+  },
   checkboxChecked: { backgroundColor: brand.primary, borderColor: brand.primary },
-  checkboxLabel: { fontSize: 12.5, color: brand.textMuted, fontFamily: fonts.body },
-  forgotLink: { fontSize: 12.5, color: brand.primary, fontFamily: fonts.bodySemiBold },
-  errorBanner: { backgroundColor: '#fee2e2', borderRadius: 8, padding: 10 },
-  errorBannerText: { color: brand.danger, fontSize: 12.5, fontFamily: fonts.body },
-  submit: { marginTop: 4 },
-  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 4 },
-  switchText: { fontSize: 12.5, color: brand.textMuted, fontFamily: fonts.body },
-  switchLink: { fontSize: 12.5, color: brand.primary, fontFamily: fonts.bodyBold },
+  checkmark: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', textAlign: 'center', lineHeight: 14 },
+  checkboxLabel: { fontSize: 13, color: '#334155', fontFamily: fonts.bodyBold },
+  forgotLink: { fontSize: 13, color: brand.primary, fontFamily: fonts.bodyBold },
+  errorBanner: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', borderRadius: 10, padding: 10 },
+  errorBannerText: { color: '#DC2626', fontSize: 12.5, fontFamily: fonts.bodyBold, textAlign: 'center' },
+  submitBtn: {
+    marginTop: 6,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  submitBtnDisabled: { opacity: 0.7 },
+  submitGradient: {
+    width: '100%',
+    paddingVertical: 13,
+    alignItems: 'center',
+    justify: 'center',
+  },
+  submitText: {
+    color: '#FFFFFF',
+    fontFamily: fonts.bodyBold,
+    fontSize: 16,
+    lineHeight: 20,
+    textAlign: 'center',
+    includeFontPadding: false,
+  },
+  switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 6 },
+  switchText: { fontSize: 13, color: '#64748B', fontFamily: fonts.body },
+  switchLink: { fontSize: 13, color: brand.primary, fontFamily: fonts.bodyBold },
 })

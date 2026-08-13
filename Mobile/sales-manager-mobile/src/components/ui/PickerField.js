@@ -3,10 +3,10 @@ import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
 // Ô bấm mở SearchableSelectModal — thay cho <select> HTML không tồn tại trên RN.
-export default function PickerField({ label, placeholder, onPress, style }) {
+export default function PickerField({ label, placeholder, onPress, style, textStyle }) {
   return (
     <TouchableOpacity style={[styles.box, style]} onPress={onPress} activeOpacity={0.7}>
-      <Text style={label ? styles.value : styles.placeholder} numberOfLines={1}>
+      <Text style={[label ? styles.value : styles.placeholder, textStyle]} numberOfLines={1}>
         {label || placeholder}
       </Text>
     </TouchableOpacity>

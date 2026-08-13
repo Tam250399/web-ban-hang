@@ -275,15 +275,17 @@ export default function MyOrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: brand.bg },
+  root: { flex: 1, backgroundColor: '#F8FAFC' },
   header: {
-    backgroundColor: brand.ink,
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 18,
     paddingTop: 14,
     paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E2E8F0',
   },
-  headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 18, color: '#F5F2EA' },
-  headerSub: { fontFamily: fonts.body, fontSize: 11.5, color: brand.accent, marginTop: 2 },
+  headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 19, color: '#0F172A' },
+  headerSub: { fontFamily: fonts.bodyBold, fontSize: 12, color: brand.primary, marginTop: 2 },
 
   // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },

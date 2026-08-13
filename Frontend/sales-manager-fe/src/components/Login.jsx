@@ -146,13 +146,6 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
             <button type="submit" disabled={submitting} className="auth-submit">
               {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
-
-            <p className="auth-switch">
-              Chưa có tài khoản?{' '}
-              <button type="button" className="auth-switch-link" onClick={onSwitchToRegister}>
-                Đăng ký ngay
-              </button>
-            </p>
           </form>
         </div>
       </div>

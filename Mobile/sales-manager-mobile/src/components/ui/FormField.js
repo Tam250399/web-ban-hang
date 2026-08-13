@@ -9,7 +9,7 @@ export default function FormField({ label, error, rightElement, style, ...inputP
       <View style={styles.inputWrap}>
         <TextInput
           style={[styles.input, rightElement && styles.inputWithRight, error && styles.inputError]}
-          placeholderTextColor={brand.textMuted}
+          placeholderTextColor="#94A3B8"
           {...inputProps}
         />
         {rightElement}
@@ -22,26 +22,26 @@ export default function FormField({ label, error, rightElement, style, ...inputP
 const styles = StyleSheet.create({
   field: { gap: 6 },
   label: {
-    fontSize: 11,
+    fontSize: 12.5,
     fontWeight: '700',
-    letterSpacing: 0.3,
-    color: brand.ink,
+    letterSpacing: 0.2,
+    color: '#0F172A',
     fontFamily: fonts.bodyBold,
   },
   inputWrap: { position: 'relative', justifyContent: 'center' },
   input: {
     width: '100%',
+    height: 48,
     paddingHorizontal: 14,
-    paddingVertical: 13,
-    borderRadius: 10,
-    borderWidth: 1.5,
-    borderColor: brand.ink,
-    backgroundColor: brand.card,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+    backgroundColor: '#FFFFFF',
     fontSize: 14,
-    color: brand.ink,
+    color: '#0F172A',
     fontFamily: fonts.body,
   },
-  inputWithRight: { paddingRight: 40 },
-  inputError: { borderColor: brand.danger },
-  errorText: { color: brand.danger, fontSize: 12, fontFamily: fonts.body },
+  inputWithRight: { paddingRight: 42 },
+  inputError: { borderColor: '#EF4444' },
+  errorText: { color: '#EF4444', fontSize: 12, fontFamily: fonts.body, marginTop: 2 },
 })
