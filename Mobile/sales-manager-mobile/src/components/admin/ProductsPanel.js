@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from 'react-native'
+import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
@@ -8,29 +10,53 @@ function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
+const PAGE_SIZE = 15
+
 export default function ProductsPanel() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     productService.getAll()
-      .then(setProducts)
-      .catch(() => {})
+      .then((data) => {
+        setProducts(data || [])
+        setVisibleCount(PAGE_SIZE)
+      })
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách sản phẩm' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [])
 
   useEffect(() => { load(false) }, [load])
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [debouncedSearch])
+
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     if (!q) return products
     return products.filter((p) =>
       p.productName?.toLowerCase().includes(q) || p.productCode?.toLowerCase().includes(q)
     )
-  }, [products, search])
+  }, [products, debouncedSearch])
+
+  const displayedProducts = filtered.slice(0, visibleCount)
+  const hasMore = displayedProducts.length < filtered.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   return (
     <View style={styles.root}>
@@ -51,11 +77,16 @@ export default function ProductsPanel() {
         <ActivityIndicator style={styles.loader} color={admin.primary} />
       ) : (
         <FlatList
-          data={filtered}
+          data={displayedProducts}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={() => load(true)}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardTop}>
@@ -69,6 +100,13 @@ export default function ProductsPanel() {
               <Text style={styles.price}>{formatVnd(item.price)}đ</Text>
             </View>
           )}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={admin.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={<Text style={styles.empty}>Chưa có sản phẩm nào</Text>}
         />
       )}
@@ -98,4 +136,5 @@ const styles = StyleSheet.create({
   stock: { fontFamily: fonts.adminBody, fontSize: 11.5, color: admin.textMuted },
   price: { fontFamily: fonts.adminDisplayBold, fontSize: 14, color: admin.text, marginTop: 6 },
   empty: { textAlign: 'center', marginTop: 40, color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 13 },
+  footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
 })

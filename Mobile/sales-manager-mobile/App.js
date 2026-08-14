@@ -9,6 +9,7 @@ import RootNavigator from './src/navigation/RootNavigator'
 import { useAppFonts } from './src/theme/fonts'
 import { brand } from './src/theme/colors'
 import { toastConfig } from './src/components/ui/toastConfig'
+import OfflineBanner from './src/components/ui/OfflineBanner'
 
 export default function App() {
   const [fontsLoaded] = useAppFonts()
@@ -21,6 +22,7 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <CartProvider>
+          <OfflineBanner />
           <RootNavigator />
           <StatusBar style="dark" />
           <Toast config={toastConfig} />

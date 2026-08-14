@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator, Animated, Dimensions, FlatList, Image,
-  KeyboardAvoidingView, Platform, Pressable, StyleSheet,
+  ActivityIndicator, Animated, Dimensions, FlatList,
+  KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
+import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import * as ImagePicker from 'expo-image-picker'
@@ -11,6 +12,7 @@ import Toast from 'react-native-toast-message'
 import { chatService } from '../services/chatService'
 import { uploadImage } from '../services/uploadService'
 import { resolveMediaUrl } from '../services/config'
+import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { admin } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
@@ -86,13 +88,13 @@ function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
     <View style={s.pendingBar}>
-      <Image source={{ uri: image.uri }} style={s.pendingThumb} />
+      <Image source={{ uri: image.uri }} style={s.pendingThumb} contentFit="cover" />
       {image.uploading && (
         <View style={s.pendingOverlay}>
           <ActivityIndicator size="small" color="#fff" />
         </View>
       )}
-      <TouchableOpacity style={s.pendingRemoveBtn} onPress={onRemove}>
+      <TouchableOpacity style={s.pendingRemoveBtn} onPress={onRemove} hitSlop={8} accessibilityLabel="Bỏ ảnh đính kèm">
         <Text style={s.pendingRemoveText}>✕</Text>
       </TouchableOpacity>
     </View>
@@ -102,30 +104,40 @@ function PendingImageBar({ image, onRemove }) {
 // ────────────────────────────────────────────────────────────────────
 // Chat với khách hàng dành cho Admin — tương ứng ChatManager.jsx bên web.
 // ────────────────────────────────────────────────────────────────────
-export default function AdminChatScreen({ route }) {
+export default function AdminChatScreen({ route, navigation }) {
   const [conversations, setConversations] = useState([])
   const [loadingList, setLoadingList] = useState(true)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
   const [activeId, setActiveId] = useState(null)
   const [messages, setMessages] = useState([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
+  const [reconnecting, setReconnecting] = useState(false)
   const activeIdRef = useRef(null)
   const flatListRef = useRef(null)
   useEffect(() => { activeIdRef.current = activeId }, [activeId])
+
+  // Khi đang trong màn nhắn tin: tắt swipe của Tab Navigator (không bị lướt sang tab khác)
+  // Khi ở màn danh sách chat: bật lại swipe của Tab Navigator (thoải mái lướt trái/phải)
+  useEffect(() => {
+    navigation?.setOptions?.({
+      swipeEnabled: !activeId,
+    })
+  }, [activeId, navigation])
 
   // ── Load conversations ──
   const loadConversations = useCallback(() => {
     chatService.getConversations()
       .then(setConversations)
-      .catch(() => {})
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách trò chuyện' }))
       .finally(() => setLoadingList(false))
   }, [])
 
   useEffect(() => {
-    chatService.connect().catch(() => {})
+    chatService.connect().catch(() => Toast.show({ type: 'error', text1: 'Mất kết nối trò chuyện trực tiếp' }))
     loadConversations()
 
     const handleReceive = (msg) => {
@@ -135,6 +147,9 @@ export default function AdminChatScreen({ route }) {
       loadConversations()
     }
     chatService.on('ReceiveMessage', handleReceive)
+    chatService.onReconnecting(() => setReconnecting(true))
+    chatService.onReconnected(() => { setReconnecting(false); loadConversations() })
+    chatService.onClose(() => setReconnecting(true))
 
     return () => {
       chatService.off('ReceiveMessage', handleReceive)
@@ -173,11 +188,27 @@ export default function AdminChatScreen({ route }) {
     }
   }, [route?.params?.conversationId])
 
-  const closeConversation = () => {
+  const closeConversation = useCallback(() => {
     if (activeId) chatService.leaveConversation(activeId).catch(() => {})
     setActiveId(null)
     setPendingImage(null)
-  }
+  }, [activeId])
+
+  // ── Cử chỉ vuốt trong màn nhắn tin: vuốt sang phải -> quay lại danh sách, vuốt sang trái -> bị chặn ──
+  const threadPanResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gestureState) => {
+        // Chỉ bắt khi vuốt ngang rõ rệt: dx > 15 và lớn hơn chuyển động dọc
+        return gestureState.dx > 15 && gestureState.dx > Math.abs(gestureState.dy) * 1.3
+      },
+      onPanResponderRelease: (_, gestureState) => {
+        // Vuốt sang phải từ 45px trở lên -> đóng hội thoại quay về danh sách
+        if (gestureState.dx > 45) {
+          closeConversation()
+        }
+      },
+    })
+  ).current
 
   // ── Gửi tin nhắn ──
   const handleSend = async () => {
@@ -223,17 +254,17 @@ export default function AdminChatScreen({ route }) {
   const removePendingImage = () => setPendingImage(null)
 
   const active = conversations.find((c) => c.id === activeId)
-  const filtered = conversations.filter((c) => c.customerName?.toLowerCase().includes(search.trim().toLowerCase()))
+  const filtered = conversations.filter((c) => c.customerName?.toLowerCase().includes(debouncedSearch.trim().toLowerCase()))
 
   // ════════════════════════════════════════════════════════════════════
   //  THREAD VIEW (đang mở hội thoại)
   // ════════════════════════════════════════════════════════════════════
   if (activeId) {
     return (
-      <SafeAreaView style={s.root} edges={['top']}>
+      <SafeAreaView style={s.root} edges={['top']} {...threadPanResponder.panHandlers}>
         {/* ── Header ── */}
         <View style={s.threadHeader}>
-          <TouchableOpacity onPress={closeConversation} style={s.backBtn} activeOpacity={0.6}>
+          <TouchableOpacity onPress={closeConversation} style={s.backBtn} activeOpacity={0.6} hitSlop={8} accessibilityLabel="Quay lại">
             <Text style={s.backIcon}>‹</Text>
           </TouchableOpacity>
           <Avatar name={active?.customerName} size={36} online={active?.isOnline} />
@@ -242,6 +273,13 @@ export default function AdminChatScreen({ route }) {
             {active?.isOnline && <Text style={s.onlineLabel}>Đang hoạt động</Text>}
           </View>
         </View>
+
+        {reconnecting && (
+          <View style={s.reconnectBanner}>
+            <ActivityIndicator size="small" color="#B45309" />
+            <Text style={s.reconnectBannerText}>Đang kết nối lại...</Text>
+          </View>
+        )}
 
         <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
           {loadingMsgs ? (
@@ -256,6 +294,9 @@ export default function AdminChatScreen({ route }) {
               keyExtractor={(m) => String(m.id)}
               contentContainerStyle={s.messageList}
               showsVerticalScrollIndicator={false}
+              initialNumToRender={15}
+              maxToRenderPerBatch={10}
+              windowSize={7}
               onContentSizeChange={() => flatListRef.current?.scrollToEnd?.({ animated: false })}
               renderItem={({ item, index }) => {
                 const prev = index > 0 ? messages[index - 1] : null
@@ -274,7 +315,8 @@ export default function AdminChatScreen({ route }) {
                           <Image
                             source={{ uri: imgUrl }}
                             style={s.bubbleImage}
-                            resizeMode="cover"
+                            contentFit="cover"
+                            cachePolicy="disk"
                           />
                         )}
                         {!!item.content && (
@@ -300,7 +342,7 @@ export default function AdminChatScreen({ route }) {
 
           {/* ── Input bar ── */}
           <View style={s.inputRow}>
-            <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.6}>
+            <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.6} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
               <Text style={s.attachIcon}>📎</Text>
             </TouchableOpacity>
             <TextInput
@@ -321,6 +363,8 @@ export default function AdminChatScreen({ route }) {
               onPress={handleSend}
               disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}
               activeOpacity={0.7}
+              hitSlop={6}
+              accessibilityLabel="Gửi tin nhắn"
             >
               <LinearGradient
                 colors={(sending || (!input.trim() && !pendingImage)) ? ['#c5cdd8', '#b0b8c4'] : ['#4a7fe5', '#2d5fbe']}
@@ -346,6 +390,13 @@ export default function AdminChatScreen({ route }) {
         <Text style={s.headingSub}>Hỗ trợ khách hàng</Text>
       </View>
 
+      {reconnecting && (
+        <View style={s.reconnectBanner}>
+          <ActivityIndicator size="small" color="#B45309" />
+          <Text style={s.reconnectBannerText}>Đang kết nối lại...</Text>
+        </View>
+      )}
+
       {/* ── Search bar ── */}
       <View style={s.searchWrap}>
         <Text style={s.searchIcon}>🔍</Text>
@@ -368,6 +419,9 @@ export default function AdminChatScreen({ route }) {
           keyExtractor={(c) => String(c.id)}
           contentContainerStyle={s.list}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
           renderItem={({ item }) => (
             <Pressable
               style={({ pressed }) => [s.convRow, pressed && s.convRowPressed]}
@@ -412,6 +466,12 @@ const BUBBLE_MAX = SCREEN_W * 0.72
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#f0f2f5' },
   flex: { flex: 1 },
+
+  reconnectBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: '#FEF3C7', paddingVertical: 6,
+  },
+  reconnectBannerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 11.5, color: '#B45309' },
 
   // ── LIST HEADER ──
   listHeader: {

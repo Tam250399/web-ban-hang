@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
     marginBottom: 8,
   },
   logoIcon: { fontSize: 24 },
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 13,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
   },
   submitText: {
     color: '#FFFFFF',

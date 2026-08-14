@@ -1,25 +1,32 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, FlatList, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
 import { useCart } from '../../context/cart-context'
+import { useAuth } from '../../context/auth-context'
 import ProductCard from './ProductCard'
 import ProductDetailModal from './ProductDetailModal'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
 const ALL_CATEGORY = 'Tất cả'
+const PAGE_SIZE = 8
 
-// Danh sách sản phẩm có tìm kiếm + lọc danh mục + xem chi tiết — dùng chung cho
-// cả phần "Danh mục sản phẩm" trên Trang chủ lẫn tab Sản phẩm.
-// `reloadKey` đổi giá trị (vd. khi vuốt-để-làm-mới ở màn cha) sẽ khiến danh
-// sách được tải lại ngầm, không hiện lại spinner toàn màn như lần tải đầu.
-export default function ProductCatalog({ hideHeading, reloadKey }) {
+// Danh sách sản phẩm có tìm kiếm + lọc danh mục + lazy loading + xem chi tiết.
+// Toàn bộ trang (kể cả phần header truyền từ ngoài vào qua ListHeaderComponent)
+// cuộn qua một FlatList ảo hoá duy nhất, tránh render hết toàn bộ sản phẩm cùng lúc.
+export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderComponent, refreshing, onRefresh }) {
   const { addItem } = useCart()
+  const { user } = useAuth()
+  const isAdmin = user?.role === 'Admin'
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
   const [activeCategory, setActiveCategory] = useState(ALL_CATEGORY)
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [detailProduct, setDetailProduct] = useState(null)
   const isFirstLoad = useRef(true)
 
@@ -39,9 +46,11 @@ export default function ProductCatalog({ hideHeading, reloadKey }) {
     }
   }, [reloadKey, load])
 
-  // Suy ra danh mục trực tiếp từ danh sách sản phẩm (giống TrangChu.jsx bên web)
-  // thay vì gọi categoryService riêng — endpoint đó chỉ dành cho Admin/Staff nên
-  // tài khoản khách hàng gọi vào sẽ bị 403.
+  // Reset phân trang khi tìm kiếm hoặc đổi danh mục
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [debouncedSearch, activeCategory])
+
   const categoryNames = useMemo(
     () => [...new Set(allProducts.map((p) => p.categoryName || p.category || 'Khác'))],
     [allProducts]
@@ -51,62 +60,115 @@ export default function ProductCatalog({ hideHeading, reloadKey }) {
     return allProducts.filter((p) => {
       const catName = p.categoryName || p.category || 'Khác'
       const matchesCategory = activeCategory === ALL_CATEGORY || catName === activeCategory
-      const matchesSearch = p.productName.toLowerCase().includes(search.trim().toLowerCase())
+      const matchesSearch = p.productName.toLowerCase().includes(debouncedSearch.trim().toLowerCase())
       return matchesCategory && matchesSearch
     })
-  }, [allProducts, search, activeCategory])
+  }, [allProducts, debouncedSearch, activeCategory])
+
+  const displayedProducts = useMemo(() => {
+    return products.slice(0, visibleCount)
+  }, [products, visibleCount])
+
+  const hasMore = displayedProducts.length < products.length
+
+  const handleLoadMore = useCallback(() => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 250)
+  }, [loadingMore, hasMore])
 
   const handleAddToCart = (product) => {
     addItem(product, 1)
     Toast.show({ type: 'success', text1: `Đã thêm ${product.productName}` })
   }
 
+  const renderHeader = () => (
+    <>
+      {ListHeaderComponent}
+
+      <View style={styles.controls}>
+        {!hideHeading && (
+          <>
+            <Text style={styles.catalogTitle}>Danh mục sản phẩm</Text>
+            <Text style={styles.catalogSubtitle}>Vật liệu xây dựng chính hãng, đảm bảo chất lượng</Text>
+          </>
+        )}
+
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Tìm kiếm sản phẩm..."
+          placeholderTextColor={brand.textMuted}
+          value={search}
+          onChangeText={setSearch}
+        />
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsRowContent}>
+          {[ALL_CATEGORY, ...categoryNames].map((name) => {
+            const active = name === activeCategory
+            return (
+              <TouchableOpacity
+                key={name}
+                style={[styles.chip, active && styles.chipActive]}
+                onPress={() => setActiveCategory(name)}
+              >
+                <Text style={[styles.chipText, active && styles.chipTextActive]}>{name}</Text>
+              </TouchableOpacity>
+            )
+          })}
+        </ScrollView>
+
+        {loading && <ActivityIndicator style={styles.loader} color={brand.primary} />}
+      </View>
+    </>
+  )
+
+  const renderFooter = () => {
+    if (loading || !hasMore) return null
+    return (
+      <TouchableOpacity
+        style={styles.loadMoreBtn}
+        onPress={handleLoadMore}
+        disabled={loadingMore}
+        activeOpacity={0.8}
+      >
+        {loadingMore ? (
+          <ActivityIndicator size="small" color={brand.ink} />
+        ) : (
+          <Text style={styles.loadMoreText}>
+            Xem thêm ({displayedProducts.length}/{products.length} sản phẩm) ↓
+          </Text>
+        )}
+      </TouchableOpacity>
+    )
+  }
+
   return (
     <View style={styles.catalog}>
-      {!hideHeading && (
-        <>
-          <Text style={styles.catalogTitle}>Danh mục sản phẩm</Text>
-          <Text style={styles.catalogSubtitle}>Vật liệu xây dựng chính hãng, đảm bảo chất lượng</Text>
-        </>
-      )}
-
-      <TextInput
-        style={styles.searchInput}
-        placeholder="Tìm kiếm sản phẩm..."
-        placeholderTextColor={brand.textMuted}
-        value={search}
-        onChangeText={setSearch}
+      <FlatList
+        data={loading ? [] : displayedProducts}
+        keyExtractor={(p) => String(p.id)}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        renderItem={({ item }) => (
+          <View style={styles.gridItem}>
+            <ProductCard product={item} onPress={setDetailProduct} onAddToCart={handleAddToCart} hideAddToCart={isAdmin} />
+          </View>
+        )}
+        ListHeaderComponent={renderHeader}
+        ListFooterComponent={renderFooter}
+        ListEmptyComponent={!loading ? <Text style={styles.empty}>Không tìm thấy sản phẩm phù hợp</Text> : null}
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} colors={[brand.primary]} tintColor={brand.primary} />
+          ) : undefined
+        }
+        onEndReachedThreshold={0.4}
+        contentContainerStyle={styles.listContent}
+        removeClippedSubviews
       />
-
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipsRow} contentContainerStyle={styles.chipsRowContent}>
-        {[ALL_CATEGORY, ...categoryNames].map((name) => {
-          const active = name === activeCategory
-          return (
-            <TouchableOpacity
-              key={name}
-              style={[styles.chip, active && styles.chipActive]}
-              onPress={() => setActiveCategory(name)}
-            >
-              <Text style={[styles.chipText, active && styles.chipTextActive]}>{name}</Text>
-            </TouchableOpacity>
-          )
-        })}
-      </ScrollView>
-
-      {loading ? (
-        <ActivityIndicator style={styles.loader} color={brand.primary} />
-      ) : (
-        <View style={styles.grid}>
-          {products.map((p, i) => (
-            <View key={p.id} style={[styles.gridItem, i % 2 === 0 ? styles.gridItemLeft : styles.gridItemRight]}>
-              <ProductCard product={p} onPress={setDetailProduct} onAddToCart={handleAddToCart} />
-            </View>
-          ))}
-          {products.length === 0 && (
-            <Text style={styles.empty}>Không tìm thấy sản phẩm phù hợp</Text>
-          )}
-        </View>
-      )}
 
       <ProductDetailModal
         visible={!!detailProduct}
@@ -119,7 +181,9 @@ export default function ProductCatalog({ hideHeading, reloadKey }) {
 }
 
 const styles = StyleSheet.create({
-  catalog: { paddingHorizontal: 18, paddingTop: 22 },
+  catalog: { flex: 1 },
+  listContent: { paddingBottom: 24 },
+  controls: { paddingHorizontal: 18, paddingTop: 22 },
   catalogTitle: { fontFamily: fonts.displayExtraBold, fontSize: 19, color: brand.ink, textAlign: 'center' },
   catalogSubtitle: { fontFamily: fonts.body, fontSize: 12, color: brand.textMuted, textAlign: 'center', marginTop: 4, marginBottom: 16 },
   searchInput: {
@@ -135,10 +199,25 @@ const styles = StyleSheet.create({
   chipActive: { backgroundColor: brand.ink },
   chipText: { fontFamily: fonts.displayBold, fontSize: 12, color: brand.ink },
   chipTextActive: { color: brand.accent },
-  grid: { flexDirection: 'row', flexWrap: 'wrap', marginHorizontal: -6 },
-  gridItem: { width: '50%', paddingHorizontal: 6, marginBottom: 12 },
-  gridItemLeft: {},
-  gridItemRight: {},
+  row: { gap: 12, paddingHorizontal: 18 },
+  gridItem: { flex: 1, marginBottom: 12 },
   loader: { marginTop: 24 },
-  empty: { width: '100%', textAlign: 'center', color: brand.textMuted, fontFamily: fonts.body, fontSize: 13, marginTop: 16 },
+  loadMoreBtn: {
+    marginHorizontal: 18,
+    marginTop: 8,
+    marginBottom: 16,
+    paddingVertical: 12,
+    borderWidth: 1.5,
+    borderColor: brand.ink,
+    borderRadius: 10,
+    backgroundColor: brand.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadMoreText: {
+    fontFamily: fonts.displayBold,
+    fontSize: 13,
+    color: brand.ink,
+  },
+  empty: { width: '100%', textAlign: 'center', color: brand.textMuted, fontFamily: fonts.body, fontSize: 13, marginTop: 16, paddingHorizontal: 18 },
 })

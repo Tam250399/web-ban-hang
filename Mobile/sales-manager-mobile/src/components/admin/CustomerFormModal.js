@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Modal, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import { customerService } from '../../services/customerService'
@@ -11,6 +11,7 @@ const EMPTY_FORM = { fullName: '', phoneNumber: '', address: '', isBusiness: fal
 export default function CustomerFormModal({ visible, customer, onClose, onSaved }) {
   const isEdit = !!customer
   const [form, setForm] = useState(EMPTY_FORM)
+  const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
 
   // Nạp lại form mỗi khi modal mở với dữ liệu customer khác (hoặc mở form thêm mới).
@@ -21,15 +22,22 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
       address: nextCustomer.address || '',
       isBusiness: !!nextCustomer.isBusiness,
     } : EMPTY_FORM)
+    setErrors({})
   }
 
   const handleShow = () => resetForNext(customer)
 
-  const setField = (key) => (value) => setForm((f) => ({ ...f, [key]: value }))
+  const setField = (key) => (value) => {
+    setForm((f) => ({ ...f, [key]: value }))
+    setErrors((prev) => (prev[key] ? { ...prev, [key]: null } : prev))
+  }
 
   const handleSubmit = async () => {
-    if (!form.fullName.trim() || !form.phoneNumber.trim()) {
-      Toast.show({ type: 'error', text1: 'Vui lòng nhập họ tên và số điện thoại' })
+    const nextErrors = {}
+    if (!form.fullName.trim()) nextErrors.fullName = 'Vui lòng nhập họ tên'
+    if (!form.phoneNumber.trim()) nextErrors.phoneNumber = 'Vui lòng nhập số điện thoại'
+    if (Object.keys(nextErrors).length > 0) {
+      setErrors(nextErrors)
       return
     }
     setSaving(true)
@@ -55,12 +63,13 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
           <View style={styles.header}>
             <Text style={styles.title}>{isEdit ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới'}</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8} accessibilityLabel="Đóng">
               <Text style={styles.closeBtnText}>✕</Text>
             </TouchableOpacity>
           </View>
 
-          <ScrollView contentContainerStyle={styles.body}>
+          <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
             <View style={styles.toggleRow}>
               <Text style={styles.toggleLabel}>{form.isBusiness ? 'Doanh nghiệp' : 'Cá nhân'}</Text>
               <Switch
@@ -73,29 +82,31 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>Họ tên *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.fullName && styles.inputError]}
                 value={form.fullName}
                 onChangeText={setField('fullName')}
                 placeholder="Nhập họ tên khách hàng..."
                 placeholderTextColor={admin.textMuted}
                 autoFocus
               />
+              {!!errors.fullName && <Text style={styles.errorText}>⚠️ {errors.fullName}</Text>}
             </View>
 
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>Số điện thoại *</Text>
               <TextInput
-                style={styles.input}
+                style={[styles.input, errors.phoneNumber && styles.inputError]}
                 value={form.phoneNumber}
                 onChangeText={setField('phoneNumber')}
                 placeholder="VD: 0901234567"
                 placeholderTextColor={admin.textMuted}
                 keyboardType="phone-pad"
               />
+              {!!errors.phoneNumber && <Text style={styles.errorText}>⚠️ {errors.phoneNumber}</Text>}
             </View>
 
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Nơi ở</Text>
+              <Text style={styles.fieldLabel}>Địa chỉ</Text>
               <TextInput
                 style={styles.input}
                 value={form.address}
@@ -114,6 +125,7 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
               </TouchableOpacity>
             </View>
           </ScrollView>
+          </KeyboardAvoidingView>
         </SafeAreaView>
       </SafeAreaProvider>
     </Modal>
@@ -122,6 +134,7 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: admin.bg },
+  flex: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: admin.divider,
@@ -141,6 +154,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 10, borderWidth: 1, borderColor: admin.border,
     borderRadius: 8, backgroundColor: admin.card, fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
   },
+  inputError: { borderColor: admin.dangerBorder, backgroundColor: admin.dangerBg },
+  errorText: { fontFamily: fonts.adminBody, fontSize: 11, color: admin.dangerText },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
   cancelBtn: {
     flex: 1, paddingVertical: 12, borderWidth: 1, borderColor: admin.border,

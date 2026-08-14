@@ -54,6 +54,12 @@ export const chatService = {
   on:  (event, cb) => getConnection().on(event, cb),
   off: (event, cb) => { if (connection) connection.off(event, cb) },
 
+  // Trạng thái kết nối để UI hiện banner "đang kết nối lại" khi rớt mạng.
+  getState:       ()   => connection?.state ?? signalR.HubConnectionState.Disconnected,
+  onReconnecting: (cb) => getConnection().onreconnecting(cb),
+  onReconnected:  (cb) => getConnection().onreconnected(cb),
+  onClose:        (cb) => getConnection().onclose(cb),
+
   sendMessage:          (content, imageUrl = null)                  => getConnection().invoke('SendMessage', content, imageUrl),
   replyToConversation:  (conversationId, content, imageUrl = null)   => getConnection().invoke('ReplyToConversation', conversationId, content, imageUrl),
   joinConversation:     (conversationId)     => getConnection().invoke('JoinConversation', conversationId),

@@ -57,7 +57,7 @@ function CustomerModal({ customer, onClose, onSaved }) {
           </label>
 
           <label className="form-field">
-            <span>Nơi ở</span>
+            <span>Địa chỉ</span>
             <input value={form.address} onChange={set('address')} placeholder="Địa chỉ..." />
           </label>
 
@@ -136,7 +136,7 @@ function CustomerManager() {
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
-            <tr><th>#</th><th>Họ tên</th><th>Số điện thoại</th><th>Nơi ở</th><th>Loại</th><th>Thao tác</th></tr>
+            <tr><th>#</th><th>Họ tên</th><th>Số điện thoại</th><th>Địa chỉ</th><th>Loại</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
             {paginated.map((c, i) => (

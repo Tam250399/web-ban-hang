@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { FlatList, Modal, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { useEffect, useState } from 'react'
+import { FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
@@ -13,8 +13,82 @@ function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
-// Chưa có thiết kế riêng cho giỏ hàng — dùng UI tối giản dựa trên tông màu
-// thương hiệu, chức năng lấy thẳng từ CartContext đã có sẵn.
+// Component điều khiển số lượng: có nút − / + và ô TextInput nhập số trực tiếp
+function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {
+  const [localText, setLocalText] = useState(String(quantity))
+
+  useEffect(() => {
+    setLocalText(String(quantity))
+  }, [quantity])
+
+  const handleTextChange = (text) => {
+    const clean = text.replace(/[^0-9]/g, '')
+    setLocalText(clean)
+    const num = parseInt(clean, 10)
+    if (!isNaN(num) && num > 0) {
+      const clamped = maxStock ? Math.min(num, maxStock) : num
+      onChangeQty(clamped)
+    }
+  }
+
+  const handleBlur = () => {
+    const num = parseInt(localText, 10)
+    if (isNaN(num) || num < 1) {
+      setLocalText('1')
+      onChangeQty(1)
+    } else if (maxStock && num > maxStock) {
+      setLocalText(String(maxStock))
+      onChangeQty(maxStock)
+      Toast.show({ type: 'info', text1: `Số lượng tối đa còn trong kho: ${maxStock}` })
+    }
+  }
+
+  return (
+    <View style={[styles.qtyControls, compact && styles.qtyControlsCompact]}>
+      <TouchableOpacity
+        style={[styles.qtyBtn, compact && styles.qtyBtnCompact, quantity <= 1 && styles.qtyBtnDisabled]}
+        onPress={() => onChangeQty(quantity - 1)}
+        disabled={quantity <= 1}
+        activeOpacity={0.7}
+        hitSlop={6}
+        accessibilityLabel="Giảm số lượng"
+      >
+        <Text style={[styles.qtyBtnText, compact && styles.qtyBtnTextCompact]}>−</Text>
+      </TouchableOpacity>
+
+      <TextInput
+        style={[styles.qtyInput, compact && styles.qtyInputCompact]}
+        value={localText}
+        keyboardType="number-pad"
+        onChangeText={handleTextChange}
+        onBlur={handleBlur}
+        selectTextOnFocus
+        maxLength={6}
+      />
+
+      <TouchableOpacity
+        style={[
+          styles.qtyBtn,
+          compact && styles.qtyBtnCompact,
+          maxStock && quantity >= maxStock && styles.qtyBtnDisabled,
+        ]}
+        onPress={() => {
+          if (maxStock && quantity >= maxStock) {
+            Toast.show({ type: 'info', text1: `Số lượng tối đa còn trong kho: ${maxStock}` })
+            return
+          }
+          onChangeQty(quantity + 1)
+        }}
+        activeOpacity={0.7}
+        hitSlop={6}
+        accessibilityLabel="Tăng số lượng"
+      >
+        <Text style={[styles.qtyBtnText, compact && styles.qtyBtnTextCompact]}>+</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
 export default function CartScreen() {
   const navigation = useNavigation()
   const { items, updateQuantity, removeItem, clear, totalPrice } = useCart()
@@ -93,16 +167,12 @@ export default function CartScreen() {
               <Text style={styles.name} numberOfLines={2}>{item.productName}</Text>
               <Text style={styles.unitPrice}>{formatVnd(item.price)}đ / {item.unit}</Text>
             </View>
-            <View style={styles.qtyControls}>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQuantity(item.productId, item.quantity - 1)}>
-                <Text style={styles.qtyBtnText}>−</Text>
-              </TouchableOpacity>
-              <Text style={styles.qty}>{item.quantity}</Text>
-              <TouchableOpacity style={styles.qtyBtn} onPress={() => updateQuantity(item.productId, item.quantity + 1)}>
-                <Text style={styles.qtyBtnText}>+</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={() => removeItem(item.productId)}>
+            <QtyControl
+              quantity={item.quantity}
+              maxStock={item.maxStock}
+              onChangeQty={(qty) => updateQuantity(item.productId, qty)}
+            />
+            <TouchableOpacity onPress={() => removeItem(item.productId)} style={styles.removeBtn}>
               <Text style={styles.removeText}>Xóa</Text>
             </TouchableOpacity>
           </View>
@@ -119,18 +189,39 @@ export default function CartScreen() {
       </View>
 
       <Modal visible={checkoutOpen} animationType="slide" onRequestClose={() => setCheckoutOpen(false)}>
-        {/* Modal gốc của RN dựng cây view native riêng nên SafeAreaView bên trong
-            không tự lấy được inset đúng — phải bọc thêm SafeAreaProvider mới ở đây. */}
         <SafeAreaProvider>
           <SafeAreaView style={styles.modalRoot} edges={['top', 'bottom']}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Thông tin giao hàng</Text>
-              <TouchableOpacity style={styles.closeBtn} onPress={() => setCheckoutOpen(false)}>
+              <Text style={styles.modalTitle}>Thông tin đơn hàng</Text>
+              <TouchableOpacity style={styles.closeBtn} onPress={() => setCheckoutOpen(false)} hitSlop={8} accessibilityLabel="Đóng">
                 <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={styles.modalBody}>
+            <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+            <ScrollView contentContainerStyle={styles.modalBody} keyboardShouldPersistTaps="handled">
+              {/* ── Danh sách sản phẩm trong đơn (có thể điền số lượng trực tiếp) ── */}
+              <View style={styles.orderSummarySection}>
+                <Text style={styles.sectionTitle}>📦 Sản phẩm trong đơn</Text>
+                {items.map((item) => (
+                  <View key={item.productId} style={styles.modalItemRow}>
+                    <View style={styles.modalItemInfo}>
+                      <Text style={styles.modalItemName} numberOfLines={1}>{item.productName}</Text>
+                      <Text style={styles.modalItemPrice}>{formatVnd(item.price)}đ / {item.unit}</Text>
+                    </View>
+                    <QtyControl
+                      quantity={item.quantity}
+                      maxStock={item.maxStock}
+                      onChangeQty={(qty) => updateQuantity(item.productId, qty)}
+                      compact
+                    />
+                  </View>
+                ))}
+              </View>
+
+              {/* ── Thông tin người nhận & giao hàng ── */}
+              <Text style={[styles.sectionTitle, { marginTop: 6 }]}>📍 Thông tin giao hàng</Text>
+
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>Tên người nhận *</Text>
                 <TextInput style={styles.input} value={form.recipientName} onChangeText={setField('recipientName')} placeholderTextColor={brand.textMuted} />
@@ -169,6 +260,7 @@ export default function CartScreen() {
                 <Text style={styles.checkoutBtnText}>{submitting ? 'Đang đặt hàng...' : 'Xác nhận đặt hàng'}</Text>
               </TouchableOpacity>
             </ScrollView>
+            </KeyboardAvoidingView>
           </SafeAreaView>
         </SafeAreaProvider>
       </Modal>
@@ -178,12 +270,13 @@ export default function CartScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
+  flex: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', gap: 8 },
   emptyIcon: { fontSize: 48 },
   emptyText: { color: brand.textMuted, fontFamily: fonts.bodyBold, fontSize: 14 },
   list: { padding: 16, gap: 12 },
   row: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
+    flexDirection: 'row', alignItems: 'center', gap: 10,
     backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0',
     borderRadius: 14, padding: 14,
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
@@ -191,10 +284,37 @@ const styles = StyleSheet.create({
   rowInfo: { flex: 1, minWidth: 0 },
   name: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#0F172A' },
   unitPrice: { fontFamily: fonts.monoBold, fontSize: 12, color: brand.primary, marginTop: 2 },
-  qtyControls: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  qtyBtn: { width: 28, height: 28, borderRadius: 8, backgroundColor: '#0F172A', alignItems: 'center', justifyContent: 'center' },
-  qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontFamily: fonts.bodyBold, lineHeight: 18 },
-  qty: { minWidth: 20, textAlign: 'center', fontFamily: fonts.bodyBold, fontSize: 14, color: '#0F172A' },
+  
+  // ── Qty controls ──
+  qtyControls: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9',
+    borderRadius: 9, borderWidth: 1, borderColor: '#E2E8F0', padding: 2,
+  },
+  qtyControlsCompact: {
+    padding: 1,
+  },
+  qtyBtn: {
+    width: 28, height: 28, borderRadius: 6, backgroundColor: '#0F172A',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  qtyBtnCompact: {
+    width: 24, height: 24, borderRadius: 5,
+  },
+  qtyBtnDisabled: {
+    backgroundColor: '#CBD5E1',
+  },
+  qtyBtnText: { color: '#FFFFFF', fontSize: 15, fontFamily: fonts.bodyBold, lineHeight: 17 },
+  qtyBtnTextCompact: { fontSize: 13, lineHeight: 15 },
+  qtyInput: {
+    minWidth: 36, maxWidth: 50, height: 28, textAlign: 'center',
+    fontFamily: fonts.bodyBold, fontSize: 13.5, color: '#0F172A',
+    paddingHorizontal: 4, paddingVertical: 0,
+  },
+  qtyInputCompact: {
+    minWidth: 32, maxWidth: 44, height: 24, fontSize: 12.5,
+  },
+
+  removeBtn: { padding: 4 },
   removeText: { color: '#EF4444', fontFamily: fonts.bodyBold, fontSize: 12.5 },
   footer: { padding: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 12 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
@@ -212,7 +332,21 @@ const styles = StyleSheet.create({
   modalTitle: { fontFamily: fonts.displayBold, fontSize: 17, color: '#0F172A' },
   closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
   closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
-  modalBody: { padding: 16, gap: 14 },
+  modalBody: { padding: 16, gap: 12 },
+
+  orderSummarySection: {
+    backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0',
+    borderRadius: 12, padding: 12, gap: 10,
+  },
+  sectionTitle: { fontFamily: fonts.displayBold, fontSize: 13.5, color: '#0F172A' },
+  modalItemRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    gap: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8,
+  },
+  modalItemInfo: { flex: 1, minWidth: 0 },
+  modalItemName: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: '#0F172A' },
+  modalItemPrice: { fontFamily: fonts.monoBold, fontSize: 11.5, color: brand.primary, marginTop: 1 },
+
   field: { gap: 6 },
   fieldLabel: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: '#0F172A' },
   input: {

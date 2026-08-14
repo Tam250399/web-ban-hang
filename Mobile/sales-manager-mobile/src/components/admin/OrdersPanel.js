@@ -24,12 +24,16 @@ function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
+const PAGE_SIZE = 12
+
 export default function OrdersPanel() {
   const { user } = useAuth()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [detailOrder, setDetailOrder] = useState(null)
   const [loadingDetailId, setLoadingDetailId] = useState(null)
   const [confirming, setConfirming] = useState(false)
@@ -37,12 +41,27 @@ export default function OrdersPanel() {
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     orderService.getAll(filter)
-      .then(setOrders)
-      .catch(() => {})
+      .then((data) => {
+        setOrders(data || [])
+        setVisibleCount(PAGE_SIZE)
+      })
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách đơn hàng' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [filter])
 
   useEffect(() => { load(false) }, [load])
+
+  const displayedOrders = orders.slice(0, visibleCount)
+  const hasMore = displayedOrders.length < orders.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   const openDetail = async (id) => {
     setLoadingDetailId(id)
@@ -92,11 +111,16 @@ export default function OrdersPanel() {
         <ActivityIndicator style={styles.loader} color={admin.primary} />
       ) : (
         <FlatList
-          data={orders}
+          data={displayedOrders}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={() => load(true)}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={5}
           renderItem={({ item }) => {
             const statusColor = STATUS_COLOR[item.status] || STATUS_COLOR.Pending
             return (
@@ -117,6 +141,13 @@ export default function OrdersPanel() {
               </TouchableOpacity>
             )
           }}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={admin.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={<Text style={styles.empty}>Chưa có đơn hàng nào</Text>}
         />
       )}
@@ -128,7 +159,7 @@ export default function OrdersPanel() {
         <SafeAreaView style={styles.detailRoot} edges={['top', 'bottom']}>
           <View style={styles.detailHeader}>
             <Text style={styles.detailTitle}>Đơn hàng #{detailOrder?.id}</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailOrder(null)}>
+            <TouchableOpacity style={styles.closeBtn} onPress={() => setDetailOrder(null)} hitSlop={8} accessibilityLabel="Đóng">
               <Text style={styles.closeBtnText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -197,6 +228,7 @@ const styles = StyleSheet.create({
   date: { fontFamily: fonts.adminBody, fontSize: 11.5, color: admin.textMuted },
   total: { fontFamily: fonts.adminDisplayBold, fontSize: 13, color: admin.text },
   empty: { textAlign: 'center', marginTop: 40, color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 13 },
+  footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
 
   detailRoot: { flex: 1, backgroundColor: admin.bg },
   detailHeader: {

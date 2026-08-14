@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator, FlatList, Image, KeyboardAvoidingView, Platform,
+  ActivityIndicator, FlatList, KeyboardAvoidingView, Platform,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
+import { Image } from 'expo-image'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useNavigation } from '@react-navigation/native'
@@ -49,13 +50,13 @@ function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
     <View style={s.pendingBar}>
-      <Image source={{ uri: image.uri }} style={s.pendingThumb} />
+      <Image source={{ uri: image.uri }} style={s.pendingThumb} contentFit="cover" />
       {image.uploading && (
         <View style={s.pendingOverlay}>
           <ActivityIndicator size="small" color="#fff" />
         </View>
       )}
-      <TouchableOpacity style={s.pendingRemoveBtn} onPress={onRemove}>
+      <TouchableOpacity style={s.pendingRemoveBtn} onPress={onRemove} hitSlop={8} accessibilityLabel="Bỏ ảnh đính kèm">
         <Text style={s.pendingRemoveText}>✕</Text>
       </TouchableOpacity>
     </View>
@@ -74,6 +75,7 @@ export default function CustomerChatScreen() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
+  const [reconnecting, setReconnecting] = useState(false)
   const flatListRef = useRef(null)
 
   // ── Kết nối + load tin nhắn (Chỉ chạy khi ĐÃ ĐĂNG NHẬP) ──
@@ -87,11 +89,14 @@ export default function CustomerChatScreen() {
 
     chatService.getMyConversation()
       .then((data) => { if (!cancelled) setMessages(data?.messages || []) })
-      .catch(() => {})
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được cuộc trò chuyện' }))
       .finally(() => { if (!cancelled) setLoading(false) })
 
     chatService.on('ReceiveMessage', handleReceive)
-    chatService.connect().catch(() => {})
+    chatService.connect().catch(() => Toast.show({ type: 'error', text1: 'Mất kết nối trò chuyện trực tiếp' }))
+    chatService.onReconnecting(() => setReconnecting(true))
+    chatService.onReconnected(() => setReconnecting(false))
+    chatService.onClose(() => setReconnecting(true))
 
     return () => {
       cancelled = true
@@ -188,6 +193,13 @@ export default function CustomerChatScreen() {
         </View>
       </LinearGradient>
 
+      {reconnecting && (
+        <View style={s.reconnectBanner}>
+          <ActivityIndicator size="small" color="#B45309" />
+          <Text style={s.reconnectBannerText}>Đang kết nối lại...</Text>
+        </View>
+      )}
+
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
         {loading ? (
           <View style={s.loaderWrap}>
@@ -200,6 +212,9 @@ export default function CustomerChatScreen() {
             data={messages}
             keyExtractor={(item, index) => String(item.id || index)}
             contentContainerStyle={s.msgList}
+            initialNumToRender={15}
+            maxToRenderPerBatch={10}
+            windowSize={7}
             renderItem={({ item, index }) => {
               const isMe = !item.isFromAdmin
               const prev = messages[index - 1]
@@ -213,7 +228,8 @@ export default function CustomerChatScreen() {
                         <Image
                           source={{ uri: resolveMediaUrl(item.imageUrl) }}
                           style={s.msgImage}
-                          resizeMode="cover"
+                          contentFit="cover"
+                          cachePolicy="disk"
                         />
                       )}
                       {!!item.content && (
@@ -244,7 +260,7 @@ export default function CustomerChatScreen() {
 
         {/* ── Input row ── */}
         <View style={s.inputRow}>
-          <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.7}>
+          <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.7} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
             <Text style={s.attachIcon}>📎</Text>
           </TouchableOpacity>
           <TextInput
@@ -259,6 +275,8 @@ export default function CustomerChatScreen() {
             style={[s.sendBtn, (sending || (!input.trim() && !pendingImage) || pendingImage?.uploading) && s.sendBtnDisabled]}
             onPress={handleSend}
             disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}
+            hitSlop={6}
+            accessibilityLabel="Gửi tin nhắn"
           >
             <LinearGradient
               colors={(sending || (!input.trim() && !pendingImage)) ? ['#c5cdd8', '#b0b8c4'] : ['#C1440E', '#9B360B']}
@@ -276,6 +294,12 @@ export default function CustomerChatScreen() {
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.bg },
   flex: { flex: 1 },
+
+  reconnectBanner: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
+    backgroundColor: '#FEF3C7', paddingVertical: 6,
+  },
+  reconnectBannerText: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: '#B45309' },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,

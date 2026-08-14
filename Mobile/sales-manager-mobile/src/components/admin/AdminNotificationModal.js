@@ -69,7 +69,7 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
                 <Text style={styles.headerIcon}>🔔</Text>
                 <Text style={styles.headerTitle}>Thông báo mới</Text>
               </View>
-              <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7}>
+              <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7} hitSlop={8} accessibilityLabel="Đóng">
                 <Text style={styles.closeBtnText}>✕</Text>
               </TouchableOpacity>
             </View>

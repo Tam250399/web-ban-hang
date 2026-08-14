@@ -1,18 +1,28 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image } from 'expo-image'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
+
+const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
 function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
-export default function ProductCard({ product, onPress, onAddToCart }) {
+export default function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(product)} activeOpacity={0.9}>
       <View style={styles.imagePlaceholder}>
         {product.imageUrl ? (
-          <Image source={{ uri: resolveMediaUrl(product.imageUrl) }} style={styles.image} resizeMode="cover" />
+          <Image
+            source={{ uri: resolveMediaUrl(product.imageUrl) }}
+            style={styles.image}
+            contentFit="cover"
+            placeholder={{ blurhash: BLURHASH }}
+            transition={150}
+            cachePolicy="disk"
+          />
         ) : (
           <Text style={styles.imagePlaceholderText}>ảnh sản phẩm</Text>
         )}
@@ -26,9 +36,11 @@ export default function ProductCard({ product, onPress, onAddToCart }) {
         <View style={styles.priceRow}>
           <Text style={styles.price}>{formatVnd(product.price)}đ</Text>
         </View>
-        <TouchableOpacity style={styles.addBtn} onPress={() => onAddToCart(product)} activeOpacity={0.85}>
-          <Text style={styles.addBtnText}>🛒 Thêm vào giỏ</Text>
-        </TouchableOpacity>
+        {!hideAddToCart && (
+          <TouchableOpacity style={styles.addBtn} onPress={() => onAddToCart(product)} activeOpacity={0.85}>
+            <Text style={styles.addBtnText}>🛒 Thêm vào giỏ</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </TouchableOpacity>
   )
@@ -53,7 +65,7 @@ const styles = StyleSheet.create({
     height: 105,
     backgroundColor: '#F1F5F9',
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
     overflow: 'hidden',
     position: 'relative',
   },
@@ -87,7 +99,7 @@ const styles = StyleSheet.create({
   },
   priceRow: {
     flexDirection: 'row',
-    justify: 'space-between',
+    justifyContent: 'space-between',
     alignItems: 'baseline',
     borderTopWidth: 1,
     borderTopColor: '#E2E8F0',
@@ -103,7 +115,7 @@ const styles = StyleSheet.create({
     backgroundColor: brand.primary,
     borderRadius: 10,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
   },
   addBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 11.5 },
 })

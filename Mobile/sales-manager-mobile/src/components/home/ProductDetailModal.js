@@ -1,8 +1,11 @@
-import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image } from 'expo-image'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
+
+const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
 const CATEGORY_ICONS = {
   'Xi măng': '🏗️',
@@ -37,7 +40,7 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
           {/* ── Header cố định ── */}
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>Chi tiết sản phẩm</Text>
-            <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
+            <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8} accessibilityLabel="Đóng">
               <Text style={styles.closeBtnText}>✕</Text>
             </TouchableOpacity>
           </View>
@@ -46,7 +49,14 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
           <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
             <View style={styles.imageWrap}>
               {product.imageUrl ? (
-                <Image source={{ uri: resolveMediaUrl(product.imageUrl) }} style={styles.image} resizeMode="cover" />
+                <Image
+                  source={{ uri: resolveMediaUrl(product.imageUrl) }}
+                  style={styles.image}
+                  contentFit="cover"
+                  placeholder={{ blurhash: BLURHASH }}
+                  transition={150}
+                  cachePolicy="disk"
+                />
               ) : (
                 <Text style={styles.imageIcon}>{icon}</Text>
               )}

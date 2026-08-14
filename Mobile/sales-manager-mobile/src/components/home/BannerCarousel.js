@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image } from 'expo-image'
 import PagerView from 'react-native-pager-view'
 import { resolveMediaUrl } from '../../services/config'
 import { fonts } from '../../theme/fonts'
 
 const AUTO_PLAY_MS = 5000
+const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
 // Tương đương Carousel.jsx bên web — vuốt/tự chuyển slide banner do Admin
 // quản lý qua bannerService, đồng bộ với những gì hiện trên web.
@@ -33,7 +35,14 @@ export default function BannerCarousel({ banners }) {
       >
         {banners.map((slide, i) => (
           <View key={slide.id ?? i} style={styles.slide}>
-            <Image source={{ uri: resolveMediaUrl(slide.imageUrl) }} style={styles.image} resizeMode="cover" />
+            <Image
+              source={{ uri: resolveMediaUrl(slide.imageUrl) }}
+              style={styles.image}
+              contentFit="cover"
+              placeholder={{ blurhash: BLURHASH }}
+              transition={150}
+              cachePolicy="disk"
+            />
             {(!!slide.title || !!slide.description) && (
               <View style={styles.caption}>
                 {!!slide.title && <Text style={styles.captionTitle} numberOfLines={1}>{slide.title}</Text>}

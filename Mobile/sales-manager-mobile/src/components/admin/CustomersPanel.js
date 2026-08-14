@@ -3,32 +3,57 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, Toucha
 import Toast from 'react-native-toast-message'
 import { customerService } from '../../services/customerService'
 import CustomerFormModal from './CustomerFormModal'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+
+const PAGE_SIZE = 15
 
 export default function CustomersPanel() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState(null)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     customerService.getAll()
-      .then(setCustomers)
-      .catch(() => {})
+      .then((data) => {
+        setCustomers(data || [])
+        setVisibleCount(PAGE_SIZE)
+      })
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách khách hàng' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [])
 
   useEffect(() => { load(false) }, [load])
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [debouncedSearch])
+
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     if (!q) return customers
     return customers.filter((c) => c.fullName?.toLowerCase().includes(q) || c.phoneNumber?.includes(q))
-  }, [customers, search])
+  }, [customers, debouncedSearch])
+
+  const displayedCustomers = filtered.slice(0, visibleCount)
+  const hasMore = displayedCustomers.length < filtered.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   const openAdd = () => { setEditingCustomer(null); setModalOpen(true) }
   const openEdit = (customer) => { setEditingCustomer(customer); setModalOpen(true) }
@@ -80,11 +105,16 @@ export default function CustomersPanel() {
         <ActivityIndicator style={styles.loader} color={admin.primary} />
       ) : (
         <FlatList
-          data={filtered}
+          data={displayedCustomers}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={() => load(true)}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardTop}>
@@ -105,6 +135,13 @@ export default function CustomersPanel() {
               </View>
             </View>
           )}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={admin.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={<Text style={styles.empty}>Chưa có khách hàng nào</Text>}
         />
       )}
@@ -152,4 +189,5 @@ const styles = StyleSheet.create({
   deleteBtn: { borderColor: admin.dangerBorder, backgroundColor: admin.dangerBg },
   deleteText: { fontFamily: fonts.adminBodySemiBold, fontSize: 11, color: admin.dangerText },
   empty: { textAlign: 'center', marginTop: 40, color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 13 },
+  footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
 })

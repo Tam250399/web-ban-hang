@@ -4,8 +4,11 @@ import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
 import InvoiceCard from './InvoiceCard'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+
+const PAGE_SIZE = 15
 
 export default function StockExportPanel() {
   const navigation = useNavigation()
@@ -13,12 +16,18 @@ export default function StockExportPanel() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     salesInvoiceService.getAll()
-      .then(setInvoices)
-      .catch(() => {})
+      .then((data) => {
+        setInvoices(data || [])
+        setVisibleCount(PAGE_SIZE)
+      })
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách phiếu xuất' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [])
 
@@ -30,11 +39,27 @@ export default function StockExportPanel() {
     return unsubscribe
   }, [navigation, load])
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [debouncedSearch])
+
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     if (!q) return invoices
     return invoices.filter((inv) => inv.customerName?.toLowerCase().includes(q))
-  }, [invoices, search])
+  }, [invoices, debouncedSearch])
+
+  const displayedInvoices = filtered.slice(0, visibleCount)
+  const hasMore = displayedInvoices.length < filtered.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   const handleDelete = (inv) => {
     Alert.alert(
@@ -81,11 +106,16 @@ export default function StockExportPanel() {
         <ActivityIndicator style={styles.loader} color={admin.primary} />
       ) : (
         <FlatList
-          data={filtered}
+          data={displayedInvoices}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={() => load(true)}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
           renderItem={({ item }) => (
             <InvoiceCard
               invoice={{
@@ -100,6 +130,13 @@ export default function StockExportPanel() {
               onDelete={() => handleDelete(item)}
             />
           )}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={admin.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <Text style={styles.empty}>
               {invoices.length === 0 ? 'Chưa có phiếu bán hàng nào — bấm "+ Thêm" để tạo phiếu đầu tiên' : 'Không tìm thấy phiếu phù hợp'}
@@ -127,4 +164,5 @@ const styles = StyleSheet.create({
   loader: { marginTop: 40 },
   list: { padding: 16, gap: 10 },
   empty: { textAlign: 'center', marginTop: 40, color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 13.5, paddingHorizontal: 20 },
+  footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
 })

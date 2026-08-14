@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { RefreshControl, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useAuth } from '../context/auth-context'
 import { useCart } from '../context/cart-context'
@@ -84,7 +84,7 @@ export default function HomeScreen({ navigation }) {
           </View>
 
           {isAdmin ? (
-            <TouchableOpacity style={styles.notifBtn} onPress={() => setNotifModalOpen(true)}>
+            <TouchableOpacity style={styles.notifBtn} onPress={() => setNotifModalOpen(true)} hitSlop={8} accessibilityLabel="Thông báo">
               <Text style={styles.notifIcon}>🔔</Text>
               {(pendingOrderCount + chatUnreadCount) > 0 && (
                 <View style={[styles.notifBadge, styles.orderBadge]}>
@@ -95,7 +95,7 @@ export default function HomeScreen({ navigation }) {
               )}
             </TouchableOpacity>
           ) : (
-            <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')}>
+            <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')} hitSlop={8} accessibilityLabel="Giỏ hàng">
               <Text style={styles.cartIcon}>🛒</Text>
               {totalCount > 0 && (
                 <View style={styles.cartBadge}>
@@ -124,36 +124,34 @@ export default function HomeScreen({ navigation }) {
 
       <HazardStripe />
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} colors={[brand.primary]} tintColor={brand.primary} />
-        }
-      >
-        {/* Có banner do Admin bật thì hiện carousel banner, không thì hiện hero
-            mặc định — giống hệt hành vi TrangChu.jsx bên web. */}
-        {banners.length > 0 ? (
-          <BannerCarousel banners={banners} />
-        ) : (
-          <View style={styles.hero}>
-            <BrandTag label="Nhà phân phối xi măng Sài Sơn" style={styles.heroTag} />
-            <Text style={styles.heroTitle}>
-              Vật liệu chất lượng — <Text style={styles.heroTitleAccent}>Giá tốt nhất</Text>
-            </Text>
-            <Text style={styles.heroText}>
-              Chuyên bán buôn - bán lẻ vật liệu xây dựng chính hãng. Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
-            </Text>
-            <View style={styles.statsRow}>
-              <Stat value="500+" label="Loại sản phẩm" />
-              <Stat value="1.200+" label="Khách hàng" />
-              <Stat value="10+" label="Năm kinh nghiệm" />
+      {/* Toàn trang cuộn qua FlatList ảo hoá của ProductCatalog — banner/hero
+          được truyền vào làm phần đầu danh sách thay vì bọc trong ScrollView
+          riêng, để danh sách sản phẩm không bị render toàn bộ cùng lúc. */}
+      <ProductCatalog
+        reloadKey={catalogReloadKey}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListHeaderComponent={
+          banners.length > 0 ? (
+            <BannerCarousel banners={banners} />
+          ) : (
+            <View style={styles.hero}>
+              <BrandTag label="Nhà phân phối xi măng Sài Sơn" style={styles.heroTag} />
+              <Text style={styles.heroTitle}>
+                Vật liệu chất lượng — <Text style={styles.heroTitleAccent}>Giá tốt nhất</Text>
+              </Text>
+              <Text style={styles.heroText}>
+                Chuyên bán buôn - bán lẻ vật liệu xây dựng chính hãng. Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
+              </Text>
+              <View style={styles.statsRow}>
+                <Stat value="500+" label="Loại sản phẩm" />
+                <Stat value="1.200+" label="Khách hàng" />
+                <Stat value="10+" label="Năm kinh nghiệm" />
+              </View>
             </View>
-          </View>
-        )}
-
-        <ProductCatalog reloadKey={catalogReloadKey} />
-      </ScrollView>
+          )
+        }
+      />
     </View>
   )
 }
@@ -204,8 +202,6 @@ const styles = StyleSheet.create({
   guestRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16 },
   guestBtn: { flex: 1, paddingVertical: 9 },
   guestBtnSolid: { flex: 1, paddingVertical: 9 },
-  scroll: { flex: 1 },
-  scrollContent: { paddingBottom: 24 },
   hero: { backgroundColor: '#0F172A', paddingHorizontal: 18, paddingTop: 26, paddingBottom: 24 },
   heroTag: { marginBottom: 14 },
   heroTitle: { color: brand.white, fontFamily: fonts.displayExtraBold, fontSize: 26, lineHeight: 30, marginBottom: 10 },

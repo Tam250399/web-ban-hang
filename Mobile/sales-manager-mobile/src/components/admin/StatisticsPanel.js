@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native'
+import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
@@ -25,7 +26,7 @@ export default function StatisticsPanel() {
     isRefresh ? setRefreshing(true) : setLoading(true)
     productService.getStatistics()
       .then(setStats)
-      .catch(() => {})
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được số liệu thống kê' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [])
 

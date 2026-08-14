@@ -3,6 +3,7 @@ import { ActivityIndicator, Alert, FlatList, StyleSheet, Text, TextInput, Toucha
 import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
 import { stockService } from '../../services/stockService'
+import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
@@ -10,18 +11,26 @@ function formatVnd(value) {
   return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
+const PAGE_SIZE = 15
+
 export default function StockImportPanel() {
   const navigation = useNavigation()
   const [transactions, setTransactions] = useState([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [search, setSearch] = useState('')
+  const debouncedSearch = useDebouncedValue(search, 250)
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
     stockService.getAll()
-      .then((data) => setTransactions(data.filter((t) => t.type === 'Import')))
-      .catch(() => {})
+      .then((data) => {
+        setTransactions(data.filter((t) => t.type === 'Import'))
+        setVisibleCount(PAGE_SIZE)
+      })
+      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được danh sách phiếu nhập' }))
       .finally(() => { setLoading(false); setRefreshing(false) })
   }, [])
 
@@ -32,11 +41,27 @@ export default function StockImportPanel() {
     return unsubscribe
   }, [navigation, load])
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [debouncedSearch])
+
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase()
+    const q = debouncedSearch.trim().toLowerCase()
     if (!q) return transactions
     return transactions.filter((t) => t.productName?.toLowerCase().includes(q))
-  }, [transactions, search])
+  }, [transactions, debouncedSearch])
+
+  const displayedTransactions = filtered.slice(0, visibleCount)
+  const hasMore = displayedTransactions.length < filtered.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   const handleDelete = (t) => {
     Alert.alert(
@@ -83,11 +108,16 @@ export default function StockImportPanel() {
         <ActivityIndicator style={styles.loader} color={admin.primary} />
       ) : (
         <FlatList
-          data={filtered}
+          data={displayedTransactions}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.list}
           refreshing={refreshing}
           onRefresh={() => load(true)}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={10}
+          maxToRenderPerBatch={10}
+          windowSize={5}
           renderItem={({ item }) => (
             <View style={styles.card}>
               <View style={styles.cardTop}>
@@ -108,6 +138,13 @@ export default function StockImportPanel() {
               </View>
             </View>
           )}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={admin.primary} />
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <Text style={styles.empty}>
               {transactions.length === 0 ? 'Chưa có giao dịch nhập kho nào' : 'Không tìm thấy giao dịch phù hợp'}
@@ -149,4 +186,5 @@ const styles = StyleSheet.create({
   deleteBtn: { borderColor: admin.dangerBorder, backgroundColor: admin.dangerBg },
   deleteText: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.dangerText },
   empty: { textAlign: 'center', marginTop: 40, color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 13.5, paddingHorizontal: 20 },
+  footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 14 },
 })

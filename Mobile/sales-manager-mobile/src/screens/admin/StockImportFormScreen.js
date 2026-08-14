@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import { stockService } from '../../services/stockService'
 import { productService } from '../../services/productService'
-import SearchableSelectModal from '../../components/ui/SearchableSelectModal'
-import PickerField from '../../components/ui/PickerField'
+import DropdownSelect from '../../components/ui/DropdownSelect'
 import MoneyField from '../../components/ui/MoneyField'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
@@ -17,13 +16,14 @@ export default function StockImportFormScreen({ navigation, route }) {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [products, setProducts] = useState([])
-  const [productPickerOpen, setProductPickerOpen] = useState(false)
 
   const [productId, setProductId] = useState('')
   const [productLabel, setProductLabel] = useState('')
   const [quantity, setQuantity] = useState('1')
   const [unitPrice, setUnitPrice] = useState('0')
   const [note, setNote] = useState('')
+  const [errors, setErrors] = useState({})
+  const [submitted, setSubmitted] = useState(false)
 
   useEffect(() => {
     productService.getAll()
@@ -54,17 +54,39 @@ export default function StockImportFormScreen({ navigation, route }) {
   const handleSelectProduct = (option) => {
     setProductId(option.value)
     setProductLabel(option.label)
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next.productId
+      return next
+    })
     const product = products.find((p) => String(p.id) === option.value)
     if (product) setUnitPrice(String(product.price))
   }
 
-  const handleSave = async () => {
+  const validateForm = () => {
+    const errs = {}
     if (!productId) {
-      Toast.show({ type: 'error', text1: 'Vui lòng chọn sản phẩm' })
-      return
+      errs.productId = 'Vui lòng chọn sản phẩm'
     }
-    if (!quantity || Number(quantity) <= 0) {
-      Toast.show({ type: 'error', text1: 'Số lượng phải lớn hơn 0' })
+    if (!quantity || Number(quantity) <= 0 || isNaN(Number(quantity))) {
+      errs.quantity = 'Số lượng phải > 0'
+    }
+    if (unitPrice === '' || Number(unitPrice) < 0 || isNaN(Number(unitPrice))) {
+      errs.unitPrice = 'Đơn giá không hợp lệ'
+    }
+    setErrors(errs)
+    return Object.keys(errs).length === 0
+  }
+
+  const handleSave = async () => {
+    setSubmitted(true)
+    if (!validateForm()) {
+      Toast.show({
+        type: 'error',
+        text1: 'Chưa đủ thông tin',
+        text2: 'Vui lòng điền đầy đủ các thông tin báo đỏ (*)',
+        visibilityTime: 4000,
+      })
       return
     }
 
@@ -105,31 +127,71 @@ export default function StockImportFormScreen({ navigation, route }) {
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</Text>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.7}>
+          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={8} accessibilityLabel="Đóng">
             <Text style={styles.closeBtnText}>✕</Text>
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent}>
+        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Sản phẩm</Text>
-            <PickerField label={productLabel} placeholder="-- Chọn sản phẩm --" onPress={() => setProductPickerOpen(true)} />
+            <Text style={styles.fieldLabel}>Sản phẩm <Text style={styles.requiredStar}>*</Text></Text>
+            <DropdownSelect
+              value={productId}
+              label={productLabel}
+              placeholder="-- Chọn sản phẩm --"
+              options={productOptions}
+              onSelect={handleSelectProduct}
+              title="Chọn sản phẩm"
+              searchPlaceholder="Tìm theo tên hoặc mã sản phẩm..."
+              error={!!errors.productId}
+              errorText={errors.productId}
+            />
           </View>
 
           <View style={styles.row}>
             <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Số lượng</Text>
-              <TextInput style={styles.input} keyboardType="numeric" value={quantity} onChangeText={setQuantity} />
+              <Text style={styles.fieldLabel}>Số lượng <Text style={styles.requiredStar}>*</Text></Text>
+              <TextInput
+                style={[styles.input, errors.quantity && styles.inputError]}
+                keyboardType="numeric"
+                value={quantity}
+                onChangeText={(v) => {
+                  setQuantity(v)
+                  if (errors.quantity) {
+                    setErrors((prev) => {
+                      const next = { ...prev }
+                      delete next.quantity
+                      return next
+                    })
+                  }
+                }}
+              />
+              {!!errors.quantity && <Text style={styles.inlineError}>⚠️ {errors.quantity}</Text>}
             </View>
             <View style={styles.field}>
               <Text style={styles.fieldLabel}>Đơn giá</Text>
-              <MoneyField value={unitPrice} onChangeValue={setUnitPrice} />
+              <MoneyField
+                value={unitPrice}
+                onChangeValue={(v) => {
+                  setUnitPrice(v)
+                  if (errors.unitPrice) {
+                    setErrors((prev) => {
+                      const next = { ...prev }
+                      delete next.unitPrice
+                      return next
+                    })
+                  }
+                }}
+                style={errors.unitPrice && styles.inputError}
+              />
+              {!!errors.unitPrice && <Text style={styles.inlineError}>⚠️ {errors.unitPrice}</Text>}
             </View>
           </View>
 
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Ghi chú</Text>
-            <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Nhà cung cấp..." placeholderTextColor={admin.textMuted} />
+            <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Nhà cung cấp, ghi chú..." placeholderTextColor={admin.textMuted} />
           </View>
 
           <View style={styles.actions}>
@@ -141,15 +203,7 @@ export default function StockImportFormScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
         </ScrollView>
-
-        <SearchableSelectModal
-          visible={productPickerOpen}
-          onClose={() => setProductPickerOpen(false)}
-          onSelect={handleSelectProduct}
-          options={productOptions}
-          title="Chọn sản phẩm"
-          searchPlaceholder="Tìm theo tên hoặc mã..."
-        />
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </SafeAreaProvider>
   )
@@ -157,6 +211,7 @@ export default function StockImportFormScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: admin.bg },
+  flex: { flex: 1 },
   loadingRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: admin.bg },
   header: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -168,12 +223,35 @@ const styles = StyleSheet.create({
   closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
   body: { flex: 1 },
   bodyContent: { padding: 16, gap: 14, paddingBottom: 40 },
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+    borderRadius: 10,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  errorBannerIcon: { fontSize: 16 },
+  errorBannerText: { flex: 1, color: '#B91C1C', fontFamily: fonts.adminBodyBold, fontSize: 12 },
   row: { flexDirection: 'row', gap: 12 },
   field: { flex: 1, gap: 6 },
   fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.text },
+  requiredStar: { color: '#EF4444' },
   input: {
     height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
     borderRadius: 8, backgroundColor: admin.card, fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
+  },
+  inputError: {
+    borderColor: '#EF4444',
+    backgroundColor: '#FFF5F5',
+  },
+  inlineError: {
+    color: '#EF4444',
+    fontFamily: fonts.adminBodyBold,
+    fontSize: 11,
+    marginTop: 2,
   },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
   cancelBtn: {

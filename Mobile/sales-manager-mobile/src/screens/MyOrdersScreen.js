@@ -34,6 +34,8 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
 }
 
+const PAGE_SIZE = 8
+
 export default function MyOrdersScreen() {
   const { isGuest } = useAuth()
   const navigation = useNavigation()
@@ -41,6 +43,8 @@ export default function MyOrdersScreen() {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState('')
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
 
@@ -63,7 +67,22 @@ export default function MyOrdersScreen() {
     return unsubscribe
   }, [navigation, load])
 
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE)
+  }, [filter])
+
   const filteredOrders = orders.filter((o) => !filter || o.status === filter)
+  const displayedOrders = filteredOrders.slice(0, visibleCount)
+  const hasMore = displayedOrders.length < filteredOrders.length
+
+  const handleEndReached = () => {
+    if (loadingMore || !hasMore) return
+    setLoadingMore(true)
+    setTimeout(() => {
+      setVisibleCount((prev) => prev + PAGE_SIZE)
+      setLoadingMore(false)
+    }, 200)
+  }
 
   const handleCancel = (id) => {
     Alert.alert(
@@ -168,10 +187,15 @@ export default function MyOrdersScreen() {
         </View>
       ) : (
         <FlatList
-          data={filteredOrders}
+          data={displayedOrders}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.3}
+          initialNumToRender={6}
+          maxToRenderPerBatch={6}
+          windowSize={5}
           renderItem={({ item }) => {
             const statusStyle = STATUS_COLOR[item.status] || STATUS_COLOR.Pending
             const isCancelling = cancellingId === item.id
@@ -257,6 +281,14 @@ export default function MyOrdersScreen() {
               </View>
             )
           }}
+          ListFooterComponent={
+            hasMore ? (
+              <View style={styles.footerLoader}>
+                <ActivityIndicator size="small" color={brand.primary} />
+                <Text style={styles.footerLoaderText}>Đang tải thêm đơn hàng...</Text>
+              </View>
+            ) : null
+          }
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
               <Text style={styles.emptyIcon}>📦</Text>
@@ -311,7 +343,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: brand.cardBorder,
     alignItems: 'center',
-    justify: 'center',
+    justifyContent: 'center',
   },
   filterChipActive: { backgroundColor: brand.primary, borderColor: brand.primary },
   filterChipText: {
@@ -380,4 +412,7 @@ const styles = StyleSheet.create({
   emptyIcon: { fontSize: 44, marginBottom: 10 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 19, color: brand.ink, marginBottom: 6 },
   emptyText: { fontFamily: fonts.body, fontSize: 13.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
+
+  footerLoader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
+  footerLoaderText: { fontFamily: fonts.body, fontSize: 12.5, color: brand.textMuted },
 })
