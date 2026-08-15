@@ -129,7 +129,7 @@ export default function MyOrdersScreen() {
       <SafeAreaView style={styles.root} edges={['top']}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Đơn hàng của tôi</Text>
-          <Text style={styles.headerSub}>Cửa Hàng VLXD Đức Lợi</Text>
+          <Text style={styles.headerSub}>Cửa Hàng VLXD Lý Sáu</Text>
         </View>
         <View style={styles.guestWrap}>
           <Text style={styles.guestIcon}>📦</Text>
@@ -150,7 +150,7 @@ export default function MyOrdersScreen() {
       {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Đơn hàng của tôi</Text>
-        <Text style={styles.headerSub}>Cửa Hàng VLXD Đức Lợi • {orders.length} đơn hàng</Text>
+        <Text style={styles.headerSub}>Cửa Hàng VLXD Lý Sáu • {orders.length} đơn hàng</Text>
       </View>
 
       {/* ── Filter row ── */}

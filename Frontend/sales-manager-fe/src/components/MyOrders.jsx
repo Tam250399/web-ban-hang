@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import '../App.css'
 import { orderService } from '../services/orderService'
+import LogoBadge from './LogoBadge'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_CLASS = { Pending: 'pending', Confirmed: 'confirmed', Cancelled: 'cancelled' }
@@ -51,10 +52,10 @@ function MyOrders({ onBack }) {
       <header className="site-header">
         <div className="header-inner">
           <div className="brand">
-            <div className="brand-icon">ĐL</div>
+            <div className="brand-icon"><LogoBadge size={40} variant="reversed" /></div>
             <div>
               <strong>Đơn hàng của tôi</strong>
-              <span>Cửa Hàng VLXD Đức Lợi</span>
+              <span>Cửa Hàng VLXD Lý Sáu</span>
             </div>
           </div>
           <div className="header-actions">

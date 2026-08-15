@@ -35,7 +35,7 @@ function Register({ onSwitchToLogin }) {
       <div className="hzd" />
       <div className="auth-center">
         <div className="auth-card">
-          <span className="tag chip-rotate">Đức Lợi</span>
+          <span className="tag chip-rotate">Lý Sáu</span>
           <h1 className="auth-title">Đăng ký tài khoản</h1>
           <p className="auth-subtitle">Tạo tài khoản để mua hàng và theo dõi đơn hàng.</p>
 

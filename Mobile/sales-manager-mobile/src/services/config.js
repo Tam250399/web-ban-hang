@@ -20,9 +20,16 @@ function resolveDevHost() {
   return 'localhost'
 }
 
-// Khi build production, đặt IP/domain thật qua app.config.js -> extra.apiHost.
+// Khi build production, đặt IP/domain thật qua app.json -> expo.extra.apiHost.
+// Nếu backend chưa có domain + HTTPS thật (vd đang test qua IP LAN, cổng 5000
+// giống dev) thì đặt thêm extra.apiPort để dùng http://host:port thay vì https.
 export const API_HOST = __DEV__ ? resolveDevHost() : (Constants.expoConfig?.extra?.apiHost ?? 'localhost')
-export const SERVER_URL = __DEV__ ? `http://${API_HOST}:${DEV_SERVER_PORT}` : `https://${API_HOST}`
+const PROD_API_PORT = Constants.expoConfig?.extra?.apiPort
+export const SERVER_URL = __DEV__
+  ? `http://${API_HOST}:${DEV_SERVER_PORT}`
+  : PROD_API_PORT
+    ? `http://${API_HOST}:${PROD_API_PORT}`
+    : `https://${API_HOST}`
 export const BASE_URL = `${SERVER_URL}/api`
 export const HUB_URL = `${SERVER_URL}/chathub`
 
@@ -31,7 +38,7 @@ export const HUB_URL = `${SERVER_URL}/chathub`
 // chính điện thoại). Viết lại host về đúng API_HOST đã suy ra ở trên, giữ nguyên
 // cổng 9000 của MinIO.
 export function resolveMediaUrl(url) {
-  if (!url || !__DEV__) return url
+  if (!url) return url
   try {
     const parsed = new URL(url)
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {

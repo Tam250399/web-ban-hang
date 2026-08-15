@@ -121,7 +121,7 @@ export default function CustomerChatScreen() {
           </View>
           <View style={s.headerInfo}>
             <Text style={s.headerTitle}>Hỗ trợ trực tuyến</Text>
-            <Text style={s.headerSub}>Đức Lợi Shop • Luôn sẵn sàng hỗ trợ</Text>
+            <Text style={s.headerSub}>Lý Sáu Shop • Luôn sẵn sàng hỗ trợ</Text>
           </View>
         </LinearGradient>
         <View style={s.guestWrap}>
@@ -189,7 +189,7 @@ export default function CustomerChatScreen() {
         </View>
         <View style={s.headerInfo}>
           <Text style={s.headerTitle}>Hỗ trợ trực tuyến</Text>
-          <Text style={s.headerSub}>Đức Lợi Shop • Luôn sẵn sàng hỗ trợ</Text>
+          <Text style={s.headerSub}>Lý Sáu Shop • Luôn sẵn sàng hỗ trợ</Text>
         </View>
       </LinearGradient>
 

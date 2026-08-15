@@ -8,6 +8,7 @@ import { chatService } from '../services/chatService'
 import { bannerService } from '../services/bannerService'
 import HazardStripe from '../components/ui/HazardStripe'
 import BrandTag from '../components/ui/BrandTag'
+import LogoBadge from '../components/ui/LogoBadge'
 import { PrimaryButton } from '../components/ui/Buttons'
 import ProductCatalog from '../components/home/ProductCatalog'
 import BannerCarousel from '../components/home/BannerCarousel'
@@ -75,11 +76,9 @@ export default function HomeScreen({ navigation }) {
     <View style={styles.root}>
       <SafeAreaView style={styles.headerSafeArea} edges={['top']}>
         <View style={styles.headerTop}>
-          <View style={styles.logo}>
-            <Text style={styles.logoText}>ĐL</Text>
-          </View>
+          <LogoBadge size={40} />
           <View style={styles.headerTitles}>
-            <Text style={styles.storeName} numberOfLines={1}>Cửa Hàng VLXD Đức Lợi</Text>
+            <Text style={styles.storeName} numberOfLines={1}>Cửa Hàng VLXD Lý Sáu</Text>
             <Text style={styles.storeSubtitle} numberOfLines={1}>Nhà phân phối xi măng Sài Sơn</Text>
           </View>
 
@@ -169,11 +168,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8FAFC' },
   headerSafeArea: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 },
-  logo: {
-    width: 40, height: 40, borderRadius: 10, backgroundColor: brand.primary,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  logoText: { color: '#FFFFFF', fontFamily: fonts.monoBold, fontSize: 15 },
   headerTitles: { flex: 1, minWidth: 0 },
   storeName: { color: '#0F172A', fontFamily: fonts.displayExtraBold, fontSize: 15 },
   storeSubtitle: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 11, marginTop: 1 },

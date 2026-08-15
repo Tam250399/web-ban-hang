@@ -77,7 +77,7 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
       <div className="hzd" />
       <div className="auth-center">
         <div className="auth-card">
-          <span className="tag chip-rotate">Đức Lợi</span>
+          <span className="tag chip-rotate">Lý Sáu</span>
           <h1 className="auth-title">Đăng nhập</h1>
           <p className="auth-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng</p>
 

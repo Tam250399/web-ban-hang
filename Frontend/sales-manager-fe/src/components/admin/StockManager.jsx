@@ -482,7 +482,7 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
           <div className="invoice-modal-header">
             <div className="invoice-modal-top">
               <div>
-                <span className="tag chip-rotate invoice-modal-eyebrow">Đức Lợi</span>
+                <span className="tag chip-rotate invoice-modal-eyebrow">Lý Sáu</span>
                 <h3 className="invoice-modal-title">{isEdit ? 'Sửa phiếu bán hàng' : 'Phiếu bán hàng'}</h3>
               </div>
               <button type="button" className="invoice-modal-close" onClick={onClose}>✕</button>

@@ -79,7 +79,7 @@ namespace SalesManagerBE.Services
 
                 AutoFitItemRows(ws, FirstItemRow, row - 1);
 
-                ws.Cell("D30").Value = "Cửa hàng VLXD Đức Lợi";
+                ws.Cell("D30").Value = "Cửa hàng VLXD Lý Sáu";
                 ws.Cell("D31").Value = "";
                 ws.Cell("D32").Value = invoice.PreparedByName ?? "";
             }
@@ -191,7 +191,7 @@ namespace SalesManagerBE.Services
                         ? $"Tổng ngày {minDate:dd/MM/yyyy}"
                         : $"Tổng từ ngày {minDate:dd/MM/yyyy} đến ngày {maxDate:dd/MM/yyyy}";
 
-                    ws.Cell("D30").Value = "Cửa hàng VLXD Đức Lợi";
+                    ws.Cell("D30").Value = "Cửa hàng VLXD Lý Sáu";
                     ws.Cell("D31").Value = "";
                     ws.Cell("D32").Value = preparedByName ?? "";
                 }

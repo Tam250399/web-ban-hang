@@ -6,6 +6,7 @@ import { bannerService } from '../services/bannerService'
 import { productService } from '../services/productService'
 import { useCart } from '../context/cart-context'
 import CartDrawer from './common/CartDrawer'
+import LogoBadge from './LogoBadge'
 
 const CATEGORY_ICONS = {
   'Xi măng': '🏗️',
@@ -177,9 +178,9 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
       <header className="site-header">
         <div className="header-inner">
           <div className="brand">
-            <div className="brand-icon">ĐL</div>
+            <div className="brand-icon"><LogoBadge size={40} variant="reversed" /></div>
             <div>
-              <strong>Cửa Hàng VLXD Đức Lợi</strong>
+              <strong>Cửa Hàng VLXD Lý Sáu</strong>
               <span>Nhà phân phối xi măng Sài Sơn</span>
             </div>
           </div>
@@ -262,7 +263,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         ) : (
           <div className="hero-banner">
             <div className="hero-content">
-              <p className="hero-eyebrow chip-rotate tag">Cửa Hàng Vật Liệu Xây Dựng Đức Lợi — Nhà phân phối xi măng Sài Sơn</p>
+              <p className="hero-eyebrow chip-rotate tag">Cửa Hàng Vật Liệu Xây Dựng Lý Sáu — Nhà phân phối xi măng Sài Sơn</p>
               <h1>Vật liệu chất lượng — <span className="hero-accent">Giá tốt nhất</span></h1>
               <p className="hero-sub">
                 Chuyên bán buôn - bán lẻ: Xi măng - Sắt - Thép - Cát - Đá - Sỏi và các vật liệu xây dựng chính hãng.
@@ -404,9 +405,9 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
         <div className="hzd" />
         <div className="footer-inner">
           <div className="footer-brand">
-            <div className="brand-icon">ĐL</div>
+            <div className="brand-icon"><LogoBadge size={40} variant="reversed" /></div>
             <div>
-              <strong>Cửa Hàng VLXD Đức Lợi</strong>
+              <strong>Cửa Hàng VLXD Lý Sáu</strong>
               <span>Đồng hành cùng công trình của bạn</span>
             </div>
           </div>
@@ -424,7 +425,7 @@ function TrangChu({ user, onLoginClick, onRegisterClick, onLogoutClick, onAdminC
               <a href="#about">Về chúng tôi</a>
             </div>
           </div>
-          <p className="footer-copy">© 2026 Cửa Hàng Vật Liệu Xây Dựng Đức Lợi. All rights reserved.</p>
+          <p className="footer-copy">© 2026 Cửa Hàng Vật Liệu Xây Dựng Lý Sáu. All rights reserved.</p>
         </div>
       </footer>
     </div>

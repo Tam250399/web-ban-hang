@@ -40,7 +40,7 @@ export default function RegisterScreen({ navigation }) {
             <Text style={styles.logoIcon}>🏪</Text>
           </LinearGradient>
           <Text style={styles.title}>Đăng ký tài khoản</Text>
-          <Text style={styles.subtitle}>VLXD Đức Lợi • Tạo tài khoản mua hàng</Text>
+          <Text style={styles.subtitle}>VLXD Lý Sáu • Tạo tài khoản mua hàng</Text>
         </View>
 
         <View style={styles.form}>

@@ -2,8 +2,8 @@ import { StyleSheet, Text, View } from 'react-native'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
-// Chip "Đức Lợi" xoay nhẹ -2deg, xuất hiện ở đầu mọi card thương hiệu trong thiết kế.
-export default function BrandTag({ label = 'Đức Lợi', style, textStyle }) {
+// Chip "Lý Sáu" xoay nhẹ -2deg, xuất hiện ở đầu mọi card thương hiệu trong thiết kế.
+export default function BrandTag({ label = 'Lý Sáu', style, textStyle }) {
   return (
     <View style={[styles.chip, style]}>
       <Text style={[styles.text, textStyle]}>{label}</Text>

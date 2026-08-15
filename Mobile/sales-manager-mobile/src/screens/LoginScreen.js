@@ -83,7 +83,7 @@ export default function LoginScreen({ navigation }) {
             <Text style={styles.logoIcon}>🏪</Text>
           </LinearGradient>
           <Text style={styles.title}>Đăng nhập</Text>
-          <Text style={styles.subtitle}>VLXD Đức Lợi • Hệ thống quản lý & mua hàng</Text>
+          <Text style={styles.subtitle}>VLXD Lý Sáu • Hệ thống quản lý & mua hàng</Text>
         </View>
 
         {biometricSupported && biometricEnabled && (
