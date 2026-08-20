@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator, FlatList, KeyboardAvoidingView, Platform,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
@@ -15,22 +15,41 @@ import { uploadImage } from '../services/uploadService'
 import { resolveMediaUrl } from '../services/config'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { formatTime, formatDay, isSameDay } from '../utils/format'
 
 const BUBBLE_MAX_W = 280
 
-function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatDay(iso) {
-  return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
-function isSameDay(a, b) {
-  if (!a || !b) return false
-  const da = new Date(a), db = new Date(b)
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()
-}
+// ─── Message bubble ────────────────────────────────────────────────
+// Tách riêng + memo: danh sách chat dài, mỗi lần gõ một ký tự vào ô nhập là
+// màn hình render lại và trước đây kéo theo toàn bộ bong bóng đang hiển thị
+// (kể cả những cái có ảnh) render lại cùng. `showDate` được tính ở ngoài rồi
+// truyền vào dạng boolean để props vẫn là giá trị nguyên thuỷ, so sánh nông đủ dùng.
+const MessageBubble = memo(function MessageBubble({ message, showDate }) {
+  const isMe = !message.isFromAdmin
+  return (
+    <View>
+      {showDate && <DateSeparator date={message.createdAt} />}
+      <View style={[s.bubbleWrap, isMe ? s.bubbleWrapMe : s.bubbleWrapThem]}>
+        <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem]}>
+          {!!message.imageUrl && (
+            <Image
+              source={{ uri: resolveMediaUrl(message.imageUrl) }}
+              style={s.msgImage}
+              contentFit="cover"
+              cachePolicy="disk"
+            />
+          )}
+          {!!message.content && (
+            <Text style={isMe ? s.bubbleTextMe : s.bubbleTextThem}>{message.content}</Text>
+          )}
+          <Text style={isMe ? s.bubbleTimeMe : s.bubbleTimeThem}>
+            {formatTime(message.createdAt)}
+          </Text>
+        </View>
+      </View>
+    </View>
+  )
+})
 
 // ─── Date separator ────────────────────────────────────────────────
 function DateSeparator({ date }) {
@@ -94,13 +113,12 @@ export default function CustomerChatScreen() {
 
     chatService.on('ReceiveMessage', handleReceive)
     chatService.connect().catch(() => Toast.show({ type: 'error', text1: 'Mất kết nối trò chuyện trực tiếp' }))
-    chatService.onReconnecting(() => setReconnecting(true))
-    chatService.onReconnected(() => setReconnecting(false))
-    chatService.onClose(() => setReconnecting(true))
+    const unsubscribeState = chatService.onConnectionChange((connected) => setReconnecting(!connected))
 
     return () => {
       cancelled = true
       chatService.off('ReceiveMessage', handleReceive)
+      unsubscribeState()
     }
   }, [isGuest])
 
@@ -109,6 +127,13 @@ export default function CustomerChatScreen() {
     if (messages.length > 0 && flatListRef.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd?.({ animated: true }), 100)
     }
+  }, [messages])
+
+  // Khai báo trước nhánh `return` cho khách bên dưới — hook phải chạy ở mọi lần render.
+  const renderMessage = useCallback(({ item, index }) => {
+    const prev = messages[index - 1]
+    const showDate = !prev || !isSameDay(prev.createdAt, item.createdAt)
+    return <MessageBubble message={item} showDate={showDate} />
   }, [messages])
 
   // ── Gợi ý đăng nhập nếu là Guest ──
@@ -215,34 +240,7 @@ export default function CustomerChatScreen() {
             initialNumToRender={15}
             maxToRenderPerBatch={10}
             windowSize={7}
-            renderItem={({ item, index }) => {
-              const isMe = !item.isFromAdmin
-              const prev = messages[index - 1]
-              const showDate = !prev || !isSameDay(prev.createdAt, item.createdAt)
-              return (
-                <View>
-                  {showDate && <DateSeparator date={item.createdAt} />}
-                  <View style={[s.bubbleWrap, isMe ? s.bubbleWrapMe : s.bubbleWrapThem]}>
-                    <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem]}>
-                      {!!item.imageUrl && (
-                        <Image
-                          source={{ uri: resolveMediaUrl(item.imageUrl) }}
-                          style={s.msgImage}
-                          contentFit="cover"
-                          cachePolicy="disk"
-                        />
-                      )}
-                      {!!item.content && (
-                        <Text style={isMe ? s.bubbleTextMe : s.bubbleTextThem}>{item.content}</Text>
-                      )}
-                      <Text style={isMe ? s.bubbleTimeMe : s.bubbleTimeThem}>
-                        {formatTime(item.createdAt)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              )
-            }}
+            renderItem={renderMessage}
             ListEmptyComponent={
               <View style={s.emptyWrap}>
                 <Text style={s.emptyIcon}>👋</Text>

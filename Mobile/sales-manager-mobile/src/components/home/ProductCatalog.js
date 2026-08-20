@@ -26,7 +26,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
   const [allProducts, setAllProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [detailProduct, setDetailProduct] = useState(null)
   const isFirstLoad = useRef(true)
 
@@ -71,19 +70,25 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
 
   const hasMore = displayedProducts.length < products.length
 
+  // Sản phẩm đã có sẵn trong state, chỉ cắt thêm một lát mảng — trước đây bọc
+  // trong setTimeout 250ms nên mỗi lần "Xem thêm" đều có một nhịp khựng vô cớ.
   const handleLoadMore = useCallback(() => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 250)
-  }, [loadingMore, hasMore])
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
+  }, [hasMore])
 
-  const handleAddToCart = (product) => {
+  // useCallback ở đây không phải trang trí: ProductCard đã memo, nên nếu
+  // handleAddToCart tạo mới mỗi lần render thì props đổi và memo vô tác dụng.
+  const handleAddToCart = useCallback((product) => {
     addItem(product, 1)
     Toast.show({ type: 'success', text1: `Đã thêm ${product.productName}` })
-  }
+  }, [addItem])
+
+  const renderItem = useCallback(({ item }) => (
+    <View style={styles.gridItem}>
+      <ProductCard product={item} onPress={setDetailProduct} onAddToCart={handleAddToCart} hideAddToCart={isAdmin} />
+    </View>
+  ), [handleAddToCart, isAdmin])
 
   const renderHeader = () => (
     <>
@@ -128,19 +133,10 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
   const renderFooter = () => {
     if (loading || !hasMore) return null
     return (
-      <TouchableOpacity
-        style={styles.loadMoreBtn}
-        onPress={handleLoadMore}
-        disabled={loadingMore}
-        activeOpacity={0.8}
-      >
-        {loadingMore ? (
-          <ActivityIndicator size="small" color={brand.ink} />
-        ) : (
-          <Text style={styles.loadMoreText}>
-            Xem thêm ({displayedProducts.length}/{products.length} sản phẩm) ↓
-          </Text>
-        )}
+      <TouchableOpacity style={styles.loadMoreBtn} onPress={handleLoadMore} activeOpacity={0.8}>
+        <Text style={styles.loadMoreText}>
+          Xem thêm ({displayedProducts.length}/{products.length} sản phẩm) ↓
+        </Text>
       </TouchableOpacity>
     )
   }
@@ -152,11 +148,7 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
         keyExtractor={(p) => String(p.id)}
         numColumns={2}
         columnWrapperStyle={styles.row}
-        renderItem={({ item }) => (
-          <View style={styles.gridItem}>
-            <ProductCard product={item} onPress={setDetailProduct} onAddToCart={handleAddToCart} hideAddToCart={isAdmin} />
-          </View>
-        )}
+        renderItem={renderItem}
         ListHeaderComponent={renderHeader}
         ListFooterComponent={renderFooter}
         ListEmptyComponent={!loading ? <Text style={styles.empty}>Không tìm thấy sản phẩm phù hợp</Text> : null}
@@ -167,7 +159,9 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
         }
         onEndReachedThreshold={0.4}
         contentContainerStyle={styles.listContent}
-        removeClippedSubviews
+        initialNumToRender={6}
+        maxToRenderPerBatch={6}
+        windowSize={5}
       />
 
       <ProductDetailModal

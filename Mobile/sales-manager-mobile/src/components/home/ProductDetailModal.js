@@ -4,6 +4,7 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
+import { formatVnd } from '../../utils/format'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
@@ -15,10 +16,6 @@ const CATEGORY_ICONS = {
   'Tôn - Mái': '🏠',
   'Cửa - Khung': '🚪',
   'Sơn': '🎨',
-}
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
 }
 
 // Tương đương ProductDetailModal trong TrangChu.jsx bên web.

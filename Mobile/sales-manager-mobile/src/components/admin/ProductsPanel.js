@@ -5,10 +5,7 @@ import { productService } from '../../services/productService'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
+import { formatVnd } from '../../utils/format'
 
 const PAGE_SIZE = 15
 
@@ -19,7 +16,6 @@ export default function ProductsPanel() {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 250)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
@@ -50,12 +46,8 @@ export default function ProductsPanel() {
   const hasMore = displayedProducts.length < filtered.length
 
   const handleEndReached = () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 200)
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
   }
 
   return (

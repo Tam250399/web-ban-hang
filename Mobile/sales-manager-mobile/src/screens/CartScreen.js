@@ -8,10 +8,7 @@ import { useAuth } from '../context/auth-context'
 import { orderService } from '../services/orderService'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
+import { formatVnd } from '../utils/format'
 
 // Component điều khiển số lượng: có nút − / + và ô TextInput nhập số trực tiếp
 function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {

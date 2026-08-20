@@ -8,6 +8,7 @@ import { salesInvoiceService } from '../../services/salesInvoiceService'
 import InvoiceCard from './InvoiceCard'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { fonts } from '../../theme/fonts'
+import { formatVnd, formatDDMMYYYY, startOfDay, WEEKDAYS } from '../../utils/format'
 
 const PAGE_SIZE = 10
 
@@ -25,31 +26,11 @@ const C = {
   money: '#B45309',
 }
 
-const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
-
 const RANGES = [
   { key: 'all', label: 'Tất cả' },
   { key: 'today', label: 'Hôm nay' },
   { key: 'week', label: '7 ngày qua' },
 ]
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
-function formatDDMMYYYY(date) {
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return ''
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  return `${day}-${month}-${d.getFullYear()}`
-}
-
-function startOfDay(date) {
-  const d = new Date(date)
-  d.setHours(0, 0, 0, 0)
-  return d
-}
 
 // Nhãn ngày thân thiện dùng cho tiêu đề nhóm: "HÔM NAY", "HÔM QUA", "THỨ BA, 12-08-2026".
 function sectionTitle(date) {
@@ -70,7 +51,6 @@ export default function StockExportPanel() {
   const debouncedSearch = useDebouncedValue(search, 250)
   const [range, setRange] = useState('all')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
 
   const load = useCallback((isRefresh) => {
     isRefresh ? setRefreshing(true) : setLoading(true)
@@ -131,15 +111,11 @@ export default function StockExportPanel() {
   }, [displayed])
 
   const handleEndReached = () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 200)
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
   }
 
-  const handleDelete = (inv) => {
+  const handleDelete = useCallback((inv) => {
     Alert.alert(
       'Xóa phiếu bán hàng?',
       `Phiếu của khách "${inv.customerName}" (${formatVnd(inv.total)}đ) sẽ bị xóa.\n\nSố hàng đã xuất sẽ được cộng trả lại vào kho.`,
@@ -158,7 +134,21 @@ export default function StockExportPanel() {
         },
       ]
     )
-  }
+  }, [load])
+
+  const handleEdit = useCallback(
+    (inv) => navigation.navigate('StockForm', { invoiceId: inv.id }),
+    [navigation]
+  )
+
+  // InvoiceCard đã memo — cả renderItem lẫn hai callback truyền xuống đều phải
+  // giữ nguyên tham chiếu. Nếu bọc arrow function theo từng item ở đây thì props
+  // đổi mỗi lần render và memo không bao giờ khớp; vì vậy InvoiceCard tự truyền
+  // lại `invoice` khi gọi onEdit/onDelete.
+  const renderInvoice = useCallback(
+    ({ item }) => <InvoiceCard invoice={item} onEdit={handleEdit} onDelete={handleDelete} />,
+    [handleEdit, handleDelete]
+  )
 
   const listHeader = (
     <View style={styles.listHeader}>
@@ -253,20 +243,7 @@ export default function StockExportPanel() {
               <Text style={styles.sectionHeaderCount}>{section.data.length} phiếu</Text>
             </View>
           )}
-          renderItem={({ item }) => (
-            <InvoiceCard
-              invoice={{
-                customer: item.customerName,
-                source: item.fromOrderId ? 'online' : 'manual',
-                sourceLabel: item.fromOrderId ? `🛒 Từ đơn hàng #${item.fromOrderId}` : '✍️ Tự tạo tại quầy',
-                date: formatDDMMYYYY(item.invoiceDate),
-                items: item.itemCount,
-                total: item.total,
-              }}
-              onEdit={() => navigation.navigate('StockForm', { invoiceId: item.id })}
-              onDelete={() => handleDelete(item)}
-            />
-          )}
+          renderItem={renderInvoice}
           ListFooterComponent={
             hasMore ? (
               <View style={styles.footerLoader}>

@@ -1,5 +1,7 @@
+import { memo } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { fonts } from '../../theme/fonts'
+import { formatVnd, formatDDMMYYYY } from '../../utils/format'
 
 // Bảng màu tương phản cao, đồng bộ với màn tạo phiếu bán hàng.
 const C = {
@@ -18,25 +20,26 @@ const C = {
   manualBg: '#F1F5F9',
 }
 
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
 // Thẻ phiếu bán hàng cỡ lớn: tên khách 20px, tổng tiền 26px,
 // hai nút thao tác cao 56px kèm nhãn chữ rõ ràng.
-export default function InvoiceCard({ invoice, onEdit, onDelete }) {
-  const isOnline = invoice.source === 'online'
+//
+// Nhận thẳng bản ghi thô từ API thay vì một object "view model" dựng sẵn ở phía
+// gọi: object literal dựng trong renderItem là tham chiếu mới ở mỗi lần render,
+// nên memo() sẽ không bao giờ khớp và mọi thẻ đều render lại.
+function InvoiceCard({ invoice, onEdit, onDelete }) {
+  const isOnline = !!invoice.fromOrderId
+  const sourceLabel = isOnline ? `🛒 Từ đơn hàng #${invoice.fromOrderId}` : '✍️ Tự tạo tại quầy'
   return (
     <View style={styles.card}>
       {/* ── Tên khách hàng ── */}
       <View style={styles.topRow}>
         <Text style={styles.customerIcon}>👤</Text>
-        <Text style={styles.customer} numberOfLines={2}>{invoice.customer}</Text>
+        <Text style={styles.customer} numberOfLines={2}>{invoice.customerName}</Text>
       </View>
 
       <View style={[styles.badge, isOnline ? styles.badgeOnline : styles.badgeManual]}>
         <Text style={[styles.badgeText, isOnline ? styles.badgeTextOnline : styles.badgeTextManual]}>
-          {invoice.sourceLabel}
+          {sourceLabel}
         </Text>
       </View>
 
@@ -44,11 +47,11 @@ export default function InvoiceCard({ invoice, onEdit, onDelete }) {
       <View style={styles.infoBlock}>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Ngày bán</Text>
-          <Text style={styles.infoValue}>{invoice.date}</Text>
+          <Text style={styles.infoValue}>{formatDDMMYYYY(invoice.invoiceDate)}</Text>
         </View>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Số mặt hàng</Text>
-          <Text style={styles.infoValue}>{invoice.items} mặt hàng</Text>
+          <Text style={styles.infoValue}>{invoice.itemCount} mặt hàng</Text>
         </View>
       </View>
 
@@ -62,17 +65,17 @@ export default function InvoiceCard({ invoice, onEdit, onDelete }) {
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.editBtn}
-          onPress={onEdit}
+          onPress={() => onEdit(invoice)}
           activeOpacity={0.75}
-          accessibilityLabel={`Sửa phiếu của ${invoice.customer}`}
+          accessibilityLabel={`Sửa phiếu của ${invoice.customerName}`}
         >
           <Text style={styles.editText}>✏️  Xem / Sửa</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.deleteBtn}
-          onPress={onDelete}
+          onPress={() => onDelete(invoice)}
           activeOpacity={0.75}
-          accessibilityLabel={`Xóa phiếu của ${invoice.customer}`}
+          accessibilityLabel={`Xóa phiếu của ${invoice.customerName}`}
         >
           <Text style={styles.deleteText}>🗑  Xóa</Text>
         </TouchableOpacity>
@@ -140,3 +143,5 @@ const styles = StyleSheet.create({
   },
   deleteText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.danger },
 })
+
+export default memo(InvoiceCard)

@@ -6,6 +6,7 @@ import { orderService } from '../../services/orderService'
 import { useAuth } from '../../context/auth-context'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { formatVnd } from '../../utils/format'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_COLOR = {
@@ -20,10 +21,6 @@ const FILTERS = [
   { key: 'Cancelled', label: 'Đã huỷ' },
 ]
 
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
 const PAGE_SIZE = 12
 
 export default function OrdersPanel() {
@@ -33,7 +30,6 @@ export default function OrdersPanel() {
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [detailOrder, setDetailOrder] = useState(null)
   const [loadingDetailId, setLoadingDetailId] = useState(null)
   const [confirming, setConfirming] = useState(false)
@@ -55,12 +51,8 @@ export default function OrdersPanel() {
   const hasMore = displayedOrders.length < orders.length
 
   const handleEndReached = () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 200)
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
   }
 
   const openDetail = async (id) => {

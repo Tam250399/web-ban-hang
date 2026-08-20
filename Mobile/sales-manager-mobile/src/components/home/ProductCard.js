@@ -1,16 +1,18 @@
+import { memo } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Image } from 'expo-image'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
+import { formatVnd } from '../../utils/format'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
-export default function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
+// Mỗi ô trong lưới sản phẩm dựng ảnh + nhiều Text; không memo thì đổi bất kỳ
+// state nào ở ProductCatalog (gõ tìm kiếm, bấm Xem thêm) cũng render lại toàn
+// bộ ô đang hiển thị. Props đều là giá trị nguyên thuỷ/tham chiếu ổn định nên
+// so sánh nông là đủ.
+function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(product)} activeOpacity={0.9}>
       <View style={styles.imagePlaceholder}>
@@ -119,3 +121,5 @@ const styles = StyleSheet.create({
   },
   addBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 11.5 },
 })
+
+export default memo(ProductCard)

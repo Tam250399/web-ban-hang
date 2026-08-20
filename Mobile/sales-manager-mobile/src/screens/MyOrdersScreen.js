@@ -10,6 +10,7 @@ import { orderService } from '../services/orderService'
 import { useAuth } from '../context/auth-context'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { formatVnd, formatDay } from '../utils/format'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_COLOR = {
@@ -25,15 +26,6 @@ const FILTERS = [
   { key: 'Cancelled', label: 'Đã huỷ' },
 ]
 
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
-function formatDate(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
 const PAGE_SIZE = 8
 
 export default function MyOrdersScreen() {
@@ -44,7 +36,6 @@ export default function MyOrdersScreen() {
   const [refreshing, setRefreshing] = useState(false)
   const [filter, setFilter] = useState('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
 
@@ -75,13 +66,11 @@ export default function MyOrdersScreen() {
   const displayedOrders = filteredOrders.slice(0, visibleCount)
   const hasMore = displayedOrders.length < filteredOrders.length
 
+  // Dữ liệu đã nằm sẵn trong state, chỉ cắt thêm một lát mảng — không có gì để
+  // "chờ". setTimeout 200ms trước đây chỉ là độ trễ nhân tạo khi cuộn tới cuối.
   const handleEndReached = () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 200)
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
   }
 
   const handleCancel = (id) => {
@@ -205,7 +194,7 @@ export default function MyOrdersScreen() {
               <View style={styles.orderCard}>
                 {/* ── Card top ── */}
                 <View style={styles.cardHeader}>
-                  <Text style={styles.orderId}>Đơn #{item.id} • {formatDate(item.createdAt)}</Text>
+                  <Text style={styles.orderId}>Đơn #{item.id} • {formatDay(item.createdAt)}</Text>
                   <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
                     <Text style={[styles.statusText, { color: statusStyle.text }]}>
                       {STATUS_LABEL[item.status]}

@@ -16,7 +16,6 @@ export default function CustomersPanel() {
   const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 250)
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-  const [loadingMore, setLoadingMore] = useState(false)
   const [modalOpen, setModalOpen] = useState(false)
   const [editingCustomer, setEditingCustomer] = useState(null)
 
@@ -47,12 +46,8 @@ export default function CustomersPanel() {
   const hasMore = displayedCustomers.length < filtered.length
 
   const handleEndReached = () => {
-    if (loadingMore || !hasMore) return
-    setLoadingMore(true)
-    setTimeout(() => {
-      setVisibleCount((prev) => prev + PAGE_SIZE)
-      setLoadingMore(false)
-    }, 200)
+    if (!hasMore) return
+    setVisibleCount((prev) => prev + PAGE_SIZE)
   }
 
   const openAdd = () => { setEditingCustomer(null); setModalOpen(true) }

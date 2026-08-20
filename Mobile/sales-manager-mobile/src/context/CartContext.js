@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { CartContext } from './cart-context'
 
@@ -23,7 +23,10 @@ export function CartProvider({ children }) {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(items)).catch(() => {})
   }, [items])
 
-  const addItem = (product, quantity = 1) => {
+  // Các hàm dưới đây phải giữ nguyên tham chiếu giữa các lần render: chúng được
+  // truyền xuống ProductCard (đã memo) và dùng làm dependency của useCallback ở
+  // ProductCatalog — tạo mới mỗi render là memo mất tác dụng hoàn toàn.
+  const addItem = useCallback((product, quantity = 1) => {
     const maxStock = product.stockQuantity ?? Infinity
     setItems(prev => {
       const existing = prev.find(i => i.productId === product.id)
@@ -42,23 +45,28 @@ export function CartProvider({ children }) {
         quantity: Math.max(1, Math.min(quantity, maxStock)),
       }]
     })
-  }
+  }, [])
 
-  const updateQuantity = (productId, quantity) => {
+  const updateQuantity = useCallback((productId, quantity) => {
     setItems(prev => prev.map(i =>
       i.productId === productId ? { ...i, quantity: Math.max(1, Math.min(quantity, i.maxStock)) } : i
     ))
-  }
+  }, [])
 
-  const removeItem = (productId) => setItems(prev => prev.filter(i => i.productId !== productId))
-  const clear = () => setItems([])
+  const removeItem = useCallback((productId) => setItems(prev => prev.filter(i => i.productId !== productId)), [])
+  const clear = useCallback(() => setItems([]), [])
 
-  const totalCount = items.reduce((sum, i) => sum + i.quantity, 0)
-  const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price, 0)
+  const { totalCount, totalPrice } = useMemo(() => ({
+    totalCount: items.reduce((sum, i) => sum + i.quantity, 0),
+    totalPrice: items.reduce((sum, i) => sum + i.quantity * i.price, 0),
+  }), [items])
 
-  return (
-    <CartContext.Provider value={{ items, addItem, updateQuantity, removeItem, clear, totalCount, totalPrice }}>
-      {children}
-    </CartContext.Provider>
+  // Object literal đặt thẳng vào value sẽ là tham chiếu mới ở mỗi lần render,
+  // khiến mọi màn hình dùng useCart() render lại dù giỏ hàng không đổi gì.
+  const value = useMemo(
+    () => ({ items, addItem, updateQuantity, removeItem, clear, totalCount, totalPrice }),
+    [items, addItem, updateQuantity, removeItem, clear, totalCount, totalPrice]
   )
+
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>
 }

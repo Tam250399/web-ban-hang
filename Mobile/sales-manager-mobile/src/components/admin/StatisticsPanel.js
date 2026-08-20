@@ -4,16 +4,15 @@ import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { formatVnd } from '../../utils/format'
 
-function formatVnd(value) {
-  return `${Number(value ?? 0).toLocaleString('vi-VN')}đ`
-}
+const formatMoney = (value) => `${formatVnd(value)}đ`
 
 const STAT_CARDS = [
   { key: 'totalProducts', icon: '📦', label: 'Tổng sản phẩm', color: '#C1440E', format: (v) => v ?? 0 },
-  { key: 'totalStockValue', icon: '💰', label: 'Giá trị tồn kho', color: '#4A5560', format: formatVnd },
-  { key: 'totalImported', icon: '📥', label: 'Tổng nhập kho', color: '#22c55e', format: formatVnd },
-  { key: 'totalExported', icon: '📤', label: 'Tổng bán ra', color: '#F2B705', format: formatVnd },
+  { key: 'totalStockValue', icon: '💰', label: 'Giá trị tồn kho', color: '#4A5560', format: formatMoney },
+  { key: 'totalImported', icon: '📥', label: 'Tổng nhập kho', color: '#22c55e', format: formatMoney },
+  { key: 'totalExported', icon: '📤', label: 'Tổng bán ra', color: '#F2B705', format: formatMoney },
   { key: 'lowStockCount', icon: '⚠️', label: 'Sản phẩm sắp hết', color: '#C1440E', format: (v) => v ?? 0 },
 ]
 
@@ -61,7 +60,7 @@ export default function StatisticsPanel() {
             <View key={c.category} style={styles.row}>
               <Text style={styles.rowTitle} numberOfLines={1}>{c.category}</Text>
               <Text style={styles.rowMeta}>{c.count} SP</Text>
-              <Text style={styles.rowValue}>{formatVnd(c.totalValue)}</Text>
+              <Text style={styles.rowValue}>{formatMoney(c.totalValue)}</Text>
             </View>
           ))
         ) : (
@@ -79,7 +78,7 @@ export default function StatisticsPanel() {
                 <Text style={styles.rowTitle} numberOfLines={1}>{t.productName}</Text>
               </View>
               <Text style={styles.rowMeta}>SL {t.quantity}</Text>
-              <Text style={styles.rowValue}>{formatVnd(t.quantity * t.unitPrice)}</Text>
+              <Text style={styles.rowValue}>{formatMoney(t.quantity * t.unitPrice)}</Text>
             </View>
           ))
         ) : (

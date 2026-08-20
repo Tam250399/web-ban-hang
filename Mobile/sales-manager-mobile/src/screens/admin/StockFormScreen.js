@@ -13,6 +13,7 @@ import { useAuth } from '../../context/auth-context'
 import BigPickerModal from '../../components/ui/BigPickerModal'
 import MoneyField from '../../components/ui/MoneyField'
 import { fonts } from '../../theme/fonts'
+import { formatVnd, isSameDay, formatDDMMYYYY, formatYYYYMMDD, WEEKDAYS } from '../../utils/format'
 
 // ── Bảng màu riêng cho màn hình này: tương phản cao, dễ nhìn với người lớn tuổi ──
 const C = {
@@ -32,37 +33,6 @@ const C = {
 }
 
 const STEP_LABELS = ['Khách hàng', 'Hàng hóa', 'Kiểm tra']
-const WEEKDAYS = ['Chủ nhật', 'Thứ hai', 'Thứ ba', 'Thứ tư', 'Thứ năm', 'Thứ sáu', 'Thứ bảy']
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
-
-function formatDDMMYYYY(date) {
-  if (!date) return ''
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return ''
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  return `${day}-${month}-${d.getFullYear()}`
-}
-
-function formatYYYYMMDD(date) {
-  if (!date) return ''
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return ''
-  const day = String(d.getDate()).padStart(2, '0')
-  const month = String(d.getMonth() + 1).padStart(2, '0')
-  return `${d.getFullYear()}-${month}-${day}`
-}
-
-function isSameDay(a, b) {
-  return (
-    a.getDate() === b.getDate() &&
-    a.getMonth() === b.getMonth() &&
-    a.getFullYear() === b.getFullYear()
-  )
-}
 
 // Nhãn ngày thân thiện: "Hôm nay", "Hôm qua" hoặc thứ trong tuần.
 function dayLabel(date) {

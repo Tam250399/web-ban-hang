@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import Toast from 'react-native-toast-message'
 import { authService } from '../services/authService'
 import { chatService } from '../services/chatService'
+import { setUnauthorizedHandler } from '../services/apiClient'
 import { isBiometricAvailable, getBiometricLabel, authenticateBiometric } from '../services/biometricAuth'
 import { AuthContext } from './auth-context'
 
@@ -27,6 +28,28 @@ export function AuthProvider({ children }) {
     isBiometricAvailable().then(setBiometricSupported)
     getBiometricLabel().then(setBiometricLabel)
     AsyncStorage.getItem(BIOMETRIC_STORAGE_KEY).then((v) => setBiometricEnabled(v === 'true'))
+  }, [])
+
+  // ── Xử lý 401 tập trung ──
+  // Cookie phiên sống 7 ngày. Khi hết hạn, mọi màn hình đang mở cùng lúc nhận
+  // 401 và trước đây chỉ hiện toast "Lỗi 401" khó hiểu mà vẫn kẹt ở giao diện
+  // đã đăng nhập. Đọc user qua ref để handler đăng ký đúng một lần, không phải
+  // gỡ/gắn lại mỗi khi user đổi.
+  const userRef = useRef(user)
+  userRef.current = user
+
+  useEffect(() => {
+    setUnauthorizedHandler(() => {
+      // Khách chưa đăng nhập gọi API cần quyền là chuyện bình thường (vd. mở tab
+      // chat) — không việc gì phải báo "hết hạn".
+      if (userRef.current.username === 'guest') return
+      setUser(GUEST_USER)
+      chatService.disconnect()
+      AsyncStorage.setItem(BIOMETRIC_STORAGE_KEY, 'false').catch(() => {})
+      setBiometricEnabled(false)
+      Toast.show({ type: 'error', text1: 'Phiên đăng nhập đã hết hạn', text2: 'Vui lòng đăng nhập lại.' })
+    })
+    return () => setUnauthorizedHandler(null)
   }, [])
 
   const login = (userData) => setUser(userData)

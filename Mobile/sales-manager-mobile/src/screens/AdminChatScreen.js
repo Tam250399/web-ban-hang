@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator, Animated, Dimensions, FlatList,
   KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet,
@@ -15,6 +15,7 @@ import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { admin } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { formatTime, formatDay, isSameDay } from '../utils/format'
 
 const { width: SCREEN_W } = Dimensions.get('window')
 const AVATAR_COLORS = ['#366bd3', '#0f9d58', '#db4437', '#f4b400', '#ab47bc', '#00acc1', '#ff7043']
@@ -23,20 +24,6 @@ function getAvatarColor(name) {
   let hash = 0
   for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
-}
-
-function formatDay(iso) {
-  return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
-function formatTime(iso) {
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-function isSameDay(a, b) {
-  if (!a || !b) return false
-  const da = new Date(a), db = new Date(b)
-  return da.getFullYear() === db.getFullYear() && da.getMonth() === db.getMonth() && da.getDate() === db.getDate()
 }
 
 // ─── Avatar component ──────────────────────────────────────────────
@@ -69,6 +56,38 @@ function shiftColor(hex, amount) {
   b = Math.max(0, Math.min(255, b + amount))
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
+
+// ─── Message bubble ────────────────────────────────────────────────
+// Tách riêng + memo: mỗi ký tự gõ vào ô nhập tin làm cả màn render lại, trước
+// đây kéo theo toàn bộ bong bóng (kể cả loại có ảnh) dựng lại cùng.
+const MessageBubble = memo(function MessageBubble({ message, showDate }) {
+  const imgUrl = message.imageUrl ? resolveMediaUrl(message.imageUrl) : null
+  return (
+    <>
+      {showDate && <DateSeparator date={message.sentAt} />}
+      <View style={[s.bubbleRow, message.fromAdmin ? s.bubbleRowMe : s.bubbleRowThem]}>
+        <View style={[
+          s.bubble,
+          message.fromAdmin ? s.bubbleMe : s.bubbleThem,
+          imgUrl && !message.content && s.bubbleImageOnly,
+        ]}>
+          {!!imgUrl && (
+            <Image
+              source={{ uri: imgUrl }}
+              style={s.bubbleImage}
+              contentFit="cover"
+              cachePolicy="disk"
+            />
+          )}
+          {!!message.content && (
+            <Text style={message.fromAdmin ? s.bubbleTextMe : s.bubbleTextThem}>{message.content}</Text>
+          )}
+          <Text style={message.fromAdmin ? s.bubbleTimeMe : s.bubbleTimeThem}>{formatTime(message.sentAt)}</Text>
+        </View>
+      </View>
+    </>
+  )
+})
 
 // ─── Date separator ────────────────────────────────────────────────
 function DateSeparator({ date }) {
@@ -141,18 +160,47 @@ export default function AdminChatScreen({ route, navigation }) {
     loadConversations()
 
     const handleReceive = (msg) => {
-      if (msg.conversationId === activeIdRef.current) {
+      const isActive = msg.conversationId === activeIdRef.current
+      if (isActive) {
         setMessages((prev) => [...prev, msg])
       }
-      loadConversations()
+      // Trước đây mỗi tin nhắn đến đều gọi lại loadConversations() — một lượt
+      // chat sôi nổi là bằng đó request tải lại toàn bộ danh sách. Bản thân tin
+      // nhắn đã đủ dữ liệu để cập nhật tại chỗ dòng hội thoại tương ứng.
+      setConversations((prev) => {
+        const index = prev.findIndex((c) => c.id === msg.conversationId)
+        if (index === -1) {
+          // Hội thoại chưa có trong danh sách (khách mới nhắn lần đầu) — lúc này
+          // mới cần hỏi lại server để lấy đủ thông tin khách hàng.
+          loadConversations()
+          return prev
+        }
+        const current = prev[index]
+        const updated = {
+          ...current,
+          lastMessage: msg.content || (msg.imageUrl ? '[Hình ảnh]' : current.lastMessage),
+          lastMessageAt: msg.sentAt,
+          unreadCount: isActive || msg.fromAdmin ? current.unreadCount : (current.unreadCount || 0) + 1,
+        }
+        // Đưa hội thoại vừa có tin mới lên đầu danh sách.
+        return [updated, ...prev.slice(0, index), ...prev.slice(index + 1)]
+      })
     }
+
     chatService.on('ReceiveMessage', handleReceive)
-    chatService.onReconnecting(() => setReconnecting(true))
-    chatService.onReconnected(() => { setReconnecting(false); loadConversations() })
-    chatService.onClose(() => setReconnecting(true))
+    let wasDisconnected = false
+    const unsubscribeState = chatService.onConnectionChange((connected) => {
+      setReconnecting(!connected)
+      // Trong lúc mất kết nối có thể đã lỡ tin nhắn nên phải đồng bộ lại — nhưng
+      // chỉ khi thực sự vừa rớt rồi nối lại, không phải lần kết nối đầu tiên
+      // (loadConversations() ở trên đã chạy rồi).
+      if (connected && wasDisconnected) loadConversations()
+      wasDisconnected = !connected
+    })
 
     return () => {
       chatService.off('ReceiveMessage', handleReceive)
+      unsubscribeState()
       if (activeIdRef.current) chatService.leaveConversation(activeIdRef.current).catch(() => {})
     }
   }, [loadConversations])
@@ -187,6 +235,12 @@ export default function AdminChatScreen({ route, navigation }) {
       openConversation(route.params.conversationId)
     }
   }, [route?.params?.conversationId])
+
+  const renderMessage = useCallback(({ item, index }) => {
+    const prev = index > 0 ? messages[index - 1] : null
+    const showDate = !prev || !isSameDay(prev.sentAt, item.sentAt)
+    return <MessageBubble message={item} showDate={showDate} />
+  }, [messages])
 
   const closeConversation = useCallback(() => {
     if (activeId) chatService.leaveConversation(activeId).catch(() => {})
@@ -298,36 +352,7 @@ export default function AdminChatScreen({ route, navigation }) {
               maxToRenderPerBatch={10}
               windowSize={7}
               onContentSizeChange={() => flatListRef.current?.scrollToEnd?.({ animated: false })}
-              renderItem={({ item, index }) => {
-                const prev = index > 0 ? messages[index - 1] : null
-                const showDate = !prev || !isSameDay(prev.sentAt, item.sentAt)
-                const imgUrl = item.imageUrl ? resolveMediaUrl(item.imageUrl) : null
-                return (
-                  <>
-                    {showDate && <DateSeparator date={item.sentAt} />}
-                    <View style={[s.bubbleRow, item.fromAdmin ? s.bubbleRowMe : s.bubbleRowThem]}>
-                      <View style={[
-                        s.bubble,
-                        item.fromAdmin ? s.bubbleMe : s.bubbleThem,
-                        imgUrl && !item.content && s.bubbleImageOnly,
-                      ]}>
-                        {!!imgUrl && (
-                          <Image
-                            source={{ uri: imgUrl }}
-                            style={s.bubbleImage}
-                            contentFit="cover"
-                            cachePolicy="disk"
-                          />
-                        )}
-                        {!!item.content && (
-                          <Text style={item.fromAdmin ? s.bubbleTextMe : s.bubbleTextThem}>{item.content}</Text>
-                        )}
-                        <Text style={item.fromAdmin ? s.bubbleTimeMe : s.bubbleTimeThem}>{formatTime(item.sentAt)}</Text>
-                      </View>
-                    </View>
-                  </>
-                )
-              }}
+              renderItem={renderMessage}
               ListEmptyComponent={
                 <View style={s.emptyMsgWrap}>
                   <Text style={s.emptyMsgIcon}>💬</Text>

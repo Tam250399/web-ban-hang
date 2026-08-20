@@ -8,15 +8,7 @@ import { orderService } from '../../services/orderService'
 import { chatService } from '../../services/chatService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
-
-function formatTime(iso) {
-  if (!iso) return ''
-  return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
-}
-
-function formatVnd(value) {
-  return Number(value ?? 0).toLocaleString('vi-VN')
-}
+import { formatVnd, formatTime } from '../../utils/format'
 
 export default function AdminNotificationModal({ visible, onClose, navigation }) {
   const [pendingOrders, setPendingOrders] = useState([])
