@@ -9,6 +9,7 @@ import CartScreen from '../screens/CartScreen'
 import AdminChatScreen from '../screens/AdminChatScreen'
 import AccountScreen from '../screens/AccountScreen'
 import { useAuth } from '../context/auth-context'
+import { HomeIcon, OrdersIcon, ChatIcon, CartIcon, AccountIcon, ExportIcon } from '../components/ui/icons'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
@@ -19,12 +20,14 @@ export default function CustomerTabs() {
   const isAdmin = user?.role === 'Admin'
   const insets = useSafeAreaInsets()
 
+  // Icon nhận `color` từ tab bar nên tự sáng lên khi tab được chọn — emoji
+  // trước đây luôn giữ nguyên màu, không phân biệt được tab đang mở.
   const TAB_ICONS = {
-    Home: '🏠',
-    Orders: '📋',
-    Products: isAdmin ? '📤' : '💬',
-    Cart: isAdmin ? '💬' : '🛒',
-    Account: '👤',
+    Home: HomeIcon,
+    Orders: OrdersIcon,
+    Products: isAdmin ? ExportIcon : ChatIcon,
+    Cart: isAdmin ? ChatIcon : CartIcon,
+    Account: AccountIcon,
   }
   const TAB_LABELS = {
     Home: 'Trang chủ',
@@ -56,9 +59,12 @@ export default function CustomerTabs() {
           shadowRadius: 8,
         },
         tabBarItemStyle: { height: 60, paddingVertical: 0 },
-        tabBarIcon: () => <Text style={{ fontSize: 19 }}>{TAB_ICONS[route.name]}</Text>,
+        tabBarIcon: ({ color }) => {
+          const Icon = TAB_ICONS[route.name]
+          return <Icon size={23} color={color} />
+        },
         tabBarLabel: ({ color }) => (
-          <Text style={{ fontSize: 11, fontFamily: fonts.displayBold, color, marginTop: -2 }}>
+          <Text style={{ fontSize: 12.5, fontFamily: fonts.displayBold, color, marginTop: -2 }}>
             {TAB_LABELS[route.name]}
           </Text>
         ),

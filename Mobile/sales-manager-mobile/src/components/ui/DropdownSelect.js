@@ -188,20 +188,20 @@ const styles = StyleSheet.create({
   valueText: {
     flex: 1,
     fontFamily: fonts.adminBody,
-    fontSize: 13,
+    fontSize: 14,
     color: admin.text,
   },
   placeholderText: {
     flex: 1,
     fontFamily: fonts.adminBody,
-    fontSize: 13,
+    fontSize: 14,
     color: admin.textMuted,
   },
   placeholderError: {
     color: '#EF4444',
   },
   chevron: {
-    fontSize: 10,
+    fontSize: 12,
     color: admin.textMuted,
     fontFamily: fonts.adminBodyBold,
   },
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   fieldErrorText: {
     fontFamily: fonts.adminBodyBold,
-    fontSize: 11,
+    fontSize: 12.5,
     color: '#EF4444',
     paddingLeft: 2,
   },
@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   },
   dropdownTitle: {
     fontFamily: fonts.adminDisplayBold,
-    fontSize: 15,
+    fontSize: 16,
     color: admin.text,
   },
   closeBtn: {
@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   closeBtnText: {
     color: '#ef4444',
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
   },
 
@@ -295,11 +295,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchIcon: {
-    fontSize: 13,
+    fontSize: 14,
   },
   searchInput: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 14,
     color: admin.text,
     fontFamily: fonts.adminBody,
     paddingVertical: 0,
@@ -329,7 +329,7 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontFamily: fonts.adminBody,
-    fontSize: 13.5,
+    fontSize: 14.5,
     color: admin.text,
   },
   optionTextSelected: {
@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
     color: admin.primary,
   },
   checkIcon: {
-    fontSize: 15,
+    fontSize: 16,
     color: admin.primary,
     fontFamily: fonts.adminBodyBold,
     marginLeft: 8,
@@ -349,6 +349,6 @@ const styles = StyleSheet.create({
   emptyText: {
     color: admin.textMuted,
     fontFamily: fonts.adminBody,
-    fontSize: 13,
+    fontSize: 14,
   },
 })

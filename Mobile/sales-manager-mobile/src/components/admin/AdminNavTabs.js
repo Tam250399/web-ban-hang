@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
     backgroundColor: admin.navBtnBg, alignItems: 'center', justifyContent: 'center',
   },
   pillActive: { backgroundColor: admin.primary },
-  pillText: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: '#D8D3C7' },
+  pillText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: '#D8D3C7' },
   pillTextActive: { color: '#FFFFFF' },
 })

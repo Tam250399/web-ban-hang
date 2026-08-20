@@ -58,17 +58,17 @@ const styles = StyleSheet.create({
   icon: { fontSize: 44 },
   title: { fontSize: 22, fontWeight: '800', color: '#0F172A', textAlign: 'center' },
   message: {
-    fontSize: 14, lineHeight: 21,
+    fontSize: 15, lineHeight: 21,
     color: '#475569', textAlign: 'center', marginBottom: 8,
   },
   devBox: {
     width: '100%', backgroundColor: '#1E293B', borderRadius: 10,
     padding: 12, marginBottom: 8,
   },
-  devText: { fontSize: 11, color: '#FCA5A5' },
+  devText: { fontSize: 12.5, color: '#FCA5A5' },
   retryBtn: {
     backgroundColor: brand.primary, borderRadius: 12,
     paddingVertical: 14, paddingHorizontal: 40,
   },
-  retryText: { color: '#FFFFFF', fontSize: 16, fontWeight: '700' },
+  retryText: { color: '#FFFFFF', fontSize: 17, fontWeight: '700' },
 })

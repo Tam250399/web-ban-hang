@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(15,23,42,0.55)',
   },
   captionTitle: { color: '#FFFFFF', fontFamily: fonts.displayExtraBold, fontSize: 18 },
-  captionDesc: { color: '#E2E8F0', fontFamily: fonts.body, fontSize: 12.5, marginTop: 2 },
+  captionDesc: { color: '#E2E8F0', fontFamily: fonts.body, fontSize: 13.5, marginTop: 2 },
   dots: {
     position: 'absolute', bottom: 10, left: 0, right: 0,
     flexDirection: 'row', justifyContent: 'center', gap: 6,

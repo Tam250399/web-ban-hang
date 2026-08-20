@@ -31,9 +31,9 @@ const styles = StyleSheet.create({
     width: 36, height: 36, borderRadius: 8, backgroundColor: admin.primary,
     alignItems: 'center', justifyContent: 'center',
   },
-  avatarText: { color: admin.white, fontFamily: fonts.adminDisplayBold, fontSize: 13 },
+  avatarText: { color: admin.white, fontFamily: fonts.adminDisplayBold, fontSize: 14 },
   titles: { flex: 1, minWidth: 0 },
-  title: { color: '#F5F2EA', fontFamily: fonts.adminDisplayBold, fontSize: 13.5 },
-  subtitle: { color: admin.primary, fontFamily: fonts.adminDisplay, fontSize: 10, marginTop: 1 },
-  bell: { fontSize: 17 },
+  title: { color: '#F5F2EA', fontFamily: fonts.adminDisplayBold, fontSize: 14.5 },
+  subtitle: { color: admin.primary, fontFamily: fonts.adminDisplay, fontSize: 12, marginTop: 1 },
+  bell: { fontSize: 18 },
 })

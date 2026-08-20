@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   ActivityIndicator, Alert, FlatList, RefreshControl, ScrollView,
   StyleSheet, Text, TouchableOpacity, View,
@@ -8,6 +8,10 @@ import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
 import { orderService } from '../services/orderService'
 import { useAuth } from '../context/auth-context'
+import { useCachedResource } from '../hooks/useCachedResource'
+import { useRequireOnline } from '../hooks/useRequireOnline'
+import { CACHE_KEYS, formatCacheAge } from '../services/cache'
+import { OrderCardSkeleton } from '../components/ui/Skeleton'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { formatVnd, formatDay } from '../utils/format'
@@ -31,32 +35,32 @@ const PAGE_SIZE = 8
 export default function MyOrdersScreen() {
   const { isGuest } = useAuth()
   const navigation = useNavigation()
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [refreshing, setRefreshing] = useState(false)
+  const requireOnline = useRequireOnline()
   const [filter, setFilter] = useState('')
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
 
-  const load = useCallback((isRefresh) => {
-    if (isGuest) {
-      setLoading(false)
-      return
-    }
-    isRefresh ? setRefreshing(true) : setLoading(true)
-    orderService.getMine()
-      .then((data) => setOrders(data || []))
-      .catch((err) => Toast.show({ type: 'error', text1: err.message || 'Không tải được đơn hàng' }))
-      .finally(() => { setLoading(false); setRefreshing(false) })
-  }, [isGuest])
+  // Cache-then-network: đơn hàng đã xem vẫn tra cứu được khi ra công trình mất
+  // sóng, thay vì màn hình trắng như trước.
+  const {
+    data,
+    loading,
+    refreshing,
+    isStale,
+    cachedAt,
+    isOnline,
+    refresh,
+    reload,
+  } = useCachedResource(CACHE_KEYS.myOrders, () => orderService.getMine(), { enabled: !isGuest })
 
-  useEffect(() => { load(false) }, [load])
+  const orders = data ?? []
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => load(false))
+    if (isGuest) return
+    const unsubscribe = navigation.addListener('focus', reload)
     return unsubscribe
-  }, [navigation, load])
+  }, [navigation, reload, isGuest])
 
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
@@ -74,6 +78,7 @@ export default function MyOrdersScreen() {
   }
 
   const handleCancel = (id) => {
+    if (!requireOnline('Hủy đơn hàng')) return
     Alert.alert(
       'Hủy đơn hàng',
       'Bạn có chắc muốn hủy đơn hàng này không?',
@@ -87,7 +92,7 @@ export default function MyOrdersScreen() {
             try {
               await orderService.cancel(id, {})
               Toast.show({ type: 'success', text1: 'Đã hủy đơn hàng' })
-              load(false)
+              reload()
             } catch (err) {
               Toast.show({ type: 'error', text1: err.message || 'Hủy đơn thất bại' })
             } finally {
@@ -100,11 +105,12 @@ export default function MyOrdersScreen() {
   }
 
   const handleReorder = async (id) => {
+    if (!requireOnline('Đặt lại đơn hàng')) return
     setReorderingId(id)
     try {
       const res = await orderService.reorder(id)
       Toast.show({ type: 'success', text1: res?.message || 'Đã đặt lại đơn hàng' })
-      load(false)
+      reload()
     } catch (err) {
       Toast.show({ type: 'error', text1: err.message || 'Không đặt lại được đơn hàng' })
     } finally {
@@ -168,23 +174,43 @@ export default function MyOrdersScreen() {
         </ScrollView>
       </View>
 
+      {/* ── Đang xem bản lưu trên máy ── */}
+      {isStale && !loading && (
+        <View style={styles.staleBar}>
+          <Text style={styles.staleText}>
+            {isOnline
+              ? `Chưa cập nhật được — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`
+              : `Đang ngoại tuyến — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`}
+          </Text>
+        </View>
+      )}
+
       {/* ── Content ── */}
       {loading ? (
-        <View style={styles.loaderWrap}>
-          <ActivityIndicator size="large" color={brand.primary} />
-          <Text style={styles.loaderText}>Đang tải đơn hàng...</Text>
+        <View style={styles.listContent}>
+          {Array.from({ length: 4 }).map((_, i) => <OrderCardSkeleton key={i} />)}
         </View>
       ) : (
         <FlatList
           data={displayedOrders}
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={styles.listContent}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => load(true)} />}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.3}
           initialNumToRender={6}
           maxToRenderPerBatch={6}
           windowSize={5}
+          ListEmptyComponent={
+            !isOnline && orders.length === 0 ? (
+              <View style={styles.offlineEmpty}>
+                <Text style={styles.offlineEmptyTitle}>Chưa có dữ liệu ngoại tuyến</Text>
+                <Text style={styles.offlineEmptyText}>
+                  Kết nối mạng một lần để tải đơn hàng về máy, sau đó vẫn tra cứu được khi mất sóng.
+                </Text>
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => {
             const statusStyle = STATUS_COLOR[item.status] || STATUS_COLOR.Pending
             const isCancelling = cancellingId === item.id
@@ -306,15 +332,15 @@ const styles = StyleSheet.create({
     borderBottomColor: '#E2E8F0',
   },
   headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 19, color: '#0F172A' },
-  headerSub: { fontFamily: fonts.bodyBold, fontSize: 12, color: brand.primary, marginTop: 2 },
+  headerSub: { fontFamily: fonts.bodyBold, fontSize: 13, color: brand.primary, marginTop: 2 },
 
   // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   guestIcon: { fontSize: 54, marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
-  guestSub: { fontFamily: fonts.body, fontSize: 14, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  guestSub: { fontFamily: fonts.body, fontSize: 15, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   loginBtn: { backgroundColor: brand.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 12 },
-  loginBtnText: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 15 },
+  loginBtnText: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 16 },
 
   // ── Filter row ──
   filterBarWrap: {
@@ -337,16 +363,24 @@ const styles = StyleSheet.create({
   filterChipActive: { backgroundColor: brand.primary, borderColor: brand.primary },
   filterChipText: {
     fontFamily: fonts.bodyBold,
-    fontSize: 13,
-    lineHeight: 18,
+    fontSize: 14,
+    lineHeight: 20,
     color: brand.ink,
     textAlign: 'center',
     includeFontPadding: false,
   },
   filterChipTextActive: { color: '#FFFFFF' },
 
+  staleBar: {
+    backgroundColor: '#FEF3C7', borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#FDE68A',
+    paddingVertical: 7, paddingHorizontal: 14,
+  },
+  staleText: { fontFamily: fonts.bodyMedium, fontSize: 13.5, color: '#92400E', textAlign: 'center' },
+  offlineEmpty: { paddingHorizontal: 20, paddingTop: 32, gap: 8 },
+  offlineEmptyTitle: { fontFamily: fonts.displayBold, fontSize: 18, color: brand.ink, textAlign: 'center' },
+  offlineEmptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loaderText: { fontFamily: fonts.bodyBold, fontSize: 14, color: brand.textMuted, marginTop: 10 },
+  loaderText: { fontFamily: fonts.bodyBold, fontSize: 15, color: brand.textMuted, marginTop: 10 },
 
   listContent: { padding: 16, gap: 14 },
   orderCard: {
@@ -362,46 +396,46 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   cardHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  orderId: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: brand.ink },
+  orderId: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: brand.ink },
   statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 8, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  statusText: { fontFamily: fonts.bodyBold, fontSize: 12, lineHeight: 16, textAlign: 'center', includeFontPadding: false },
+  statusText: { fontFamily: fonts.bodyBold, fontSize: 13, lineHeight: 19, textAlign: 'center', includeFontPadding: false },
 
   deliverySection: { backgroundColor: brand.bg, borderRadius: 10, padding: 12, marginBottom: 12 },
-  recipientName: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: brand.ink },
-  addressText: { fontFamily: fonts.body, fontSize: 12.5, color: brand.text, marginTop: 4 },
+  recipientName: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: brand.ink },
+  addressText: { fontFamily: fonts.body, fontSize: 13.5, color: brand.text, marginTop: 4 },
 
   itemsList: { borderTopWidth: 1, borderTopColor: brand.cardBorder, paddingTop: 10, gap: 8 },
   itemRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  itemProductName: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: brand.ink, marginRight: 8 },
-  itemQty: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: brand.primary },
-  itemPrice: { fontFamily: fonts.monoBold, fontSize: 13.5, color: brand.ink },
+  itemProductName: { flex: 1, fontFamily: fonts.bodySemiBold, fontSize: 14.5, color: brand.ink, marginRight: 8 },
+  itemQty: { fontFamily: fonts.bodyBold, fontSize: 14.5, color: brand.primary },
+  itemPrice: { fontFamily: fonts.monoBold, fontSize: 14.5, color: brand.ink },
 
   totalRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',
     borderTopWidth: 1, borderTopColor: brand.cardBorder, borderStyle: 'dashed',
     paddingTop: 12, marginTop: 12,
   },
-  totalLabel: { fontFamily: fonts.bodyBold, fontSize: 14, color: brand.ink },
+  totalLabel: { fontFamily: fonts.bodyBold, fontSize: 15, color: brand.ink },
   totalValue: { fontFamily: fonts.monoBold, fontSize: 18.5, color: brand.primary },
 
-  cancelReason: { fontFamily: fonts.bodySemiBold, fontSize: 12.5, color: '#dc2626', marginTop: 10, fontStyle: 'italic' },
+  cancelReason: { fontFamily: fonts.bodySemiBold, fontSize: 13.5, color: '#dc2626', marginTop: 10, fontStyle: 'italic' },
   cardActions: { marginTop: 14 },
   cancelBtn: {
     paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: '#fecaca', backgroundColor: '#fef2f2',
     borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
-  cancelBtnText: { fontFamily: fonts.bodyBold, fontSize: 13.5, lineHeight: 18, color: '#dc2626', textAlign: 'center', includeFontPadding: false },
+  cancelBtnText: { fontFamily: fonts.bodyBold, fontSize: 14.5, lineHeight: 21, color: '#dc2626', textAlign: 'center', includeFontPadding: false },
   reorderBtn: {
     paddingVertical: 11, paddingHorizontal: 16, borderWidth: 1, borderColor: brand.cardBorder, backgroundColor: brand.card,
     borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
-  reorderBtnText: { fontFamily: fonts.bodyBold, fontSize: 13.5, lineHeight: 18, color: brand.ink, textAlign: 'center', includeFontPadding: false },
+  reorderBtnText: { fontFamily: fonts.bodyBold, fontSize: 14.5, lineHeight: 21, color: brand.ink, textAlign: 'center', includeFontPadding: false },
 
   emptyWrap: { alignItems: 'center', marginTop: 60, paddingHorizontal: 40 },
   emptyIcon: { fontSize: 44, marginBottom: 10 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 19, color: brand.ink, marginBottom: 6 },
-  emptyText: { fontFamily: fonts.body, fontSize: 13.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
+  emptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
 
   footerLoader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
-  footerLoaderText: { fontFamily: fonts.body, fontSize: 12.5, color: brand.textMuted },
+  footerLoaderText: { fontFamily: fonts.body, fontSize: 13.5, color: brand.textMuted },
 })

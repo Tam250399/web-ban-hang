@@ -130,18 +130,18 @@ const styles = StyleSheet.create({
   },
   titleText: {
     fontFamily: fonts.bodyBold,
-    fontSize: 13.5,
+    fontSize: 14.5,
     color: '#0F172A',
-    lineHeight: 18,
+    lineHeight: 21,
   },
   errorTitleText: {
     color: '#991B1B',
   },
   subtitleText: {
     fontFamily: fonts.body,
-    fontSize: 12,
+    fontSize: 13,
     color: '#64748B',
     marginTop: 2,
-    lineHeight: 16,
+    lineHeight: 19,
   },
 })

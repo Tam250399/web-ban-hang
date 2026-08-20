@@ -7,6 +7,7 @@ import { orderService } from '../services/orderService'
 import { chatService } from '../services/chatService'
 import { bannerService } from '../services/bannerService'
 import HazardStripe from '../components/ui/HazardStripe'
+import { BellIcon, CartIcon } from '../components/ui/icons'
 import BrandTag from '../components/ui/BrandTag'
 import LogoBadge from '../components/ui/LogoBadge'
 import { PrimaryButton } from '../components/ui/Buttons'
@@ -84,7 +85,7 @@ export default function HomeScreen({ navigation }) {
 
           {isAdmin ? (
             <TouchableOpacity style={styles.notifBtn} onPress={() => setNotifModalOpen(true)} hitSlop={8} accessibilityLabel="Thông báo">
-              <Text style={styles.notifIcon}>🔔</Text>
+              <BellIcon size={23} color="#0F172A" />
               {(pendingOrderCount + chatUnreadCount) > 0 && (
                 <View style={[styles.notifBadge, styles.orderBadge]}>
                   <Text style={styles.notifBadgeText}>
@@ -95,7 +96,7 @@ export default function HomeScreen({ navigation }) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity style={styles.cartBtn} onPress={() => navigation.navigate('Cart')} hitSlop={8} accessibilityLabel="Giỏ hàng">
-              <Text style={styles.cartIcon}>🛒</Text>
+              <CartIcon size={23} color="#0F172A" />
               {totalCount > 0 && (
                 <View style={styles.cartBadge}>
                   <Text style={styles.cartBadgeText}>{totalCount > 99 ? '99+' : totalCount}</Text>
@@ -169,29 +170,29 @@ const styles = StyleSheet.create({
   headerSafeArea: { backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E2E8F0' },
   headerTop: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 },
   headerTitles: { flex: 1, minWidth: 0 },
-  storeName: { color: '#0F172A', fontFamily: fonts.displayExtraBold, fontSize: 15 },
-  storeSubtitle: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 11, marginTop: 1 },
+  storeName: { color: '#0F172A', fontFamily: fonts.displayExtraBold, fontSize: 16 },
+  storeSubtitle: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 12.5, marginTop: 1 },
 
   // ── Admin notification icons ──
   adminNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   notifBtn: { padding: 4, position: 'relative' },
   notifIcon: { fontSize: 20 },
   notifBadge: {
-    position: 'absolute', top: -4, right: -6, minWidth: 16, height: 16, borderRadius: 999,
-    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+    position: 'absolute', top: -5, right: -7, minWidth: 19, height: 19, borderRadius: 999,
+    alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4,
   },
   orderBadge: { backgroundColor: brand.primary },
   chatBadge: { backgroundColor: '#2563EB' },
-  notifBadgeText: { color: brand.white, fontSize: 9, fontFamily: fonts.bodyBold },
+  notifBadgeText: { color: brand.white, fontSize: 11, fontFamily: fonts.bodyBold },
 
   // ── Customer cart icon ──
   cartBtn: { padding: 4 },
   cartIcon: { fontSize: 20 },
   cartBadge: {
-    position: 'absolute', top: -4, right: -8, minWidth: 16, height: 16, borderRadius: 999,
-    backgroundColor: brand.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 3,
+    position: 'absolute', top: -5, right: -9, minWidth: 19, height: 19, borderRadius: 999,
+    backgroundColor: brand.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 4,
   },
-  cartBadgeText: { color: brand.white, fontSize: 10, fontFamily: fonts.bodyBold },
+  cartBadgeText: { color: brand.white, fontSize: 11.5, fontFamily: fonts.bodyBold },
 
   guestRow: { flexDirection: 'row', gap: 8, paddingHorizontal: 18, paddingBottom: 16 },
   guestBtn: { flex: 1, paddingVertical: 9 },
@@ -200,10 +201,10 @@ const styles = StyleSheet.create({
   heroTag: { marginBottom: 14 },
   heroTitle: { color: brand.white, fontFamily: fonts.displayExtraBold, fontSize: 26, lineHeight: 30, marginBottom: 10 },
   heroTitleAccent: { color: brand.primary },
-  heroText: { color: '#94A3B8', fontFamily: fonts.body, fontSize: 13, lineHeight: 20, marginBottom: 18 },
+  heroText: { color: '#94A3B8', fontFamily: fonts.body, fontSize: 14, lineHeight: 20, marginBottom: 18 },
   statsRow: { flexDirection: 'row', gap: 18 },
   stat: {},
   statValue: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 19 },
-  statLabel: { color: '#94A3B8', fontSize: 10.5, marginTop: 2 },
+  statLabel: { color: '#94A3B8', fontSize: 12.5, marginTop: 2 },
 })
 

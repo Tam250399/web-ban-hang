@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import Toast from 'react-native-toast-message'
 import { stockService } from '../../services/stockService'
+import { useRequireOnline } from '../../hooks/useRequireOnline'
 import { productService } from '../../services/productService'
 import DropdownSelect from '../../components/ui/DropdownSelect'
 import MoneyField from '../../components/ui/MoneyField'
@@ -12,6 +13,7 @@ import { fonts } from '../../theme/fonts'
 export default function StockImportFormScreen({ navigation, route }) {
   const transactionId = route.params?.transactionId
   const isEdit = !!transactionId
+  const requireOnline = useRequireOnline()
 
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -24,6 +26,10 @@ export default function StockImportFormScreen({ navigation, route }) {
   const [note, setNote] = useState('')
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  // Màn này mở dạng fullScreenModal, người dùng rất dễ bấm ✕ hoặc "Hủy" theo
+  // quán tính — trước đây thoát là mất trắng những gì vừa nhập, không hỏi han gì
+  // (StockFormScreen đã có cảnh báo này, riêng màn nhập kho thì chưa).
+  const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
     productService.getAll()
@@ -51,7 +57,19 @@ export default function StockImportFormScreen({ navigation, route }) {
 
   const productOptions = products.map((p) => ({ value: String(p.id), label: `${p.productCode} - ${p.productName}` }))
 
+  const handleExit = () => {
+    if (!dirty) {
+      navigation.goBack()
+      return
+    }
+    Alert.alert('Thoát mà không lưu?', 'Những thông tin bạn vừa nhập sẽ bị mất.', [
+      { text: 'Ở lại', style: 'cancel' },
+      { text: 'Thoát', style: 'destructive', onPress: () => navigation.goBack() },
+    ])
+  }
+
   const handleSelectProduct = (option) => {
+    setDirty(true)
     setProductId(option.value)
     setProductLabel(option.label)
     setErrors((prev) => {
@@ -89,6 +107,7 @@ export default function StockImportFormScreen({ navigation, route }) {
       })
       return
     }
+    if (!requireOnline('Lưu phiếu nhập kho')) return
 
     setSaving(true)
     try {
@@ -123,89 +142,95 @@ export default function StockImportFormScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</Text>
-          <TouchableOpacity style={styles.closeBtn} onPress={() => navigation.goBack()} activeOpacity={0.7} hitSlop={8} accessibilityLabel="Đóng">
-            <Text style={styles.closeBtnText}>✕</Text>
-          </TouchableOpacity>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</Text>
+        <TouchableOpacity style={styles.closeBtn} onPress={handleExit} activeOpacity={0.7} hitSlop={8} accessibilityLabel="Đóng">
+          <Text style={styles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
+      </View>
+
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>Sản phẩm <Text style={styles.requiredStar}>*</Text></Text>
+          <DropdownSelect
+            value={productId}
+            label={productLabel}
+            placeholder="-- Chọn sản phẩm --"
+            options={productOptions}
+            onSelect={handleSelectProduct}
+            title="Chọn sản phẩm"
+            searchPlaceholder="Tìm theo tên hoặc mã sản phẩm..."
+            error={!!errors.productId}
+            errorText={errors.productId}
+          />
         </View>
 
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.body} contentContainerStyle={styles.bodyContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.row}>
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Sản phẩm <Text style={styles.requiredStar}>*</Text></Text>
-            <DropdownSelect
-              value={productId}
-              label={productLabel}
-              placeholder="-- Chọn sản phẩm --"
-              options={productOptions}
-              onSelect={handleSelectProduct}
-              title="Chọn sản phẩm"
-              searchPlaceholder="Tìm theo tên hoặc mã sản phẩm..."
-              error={!!errors.productId}
-              errorText={errors.productId}
+            <Text style={styles.fieldLabel}>Số lượng <Text style={styles.requiredStar}>*</Text></Text>
+            <TextInput
+              style={[styles.input, errors.quantity && styles.inputError]}
+              keyboardType="numeric"
+              value={quantity}
+              onChangeText={(v) => {
+                setDirty(true)
+                setQuantity(v)
+                if (errors.quantity) {
+                  setErrors((prev) => {
+                    const next = { ...prev }
+                    delete next.quantity
+                    return next
+                  })
+                }
+              }}
             />
+            {!!errors.quantity && <Text style={styles.inlineError}>⚠️ {errors.quantity}</Text>}
           </View>
-
-          <View style={styles.row}>
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Số lượng <Text style={styles.requiredStar}>*</Text></Text>
-              <TextInput
-                style={[styles.input, errors.quantity && styles.inputError]}
-                keyboardType="numeric"
-                value={quantity}
-                onChangeText={(v) => {
-                  setQuantity(v)
-                  if (errors.quantity) {
-                    setErrors((prev) => {
-                      const next = { ...prev }
-                      delete next.quantity
-                      return next
-                    })
-                  }
-                }}
-              />
-              {!!errors.quantity && <Text style={styles.inlineError}>⚠️ {errors.quantity}</Text>}
-            </View>
-            <View style={styles.field}>
-              <Text style={styles.fieldLabel}>Đơn giá</Text>
-              <MoneyField
-                value={unitPrice}
-                onChangeValue={(v) => {
-                  setUnitPrice(v)
-                  if (errors.unitPrice) {
-                    setErrors((prev) => {
-                      const next = { ...prev }
-                      delete next.unitPrice
-                      return next
-                    })
-                  }
-                }}
-                style={errors.unitPrice && styles.inputError}
-              />
-              {!!errors.unitPrice && <Text style={styles.inlineError}>⚠️ {errors.unitPrice}</Text>}
-            </View>
-          </View>
-
           <View style={styles.field}>
-            <Text style={styles.fieldLabel}>Ghi chú</Text>
-            <TextInput style={styles.input} value={note} onChangeText={setNote} placeholder="Nhà cung cấp, ghi chú..." placeholderTextColor={admin.textMuted} />
+            <Text style={styles.fieldLabel}>Đơn giá</Text>
+            <MoneyField
+              value={unitPrice}
+              onChangeValue={(v) => {
+                setDirty(true)
+                setUnitPrice(v)
+                if (errors.unitPrice) {
+                  setErrors((prev) => {
+                    const next = { ...prev }
+                    delete next.unitPrice
+                    return next
+                  })
+                }
+              }}
+              style={errors.unitPrice && styles.inputError}
+            />
+            {!!errors.unitPrice && <Text style={styles.inlineError}>⚠️ {errors.unitPrice}</Text>}
           </View>
+        </View>
 
-          <View style={styles.actions}>
-            <TouchableOpacity style={styles.cancelBtn} onPress={() => navigation.goBack()}>
-              <Text style={styles.cancelBtnText}>Hủy</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
-              <Text style={styles.saveBtnText}>{saving ? 'Đang xử lý...' : isEdit ? 'Lưu thay đổi' : 'Xác nhận nhập kho'}</Text>
-            </TouchableOpacity>
-          </View>
-        </ScrollView>
-        </KeyboardAvoidingView>
-      </SafeAreaView>
-    </SafeAreaProvider>
+        <View style={styles.field}>
+          <Text style={styles.fieldLabel}>Ghi chú</Text>
+          <TextInput
+            style={styles.input}
+            value={note}
+            onChangeText={(v) => { setDirty(true); setNote(v) }}
+            placeholder="Nhà cung cấp, ghi chú..."
+            placeholderTextColor={admin.textMuted}
+          />
+        </View>
+
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.cancelBtn} onPress={handleExit}>
+            <Text style={styles.cancelBtnText}>Hủy</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.saveBtn} onPress={handleSave} disabled={saving}>
+            <Text style={styles.saveBtnText}>{saving ? 'Đang xử lý...' : isEdit ? 'Lưu thay đổi' : 'Xác nhận nhập kho'}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   )
 }
 
@@ -218,9 +243,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: admin.divider,
     backgroundColor: admin.bg,
   },
-  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text },
+  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 17, color: admin.text },
   closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
-  closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
+  closeBtnText: { color: '#ef4444', fontSize: 15, fontWeight: '700' },
   body: { flex: 1 },
   bodyContent: { padding: 16, gap: 14, paddingBottom: 40 },
   errorBanner: {
@@ -233,15 +258,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
   },
-  errorBannerIcon: { fontSize: 16 },
-  errorBannerText: { flex: 1, color: '#B91C1C', fontFamily: fonts.adminBodyBold, fontSize: 12 },
+  errorBannerIcon: { fontSize: 17 },
+  errorBannerText: { flex: 1, color: '#B91C1C', fontFamily: fonts.adminBodyBold, fontSize: 13 },
   row: { flexDirection: 'row', gap: 12 },
   field: { flex: 1, gap: 6 },
-  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 12, color: admin.text },
+  fieldLabel: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: admin.text },
   requiredStar: { color: '#EF4444' },
   input: {
     height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
-    borderRadius: 8, backgroundColor: admin.card, fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
+    borderRadius: 8, backgroundColor: admin.card, fontSize: 14, color: admin.text, fontFamily: fonts.adminBody,
   },
   inputError: {
     borderColor: '#EF4444',
@@ -250,7 +275,7 @@ const styles = StyleSheet.create({
   inlineError: {
     color: '#EF4444',
     fontFamily: fonts.adminBodyBold,
-    fontSize: 11,
+    fontSize: 12.5,
     marginTop: 2,
   },
   actions: { flexDirection: 'row', gap: 10, marginTop: 6 },
@@ -258,7 +283,7 @@ const styles = StyleSheet.create({
     flex: 1, height: 44, borderWidth: 1, borderColor: admin.border,
     backgroundColor: admin.card, borderRadius: 9, alignItems: 'center', justifyContent: 'center',
   },
-  cancelBtnText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: admin.text },
+  cancelBtnText: { fontFamily: fonts.adminBodySemiBold, fontSize: 14, color: admin.text },
   saveBtn: { flex: 1, height: 44, backgroundColor: admin.primary, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  saveBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: admin.white },
+  saveBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: admin.white },
 })

@@ -4,6 +4,7 @@ import Toast from 'react-native-toast-message'
 import { authService } from '../services/authService'
 import { chatService } from '../services/chatService'
 import { setUnauthorizedHandler } from '../services/apiClient'
+import { clearAllCache } from '../services/cache'
 import { isBiometricAvailable, getBiometricLabel, authenticateBiometric } from '../services/biometricAuth'
 import { AuthContext } from './auth-context'
 
@@ -18,6 +19,10 @@ export function AuthProvider({ children }) {
   const [biometricSupported, setBiometricSupported] = useState(false)
   const [biometricLabel, setBiometricLabel] = useState('sinh trắc học')
   const [biometricEnabled, setBiometricEnabled] = useState(false)
+  // AppLockGate cần biết cờ sinh trắc học đã đọc xong từ AsyncStorage chưa: nếu
+  // khoá app dựa trên giá trị mặc định `false` lúc chưa đọc xong thì lần mở app
+  // nào cũng lọt qua màn khoá trong tích tắc.
+  const [biometricReady, setBiometricReady] = useState(false)
 
   useEffect(() => {
     authService.me()
@@ -27,7 +32,10 @@ export function AuthProvider({ children }) {
 
     isBiometricAvailable().then(setBiometricSupported)
     getBiometricLabel().then(setBiometricLabel)
-    AsyncStorage.getItem(BIOMETRIC_STORAGE_KEY).then((v) => setBiometricEnabled(v === 'true'))
+    AsyncStorage.getItem(BIOMETRIC_STORAGE_KEY)
+      .then((v) => setBiometricEnabled(v === 'true'))
+      .catch(() => {})
+      .finally(() => setBiometricReady(true))
   }, [])
 
   // ── Xử lý 401 tập trung ──
@@ -45,6 +53,7 @@ export function AuthProvider({ children }) {
       if (userRef.current.username === 'guest') return
       setUser(GUEST_USER)
       chatService.disconnect()
+      clearAllCache()
       AsyncStorage.setItem(BIOMETRIC_STORAGE_KEY, 'false').catch(() => {})
       setBiometricEnabled(false)
       Toast.show({ type: 'error', text1: 'Phiên đăng nhập đã hết hạn', text2: 'Vui lòng đăng nhập lại.' })
@@ -72,6 +81,9 @@ export function AuthProvider({ children }) {
   const logout = () => {
     authService.logout().catch(() => {})
     chatService.disconnect()
+    // Xoá dữ liệu đã lưu offline: máy dùng chung thì người đăng nhập sau không
+    // được thấy đơn hàng của người trước.
+    clearAllCache()
     setUser(GUEST_USER)
     // Đăng xuất huỷ hẳn cookie phiên trên server, nên "mở khóa bằng sinh trắc
     // học" không còn gì để mở khóa nữa — tắt luôn cờ để nút này không hiện lại
@@ -108,6 +120,7 @@ export function AuthProvider({ children }) {
         biometricSupported,
         biometricLabel,
         biometricEnabled,
+        biometricReady,
         enableBiometricLogin,
         disableBiometricLogin,
         loginWithBiometric,

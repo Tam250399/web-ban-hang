@@ -10,6 +10,7 @@ import { useNavigation } from '@react-navigation/native'
 import * as ImagePicker from 'expo-image-picker'
 import Toast from 'react-native-toast-message'
 import { useAuth } from '../context/auth-context'
+import { useRequireOnline } from '../hooks/useRequireOnline'
 import { chatService } from '../services/chatService'
 import { uploadImage } from '../services/uploadService'
 import { resolveMediaUrl } from '../services/config'
@@ -24,13 +25,13 @@ const BUBBLE_MAX_W = 280
 // màn hình render lại và trước đây kéo theo toàn bộ bong bóng đang hiển thị
 // (kể cả những cái có ảnh) render lại cùng. `showDate` được tính ở ngoài rồi
 // truyền vào dạng boolean để props vẫn là giá trị nguyên thuỷ, so sánh nông đủ dùng.
-const MessageBubble = memo(function MessageBubble({ message, showDate }) {
+const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const isMe = !message.isFromAdmin
   return (
     <View>
       {showDate && <DateSeparator date={message.createdAt} />}
       <View style={[s.bubbleWrap, isMe ? s.bubbleWrapMe : s.bubbleWrapThem]}>
-        <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem]}>
+        <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem, message.pending && s.bubblePending]}>
           {!!message.imageUrl && (
             <Image
               source={{ uri: resolveMediaUrl(message.imageUrl) }}
@@ -43,9 +44,14 @@ const MessageBubble = memo(function MessageBubble({ message, showDate }) {
             <Text style={isMe ? s.bubbleTextMe : s.bubbleTextThem}>{message.content}</Text>
           )}
           <Text style={isMe ? s.bubbleTimeMe : s.bubbleTimeThem}>
-            {formatTime(message.createdAt)}
+            {message.pending ? 'Đang gửi...' : message.failed ? 'Gửi lỗi' : formatTime(message.createdAt)}
           </Text>
         </View>
+        {message.failed && (
+          <TouchableOpacity onPress={() => onRetry?.(message)} hitSlop={8} style={s.retryBtn}>
+            <Text style={s.retryText}>Gửi lại</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </View>
   )
@@ -92,10 +98,10 @@ export default function CustomerChatScreen() {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
   const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
   const [reconnecting, setReconnecting] = useState(false)
   const flatListRef = useRef(null)
+  const requireOnline = useRequireOnline()
 
   // ── Kết nối + load tin nhắn (Chỉ chạy khi ĐÃ ĐĂNG NHẬP) ──
   useEffect(() => {
@@ -103,7 +109,23 @@ export default function CustomerChatScreen() {
     let cancelled = false
 
     const handleReceive = (msg) => {
-      setMessages((prev) => [...prev, msg])
+      setMessages((prev) => {
+        // Server phát lại chính tin nhắn mình vừa gửi: thay bản tạm bằng bản
+        // thật (có id, thời gian chuẩn từ server) thay vì hiện thành hai dòng.
+        // Không có clientId trong payload nên đối chiếu theo nội dung — chỉ xét
+        // bản tạm đầu tiên còn treo, đủ dùng vì tin gửi đi được xử lý tuần tự.
+        if (!msg.isFromAdmin) {
+          const idx = prev.findIndex(
+            (m) => m.pending && m.content === (msg.content ?? null) && m.imageUrl === (msg.imageUrl ?? null)
+          )
+          if (idx !== -1) {
+            const next = [...prev]
+            next[idx] = msg
+            return next
+          }
+        }
+        return [...prev, msg]
+      })
     }
 
     chatService.getMyConversation()
@@ -129,12 +151,40 @@ export default function CustomerChatScreen() {
     }
   }, [messages])
 
-  // Khai báo trước nhánh `return` cho khách bên dưới — hook phải chạy ở mọi lần render.
+  // ── Gửi tin nhắn ──
+  // Optimistic: bong bóng hiện ngay khi bấm gửi. Trước đây phải chờ trọn một
+  // vòng WebSocket mới thấy tin của chính mình, trên 3G cảm giác như app treo.
+  //
+  // Ba hàm dưới đây đặt trước nhánh `return` cho khách vì useCallback là hook —
+  // phải chạy ở mọi lần render, kể cả khi màn hình thoát sớm.
+  const deliver = useCallback(async (tempId, content, imageUrl) => {
+    try {
+      await chatService.sendMessage(content, imageUrl)
+      // Không xoá bản tạm ở đây: handleReceive sẽ thay nó bằng bản thật từ
+      // server. Nếu vì lý do nào đó server không phát về, tin vẫn còn trên màn
+      // hình ở trạng thái "đang gửi" chứ không biến mất.
+    } catch (err) {
+      setMessages((prev) => prev.map((m) =>
+        m.id === tempId ? { ...m, pending: false, failed: true } : m
+      ))
+      Toast.show({ type: 'error', text1: err.message || 'Gửi tin nhắn thất bại' })
+    }
+  }, [])
+
+  // Gửi lại một tin đã lỗi: đưa về trạng thái "đang gửi" rồi thử lại.
+  const handleRetry = useCallback((message) => {
+    if (!requireOnline('Gửi lại tin nhắn')) return
+    setMessages((prev) => prev.map((m) =>
+      m.id === message.id ? { ...m, failed: false, pending: true } : m
+    ))
+    deliver(message.id, message.content, message.imageUrl)
+  }, [requireOnline, deliver])
+
   const renderMessage = useCallback(({ item, index }) => {
     const prev = messages[index - 1]
     const showDate = !prev || !isSameDay(prev.createdAt, item.createdAt)
-    return <MessageBubble message={item} showDate={showDate} />
-  }, [messages])
+    return <MessageBubble message={item} showDate={showDate} onRetry={handleRetry} />
+  }, [messages, handleRetry])
 
   // ── Gợi ý đăng nhập nếu là Guest ──
   if (isGuest) {
@@ -163,22 +213,28 @@ export default function CustomerChatScreen() {
     )
   }
 
-  // ── Gửi tin nhắn ──
   const handleSend = async () => {
     const text = input.trim()
     const img = pendingImage
-    if ((!text && !img) || sending || img?.uploading) return
-    setSending(true)
+    if ((!text && !img) || img?.uploading) return
+    if (!requireOnline('Gửi tin nhắn')) return
+
+    const content = text || null
+    const imageUrl = img?.url || null
+    const tempId = `tmp-${Date.now()}`
+
     setInput('')
     setPendingImage(null)
-    try {
-      await chatService.sendMessage(text || null, img?.url || null)
-    } catch (err) {
-      setInput(text)
-      if (img) setPendingImage(img)
-      Toast.show({ type: 'error', text1: err.message || 'Gửi tin nhắn thất bại' })
-    }
-    setSending(false)
+    setMessages((prev) => [...prev, {
+      id: tempId,
+      content,
+      imageUrl,
+      createdAt: new Date().toISOString(),
+      isFromAdmin: false,
+      pending: true,
+    }])
+
+    deliver(tempId, content, imageUrl)
   }
 
   // ── Chọn ảnh ──
@@ -270,14 +326,14 @@ export default function CustomerChatScreen() {
             multiline
           />
           <TouchableOpacity
-            style={[s.sendBtn, (sending || (!input.trim() && !pendingImage) || pendingImage?.uploading) && s.sendBtnDisabled]}
+            style={[s.sendBtn, ((!input.trim() && !pendingImage) || pendingImage?.uploading) && s.sendBtnDisabled]}
             onPress={handleSend}
-            disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}
+            disabled={(!input.trim() && !pendingImage) || pendingImage?.uploading}
             hitSlop={6}
             accessibilityLabel="Gửi tin nhắn"
           >
             <LinearGradient
-              colors={(sending || (!input.trim() && !pendingImage)) ? ['#c5cdd8', '#b0b8c4'] : ['#C1440E', '#9B360B']}
+              colors={(!input.trim() && !pendingImage) ? ['#c5cdd8', '#b0b8c4'] : ['#C1440E', '#9B360B']}
               style={s.sendBtnGradient}
             >
               <Text style={s.sendBtnText}>➤</Text>
@@ -297,7 +353,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     backgroundColor: '#FEF3C7', paddingVertical: 6,
   },
-  reconnectBannerText: { fontFamily: fonts.bodySemiBold, fontSize: 11.5, color: '#B45309' },
+  reconnectBannerText: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: '#B45309' },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 14,
@@ -308,18 +364,18 @@ const s = StyleSheet.create({
   },
   headerAvatarText: { fontSize: 20 },
   headerInfo: { flex: 1 },
-  headerTitle: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 16 },
-  headerSub: { color: 'rgba(255,255,255,0.8)', fontFamily: fonts.body, fontSize: 11.5, marginTop: 1 },
+  headerTitle: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 17 },
+  headerSub: { color: 'rgba(255,255,255,0.8)', fontFamily: fonts.body, fontSize: 13, marginTop: 1 },
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  loaderText: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 13, marginTop: 10 },
+  loaderText: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 14, marginTop: 10 },
 
   // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   guestIcon: { fontSize: 54, marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
-  guestSub: { fontFamily: fonts.body, fontSize: 14, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
+  guestSub: { fontFamily: fonts.body, fontSize: 15, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   loginBtn: { backgroundColor: brand.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 12 },
-  loginBtnText: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 15 },
+  loginBtnText: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 16 },
 
   msgList: { paddingHorizontal: 12, paddingVertical: 14 },
   bubbleWrap: { marginVertical: 3, flexDirection: 'row' },
@@ -332,10 +388,13 @@ const s = StyleSheet.create({
   bubbleMe: { backgroundColor: brand.primary, borderBottomRightRadius: 4 },
   bubbleThem: { backgroundColor: '#fff', borderWidth: 1, borderColor: brand.cardBorder, borderBottomLeftRadius: 4 },
   msgImage: { width: 220, height: 150, borderRadius: 10, marginBottom: 6 },
-  bubbleTextMe: { color: '#fff', fontFamily: fonts.body, fontSize: 14, lineHeight: 20 },
-  bubbleTextThem: { color: brand.text, fontFamily: fonts.body, fontSize: 14, lineHeight: 20 },
-  bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.body, fontSize: 10, marginTop: 4, textAlign: 'right' },
-  bubbleTimeThem: { color: brand.textFaint, fontFamily: fonts.body, fontSize: 10, marginTop: 4, textAlign: 'right' },
+  bubbleTextMe: { color: '#fff', fontFamily: fonts.body, fontSize: 15, lineHeight: 20 },
+  bubbleTextThem: { color: brand.text, fontFamily: fonts.body, fontSize: 15, lineHeight: 20 },
+  bubblePending: { opacity: 0.65 },
+  retryBtn: { marginTop: 4, alignSelf: 'flex-end' },
+  retryText: { color: brand.danger, fontFamily: fonts.bodyBold, fontSize: 13.5 },
+  bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.body, fontSize: 12, marginTop: 4, textAlign: 'right' },
+  bubbleTimeThem: { color: brand.textFaint, fontFamily: fonts.body, fontSize: 12, marginTop: 4, textAlign: 'right' },
 
   // ── Date separator ──
   dateSepRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, paddingHorizontal: 8 },
@@ -343,13 +402,13 @@ const s = StyleSheet.create({
   dateSepPill: {
     backgroundColor: brand.card, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 4, marginHorizontal: 10,
   },
-  dateSepText: { fontFamily: fonts.body, fontSize: 11, color: brand.textMuted },
+  dateSepText: { fontFamily: fonts.body, fontSize: 12.5, color: brand.textMuted },
 
   // ── Empty state ──
   emptyWrap: { alignItems: 'center', marginTop: 80, paddingHorizontal: 40 },
   emptyIcon: { fontSize: 44, marginBottom: 12 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 20, color: brand.text, marginBottom: 6 },
-  emptyText: { fontFamily: fonts.body, fontSize: 13.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
+  emptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
 
   // ── Pending image bar ──
   pendingBar: {
@@ -365,7 +424,7 @@ const s = StyleSheet.create({
     width: 24, height: 24, borderRadius: 12, backgroundColor: '#ef4444',
     alignItems: 'center', justifyContent: 'center', marginLeft: 10,
   },
-  pendingRemoveText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  pendingRemoveText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   // ── Input row ──
   inputRow: {
@@ -381,7 +440,7 @@ const s = StyleSheet.create({
   input: {
     flex: 1, maxHeight: 100, paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 22, backgroundColor: brand.bg,
-    fontSize: 14, color: brand.text, fontFamily: fonts.body,
+    fontSize: 15, color: brand.text, fontFamily: fonts.body,
   },
   sendBtn: { width: 40, height: 40 },
   sendBtnDisabled: { opacity: 0.6 },
@@ -389,5 +448,5 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
   },
-  sendBtnText: { color: '#fff', fontSize: 16, marginLeft: 2 },
+  sendBtnText: { color: '#fff', fontSize: 17, marginLeft: 2 },
 })

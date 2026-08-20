@@ -4,6 +4,8 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import Toast from 'react-native-toast-message'
 import { useCart } from '../context/cart-context'
+import { useRequireOnline } from '../hooks/useRequireOnline'
+import { successFeedback, errorFeedback } from '../services/haptics'
 import { useAuth } from '../context/auth-context'
 import { orderService } from '../services/orderService'
 import { brand } from '../theme/colors'
@@ -90,6 +92,7 @@ export default function CartScreen() {
   const navigation = useNavigation()
   const { items, updateQuantity, removeItem, clear, totalPrice } = useCart()
   const { user, isGuest } = useAuth()
+  const requireOnline = useRequireOnline()
   const [checkoutOpen, setCheckoutOpen] = useState(false)
   const [form, setForm] = useState({
     recipientName: user?.fullName || user?.username || '',
@@ -124,6 +127,9 @@ export default function CartScreen() {
       Toast.show({ type: 'error', text1: 'Vui lòng nhập số điện thoại' })
       return
     }
+    // Giỏ hàng đã lưu trên máy nên không mất gì — người dùng đặt lại được ngay
+    // khi có sóng, miễn là biết rõ vì sao chưa gửi được.
+    if (!requireOnline('Đặt hàng')) return
     setSubmitting(true)
     try {
       await orderService.create({
@@ -133,10 +139,12 @@ export default function CartScreen() {
         note: form.note.trim() || null,
         items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
       })
+      successFeedback()
       Toast.show({ type: 'success', text1: 'Đặt hàng thành công! Chúng tôi sẽ liên hệ xác nhận sớm.' })
       clear()
       setCheckoutOpen(false)
     } catch (err) {
+      errorFeedback()
       Toast.show({ type: 'error', text1: err.message || 'Đặt hàng thất bại.' })
     } finally {
       setSubmitting(false)
@@ -270,7 +278,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', gap: 8 },
   emptyIcon: { fontSize: 48 },
-  emptyText: { color: brand.textMuted, fontFamily: fonts.bodyBold, fontSize: 14 },
+  emptyText: { color: brand.textMuted, fontFamily: fonts.bodyBold, fontSize: 15 },
   list: { padding: 16, gap: 12 },
   row: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -279,8 +287,8 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.04, shadowRadius: 4, elevation: 1,
   },
   rowInfo: { flex: 1, minWidth: 0 },
-  name: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#0F172A' },
-  unitPrice: { fontFamily: fonts.monoBold, fontSize: 12, color: brand.primary, marginTop: 2 },
+  name: { fontFamily: fonts.bodyBold, fontSize: 15, color: '#0F172A' },
+  unitPrice: { fontFamily: fonts.monoBold, fontSize: 13, color: brand.primary, marginTop: 2 },
   
   // ── Qty controls ──
   qtyControls: {
@@ -300,25 +308,25 @@ const styles = StyleSheet.create({
   qtyBtnDisabled: {
     backgroundColor: '#CBD5E1',
   },
-  qtyBtnText: { color: '#FFFFFF', fontSize: 15, fontFamily: fonts.bodyBold, lineHeight: 17 },
-  qtyBtnTextCompact: { fontSize: 13, lineHeight: 15 },
+  qtyBtnText: { color: '#FFFFFF', fontSize: 16, fontFamily: fonts.bodyBold, lineHeight: 18 },
+  qtyBtnTextCompact: { fontSize: 14, lineHeight: 16 },
   qtyInput: {
     minWidth: 36, maxWidth: 50, height: 28, textAlign: 'center',
-    fontFamily: fonts.bodyBold, fontSize: 13.5, color: '#0F172A',
+    fontFamily: fonts.bodyBold, fontSize: 14.5, color: '#0F172A',
     paddingHorizontal: 4, paddingVertical: 0,
   },
   qtyInputCompact: {
-    minWidth: 32, maxWidth: 44, height: 24, fontSize: 12.5,
+    minWidth: 32, maxWidth: 44, height: 24, fontSize: 13.5,
   },
 
   removeBtn: { padding: 4 },
-  removeText: { color: '#EF4444', fontFamily: fonts.bodyBold, fontSize: 12.5 },
+  removeText: { color: '#EF4444', fontFamily: fonts.bodyBold, fontSize: 13.5 },
   footer: { padding: 16, backgroundColor: '#FFFFFF', borderTopWidth: 1, borderTopColor: '#E2E8F0', gap: 12 },
   totalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  totalLabel: { fontFamily: fonts.bodyBold, fontSize: 14, color: '#0F172A' },
+  totalLabel: { fontFamily: fonts.bodyBold, fontSize: 15, color: '#0F172A' },
   totalValue: { fontFamily: fonts.monoBold, fontSize: 20, color: brand.primary },
   checkoutBtn: { backgroundColor: brand.primary, borderRadius: 12, paddingVertical: 14, alignItems: 'center' },
-  checkoutBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 16 },
+  checkoutBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 17 },
 
   modalRoot: { flex: 1, backgroundColor: '#F8FAFC' },
   modalHeader: {
@@ -326,29 +334,29 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
     backgroundColor: '#FFFFFF',
   },
-  modalTitle: { fontFamily: fonts.displayBold, fontSize: 17, color: '#0F172A' },
+  modalTitle: { fontFamily: fonts.displayBold, fontSize: 18, color: '#0F172A' },
   closeBtn: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#fee2e2', alignItems: 'center', justifyContent: 'center' },
-  closeBtnText: { color: '#ef4444', fontSize: 14, fontWeight: '700' },
+  closeBtnText: { color: '#ef4444', fontSize: 15, fontWeight: '700' },
   modalBody: { padding: 16, gap: 12 },
 
   orderSummarySection: {
     backgroundColor: '#FFFFFF', borderWidth: 1, borderColor: '#E2E8F0',
     borderRadius: 12, padding: 12, gap: 10,
   },
-  sectionTitle: { fontFamily: fonts.displayBold, fontSize: 13.5, color: '#0F172A' },
+  sectionTitle: { fontFamily: fonts.displayBold, fontSize: 14.5, color: '#0F172A' },
   modalItemRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     gap: 8, borderTopWidth: 1, borderTopColor: '#F1F5F9', paddingTop: 8,
   },
   modalItemInfo: { flex: 1, minWidth: 0 },
-  modalItemName: { fontFamily: fonts.bodySemiBold, fontSize: 13, color: '#0F172A' },
-  modalItemPrice: { fontFamily: fonts.monoBold, fontSize: 11.5, color: brand.primary, marginTop: 1 },
+  modalItemName: { fontFamily: fonts.bodySemiBold, fontSize: 14, color: '#0F172A' },
+  modalItemPrice: { fontFamily: fonts.monoBold, fontSize: 13, color: brand.primary, marginTop: 1 },
 
   field: { gap: 6 },
-  fieldLabel: { fontFamily: fonts.bodyBold, fontSize: 12.5, color: '#0F172A' },
+  fieldLabel: { fontFamily: fonts.bodyBold, fontSize: 13.5, color: '#0F172A' },
   input: {
     paddingHorizontal: 14, paddingVertical: 11, borderWidth: 1, borderColor: '#CBD5E1',
-    borderRadius: 10, backgroundColor: '#FFFFFF', fontSize: 14, color: '#0F172A', fontFamily: fonts.body,
+    borderRadius: 10, backgroundColor: '#FFFFFF', fontSize: 15, color: '#0F172A', fontFamily: fonts.body,
   },
   summaryRow: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline',

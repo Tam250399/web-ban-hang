@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: { width: '100%', height: '100%' },
-  imagePlaceholderText: { fontFamily: fonts.mono, fontSize: 10, color: brand.textMuted },
+  imagePlaceholderText: { fontFamily: fonts.mono, fontSize: 12, color: brand.textMuted },
   codeBadge: {
     position: 'absolute',
     top: 8,
@@ -82,22 +82,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  codeBadgeText: { fontFamily: fonts.monoBold, fontSize: 9, color: '#FFFFFF' },
+  codeBadgeText: { fontFamily: fonts.monoBold, fontSize: 11, color: '#FFFFFF' },
   body: { padding: 12 },
   category: {
     fontFamily: fonts.monoSemiBold,
-    fontSize: 9,
+    fontSize: 11.5,
     color: brand.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   name: {
     fontFamily: fonts.bodyBold,
-    fontSize: 13,
+    fontSize: 14,
     color: '#0F172A',
     marginTop: 4,
     marginBottom: 6,
-    lineHeight: 18,
+    lineHeight: 20,
   },
   priceRow: {
     flexDirection: 'row',
@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     marginTop: 4,
   },
-  price: { fontFamily: fonts.monoBold, fontSize: 14, color: brand.primary },
+  price: { fontFamily: fonts.monoBold, fontSize: 15, color: brand.primary },
   addBtn: {
     width: '100%',
     marginTop: 10,
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  addBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 11.5 },
+  addBtnText: { color: '#FFFFFF', fontFamily: fonts.displayBold, fontSize: 13 },
 })
 
 export default memo(ProductCard)

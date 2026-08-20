@@ -7,10 +7,12 @@ import Toast from 'react-native-toast-message'
 import { AuthProvider } from './src/context/AuthContext'
 import { useAuth } from './src/context/auth-context'
 import { CartProvider } from './src/context/CartContext'
+import { NetworkProvider } from './src/context/NetworkContext'
 import RootNavigator from './src/navigation/RootNavigator'
 import { useAppFonts } from './src/theme/fonts'
 import { toastConfig } from './src/components/ui/toastConfig'
 import ErrorBoundary from './src/components/ui/ErrorBoundary'
+import AppLockGate from './src/components/ui/AppLockGate'
 import OfflineBanner from './src/components/ui/OfflineBanner'
 
 // Giữ màn splash gốc (logo Lý Sáu) hiện tới khi tải xong font, thay vì để lộ
@@ -49,6 +51,8 @@ function AppContent() {
       <OfflineBanner />
       <RootNavigator />
       <StatusBar style="dark" />
+      {/* Đặt cuối cùng để phủ lên toàn bộ navigator khi app bị khoá. */}
+      <AppLockGate />
     </>
   )
 }
@@ -57,11 +61,15 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <ErrorBoundary>
-        <AuthProvider>
-          <CartProvider>
-            <AppContent />
-          </CartProvider>
-        </AuthProvider>
+        {/* NetworkProvider nằm ngoài cùng: AuthProvider/CartProvider và các màn
+            hình bên trong đều cần biết trạng thái mạng. */}
+        <NetworkProvider>
+          <AuthProvider>
+            <CartProvider>
+              <AppContent />
+            </CartProvider>
+          </AuthProvider>
+        </NetworkProvider>
       </ErrorBoundary>
       {/* Ngoài ErrorBoundary để toast vẫn hiện được khi cây app bên trong đã hỏng. */}
       <Toast config={toastConfig} />

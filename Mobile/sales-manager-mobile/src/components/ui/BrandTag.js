@@ -23,7 +23,7 @@ const styles = StyleSheet.create({
   text: {
     color: brand.ink,
     fontFamily: fonts.monoBold,
-    fontSize: 11,
+    fontSize: 12.5,
     letterSpacing: 0.4,
   },
 })

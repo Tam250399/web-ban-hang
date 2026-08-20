@@ -3,7 +3,6 @@ import {
   FlatList, Modal, StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
 // Bộ chọn toàn màn hình, chữ to - nút to, dành cho người lớn tuổi.
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
   },
   headerTextWrap: { flex: 1, gap: 2 },
   title: { fontFamily: fonts.adminDisplayBold, fontSize: 21, color: '#0F172A' },
-  hint: { fontFamily: fonts.adminBody, fontSize: 14, color: '#64748B' },
+  hint: { fontFamily: fonts.adminBody, fontSize: 15, color: '#64748B' },
   closeBtn: {
     height: 48,
     paddingHorizontal: 16,
@@ -134,7 +133,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  closeBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 16, color: '#DC2626' },
+  closeBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: '#DC2626' },
 
   searchWrap: {
     flexDirection: 'row',
@@ -152,7 +151,7 @@ const styles = StyleSheet.create({
   searchIcon: { fontSize: 18 },
   searchInput: {
     flex: 1,
-    fontSize: 17,
+    fontSize: 18,
     color: '#0F172A',
     fontFamily: fonts.adminBodyMedium,
     paddingVertical: 0,
@@ -161,7 +160,7 @@ const styles = StyleSheet.create({
     width: 34, height: 34, borderRadius: 17, backgroundColor: '#E2E8F0',
     alignItems: 'center', justifyContent: 'center',
   },
-  clearBtnText: { fontSize: 14, color: '#475569', fontFamily: fonts.adminBodyBold },
+  clearBtnText: { fontSize: 15, color: '#475569', fontFamily: fonts.adminBodyBold },
 
   listContent: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
   row: {
@@ -178,15 +177,15 @@ const styles = StyleSheet.create({
   },
   rowTextWrap: { flex: 1, gap: 3 },
   rowLabel: { fontFamily: fonts.adminBodyBold, fontSize: 18, color: '#0F172A', lineHeight: 24 },
-  rowSub: { fontFamily: fonts.adminBodyMedium, fontSize: 15, color: '#475569' },
-  rowNote: { fontFamily: fonts.adminBody, fontSize: 14, color: '#64748B' },
+  rowSub: { fontFamily: fonts.adminBodyMedium, fontSize: 16, color: '#475569' },
+  rowNote: { fontFamily: fonts.adminBody, fontSize: 15, color: '#64748B' },
   rowChevron: { fontSize: 30, color: '#94A3B8', fontFamily: fonts.adminBodyBold, marginTop: -4 },
   pickedBadge: {
     backgroundColor: '#DCFCE7', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 10,
   },
-  pickedBadgeText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: '#15803D' },
+  pickedBadgeText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: '#15803D' },
 
   emptyWrap: { alignItems: 'center', paddingTop: 60, gap: 10 },
   emptyIcon: { fontSize: 40 },
-  emptyText: { fontFamily: fonts.adminBodyMedium, fontSize: 17, color: '#64748B', textAlign: 'center' },
+  emptyText: { fontFamily: fonts.adminBodyMedium, fontSize: 18, color: '#64748B', textAlign: 'center' },
 })

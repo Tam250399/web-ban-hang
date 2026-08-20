@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   primaryText: {
     color: brand.white,
     fontFamily: fonts.displayExtraBold,
-    fontSize: 16,
+    fontSize: 17,
   },
   outline: {
     borderWidth: 1.5,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   outlineText: {
     color: brand.ink,
     fontFamily: fonts.displayBold,
-    fontSize: 13,
+    fontSize: 14,
   },
   outlineTextDark: { color: brand.outlineText },
 })

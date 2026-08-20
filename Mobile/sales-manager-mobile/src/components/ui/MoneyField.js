@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1, height: '100%', paddingHorizontal: 12, paddingVertical: 0,
-    fontSize: 13, color: admin.text, fontFamily: fonts.adminBody,
+    fontSize: 14, color: admin.text, fontFamily: fonts.adminBody,
   },
-  suffix: { fontFamily: fonts.adminBodySemiBold, fontSize: 12.5, color: admin.textMuted },
+  suffix: { fontFamily: fonts.adminBodySemiBold, fontSize: 13.5, color: admin.textMuted },
 })

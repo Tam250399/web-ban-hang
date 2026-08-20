@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 9 },
   badgeOnline: { backgroundColor: C.onlineBg },
   badgeManual: { backgroundColor: C.manualBg },
-  badgeText: { fontFamily: fonts.adminBodyBold, fontSize: 12.5 },
+  badgeText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5 },
   badgeTextOnline: { color: C.onlineText },
   badgeTextManual: { color: C.textSoft },
 
@@ -117,8 +117,8 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   infoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 },
-  infoLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
-  infoValue: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.text },
+  infoLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textMuted },
+  infoValue: { fontFamily: fonts.adminBodyBold, fontSize: 15.5, color: C.text },
 
   totalRow: {
     flexDirection: 'row',
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     borderTopColor: C.border,
     paddingTop: 10,
   },
-  totalLabel: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.textSoft },
+  totalLabel: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.textSoft },
   totalValue: { fontFamily: fonts.adminDisplayBold, fontSize: 21, color: C.money },
 
   actions: { flexDirection: 'row', gap: 8, marginTop: 3 },
@@ -136,12 +136,12 @@ const styles = StyleSheet.create({
     flex: 2, height: 46, borderRadius: 11, borderWidth: 2, borderColor: '#BFDBFE',
     backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center',
   },
-  editText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.primary },
+  editText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.primary },
   deleteBtn: {
     flex: 1, height: 46, borderRadius: 11, borderWidth: 2, borderColor: '#FCA5A5',
     backgroundColor: C.dangerSoft, alignItems: 'center', justifyContent: 'center',
   },
-  deleteText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.danger },
+  deleteText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.danger },
 })
 
 export default memo(InvoiceCard)

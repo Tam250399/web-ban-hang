@@ -3,13 +3,15 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import Toast from 'react-native-toast-message'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
 import { customerService } from '../../services/customerService'
 import { productService } from '../../services/productService'
 import { useAuth } from '../../context/auth-context'
+import { useRequireOnline } from '../../hooks/useRequireOnline'
+import { successFeedback } from '../../services/haptics'
 import BigPickerModal from '../../components/ui/BigPickerModal'
 import MoneyField from '../../components/ui/MoneyField'
 import { fonts } from '../../theme/fonts'
@@ -48,6 +50,7 @@ const newKey = () => Math.random().toString(36).slice(2)
 
 export default function StockFormScreen({ navigation, route }) {
   const { user } = useAuth()
+  const requireOnline = useRequireOnline()
   const invoiceId = route.params?.invoiceId
   const isEdit = !!invoiceId
 
@@ -255,6 +258,9 @@ export default function StockFormScreen({ navigation, route }) {
   const handleSave = async () => {
     if (!checkStep(0)) { setStep(0); return }
     if (!checkStep(1)) { setStep(1); return }
+    // Chặn trước khi setSaving: nếu để request tự hết hạn thì nút kẹt ở "Đang
+    // lưu..." 15 giây rồi mới báo lỗi, dễ khiến người dùng bấm lưu nhiều lần.
+    if (!requireOnline('Lưu phiếu bán hàng')) return
 
     setSaving(true)
     try {
@@ -270,9 +276,11 @@ export default function StockFormScreen({ navigation, route }) {
       }
       if (isEdit) {
         await salesInvoiceService.update(invoiceId, payload)
+        successFeedback()
         Toast.show({ type: 'success', text1: 'Đã cập nhật phiếu bán hàng' })
       } else {
         await salesInvoiceService.create(payload)
+        successFeedback()
         Toast.show({ type: 'success', text1: 'Đã lưu phiếu bán hàng' })
       }
       navigation.goBack()
@@ -312,385 +320,383 @@ export default function StockFormScreen({ navigation, route }) {
   }
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-        {/* ══ Thanh trên cùng ══ */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
-            <Text style={styles.backBtnText}>‹</Text>
-          </TouchableOpacity>
-          <View style={styles.headerTitleWrap}>
-            <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu bán hàng' : 'Tạo phiếu bán hàng'}</Text>
-            <Text style={styles.headerSubtitle}>Bước {step + 1} trên 3 · {STEP_LABELS[step]}</Text>
-          </View>
-          <TouchableOpacity style={styles.closeBtn} onPress={handleClose} activeOpacity={0.7}>
-            <Text style={styles.closeBtnText}>✕</Text>
-          </TouchableOpacity>
+    <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
+      {/* ══ Thanh trên cùng ══ */}
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
+          <Text style={styles.backBtnText}>‹</Text>
+        </TouchableOpacity>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu bán hàng' : 'Tạo phiếu bán hàng'}</Text>
+          <Text style={styles.headerSubtitle}>Bước {step + 1} trên 3 · {STEP_LABELS[step]}</Text>
         </View>
+        <TouchableOpacity style={styles.closeBtn} onPress={handleClose} activeOpacity={0.7}>
+          <Text style={styles.closeBtnText}>✕</Text>
+        </TouchableOpacity>
+      </View>
 
-        {/* ══ Thanh 3 bước ══ */}
-        <View style={styles.stepsBar}>
-          {STEP_LABELS.map((label, index) => {
-            const done = index < step
-            const active = index === step
-            return (
+      {/* ══ Thanh 3 bước ══ */}
+      <View style={styles.stepsBar}>
+        {STEP_LABELS.map((label, index) => {
+          const done = index < step
+          const active = index === step
+          return (
+            <TouchableOpacity
+              key={label}
+              style={styles.stepItem}
+              onPress={() => goStep(index)}
+              activeOpacity={0.7}
+            >
+              <View style={[styles.stepDot, done && styles.stepDotDone, active && styles.stepDotActive]}>
+                <Text style={[styles.stepDotText, (done || active) && styles.stepDotTextOn]}>
+                  {done ? '✓' : index + 1}
+                </Text>
+              </View>
+              <Text style={[styles.stepLabel, active && styles.stepLabelActive]} numberOfLines={1}>
+                {label}
+              </Text>
+            </TouchableOpacity>
+          )
+        })}
+      </View>
+
+      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          style={styles.body}
+          contentContainerStyle={styles.bodyContent}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          {/* ── Băng thông báo lỗi bằng lời dễ hiểu ── */}
+          {!!stepError && (
+            <View style={styles.errorBanner}>
+              <Text style={styles.errorBannerIcon}>⚠️</Text>
+              <Text style={styles.errorBannerText}>{stepError}</Text>
+            </View>
+          )}
+
+          {/* ══════════ BƯỚC 1: KHÁCH HÀNG & NGÀY ══════════ */}
+          {step === 0 && (
+            <>
+              <Text style={styles.bigQuestion}>Bán cho ai?</Text>
+
               <TouchableOpacity
-                key={label}
-                style={styles.stepItem}
-                onPress={() => goStep(index)}
+                style={[styles.pickBox, !!customerId && styles.pickBoxFilled, !!stepError && !customerId && styles.pickBoxError]}
+                onPress={() => setPicker('customer')}
                 activeOpacity={0.7}
               >
-                <View style={[styles.stepDot, done && styles.stepDotDone, active && styles.stepDotActive]}>
-                  <Text style={[styles.stepDotText, (done || active) && styles.stepDotTextOn]}>
-                    {done ? '✓' : index + 1}
-                  </Text>
-                </View>
-                <Text style={[styles.stepLabel, active && styles.stepLabelActive]} numberOfLines={1}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            )
-          })}
-        </View>
-
-        <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            style={styles.body}
-            contentContainerStyle={styles.bodyContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
-            {/* ── Băng thông báo lỗi bằng lời dễ hiểu ── */}
-            {!!stepError && (
-              <View style={styles.errorBanner}>
-                <Text style={styles.errorBannerIcon}>⚠️</Text>
-                <Text style={styles.errorBannerText}>{stepError}</Text>
-              </View>
-            )}
-
-            {/* ══════════ BƯỚC 1: KHÁCH HÀNG & NGÀY ══════════ */}
-            {step === 0 && (
-              <>
-                <Text style={styles.bigQuestion}>Bán cho ai?</Text>
-
-                <TouchableOpacity
-                  style={[styles.pickBox, !!customerId && styles.pickBoxFilled, !!stepError && !customerId && styles.pickBoxError]}
-                  onPress={() => setPicker('customer')}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.pickBoxLeft}>
-                    <Text style={styles.pickBoxIcon}>👤</Text>
-                    <View style={styles.pickBoxTextWrap}>
-                      {customerId ? (
-                        <>
-                          <Text style={styles.pickBoxValue} numberOfLines={2}>
-                            {selectedCustomer?.fullName || customerName}
-                          </Text>
-                          {!!selectedCustomer?.phoneNumber && (
-                            <Text style={styles.pickBoxSub}>📞 {selectedCustomer.phoneNumber}</Text>
-                          )}
-                        </>
-                      ) : (
-                        <Text style={styles.pickBoxPlaceholder}>Chạm để chọn khách hàng</Text>
-                      )}
-                    </View>
-                  </View>
-                  <Text style={styles.pickBoxAction}>{customerId ? 'Đổi' : 'Chọn'}</Text>
-                </TouchableOpacity>
-
-                <Text style={styles.bigQuestion}>Bán ngày nào?</Text>
-
-                <View style={styles.dateCard}>
-                  <View style={styles.dateDisplay}>
-                    <Text style={styles.dateBig}>{formatDDMMYYYY(invoiceDate)}</Text>
-                    <Text style={styles.dateDay}>{dayLabel(invoiceDate)}</Text>
-                  </View>
-                  <View style={styles.dateBtnRow}>
-                    <TouchableOpacity
-                      style={[styles.dateQuickBtn, isSameDay(invoiceDate, new Date()) && styles.dateQuickBtnOn]}
-                      onPress={() => { setInvoiceDate(new Date()); setDirty(true) }}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[styles.dateQuickText, isSameDay(invoiceDate, new Date()) && styles.dateQuickTextOn]}
-                      >
-                        Hôm nay
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.dateQuickBtn}
-                      onPress={() => setShowDatePicker(true)}
-                      activeOpacity={0.7}
-                    >
-                      <Text style={styles.dateQuickText}>📅  Chọn ngày khác</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-
-                <Text style={styles.helperNote}>
-                  Xong bước này, bấm nút xanh bên dưới để sang bước chọn hàng.
-                </Text>
-              </>
-            )}
-
-            {/* ══════════ BƯỚC 2: HÀNG HÓA ══════════ */}
-            {step === 1 && (
-              <>
-                <Text style={styles.bigQuestion}>Bán những hàng gì?</Text>
-
-                <TouchableOpacity style={styles.addBigBtn} onPress={() => setPicker('product')} activeOpacity={0.8}>
-                  <Text style={styles.addBigIcon}>＋</Text>
-                  <Text style={styles.addBigText}>THÊM MẶT HÀNG</Text>
-                </TouchableOpacity>
-
-                {items.length === 0 ? (
-                  <View style={styles.emptyBox}>
-                    <Text style={styles.emptyIcon}>📦</Text>
-                    <Text style={styles.emptyTitle}>Chưa có mặt hàng nào</Text>
-                    <Text style={styles.emptyHint}>Bấm nút “THÊM MẶT HÀNG” ở trên để chọn hàng cần bán.</Text>
-                  </View>
-                ) : (
-                  items.map((it, idx) => {
-                    const product = productById(it.productId)
-                    const rowErr = rowErrors[it.key]
-                    const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
-                    return (
-                      <View key={it.key} style={[styles.itemCard, !!rowErr && styles.itemCardError]}>
-                        {/* Tên hàng */}
-                        <View style={styles.itemHead}>
-                          <View style={styles.itemIndex}>
-                            <Text style={styles.itemIndexText}>{idx + 1}</Text>
-                          </View>
-                          <View style={styles.itemHeadText}>
-                            <Text style={styles.itemName} numberOfLines={2}>
-                              {product ? product.productName : 'Mặt hàng'}
-                            </Text>
-                            {!!product && (
-                              <Text style={styles.itemMeta}>
-                                Mã {product.productCode}
-                                {product.unit ? `  ·  Đơn vị: ${product.unit}` : ''}
-                              </Text>
-                            )}
-                          </View>
-                        </View>
-
-                        {/* Số lượng: nút trừ / cộng cỡ lớn */}
-                        <Text style={styles.fieldLabel}>Số lượng</Text>
-                        <View style={styles.qtyRow}>
-                          <TouchableOpacity
-                            style={[styles.qtyBtn, Number(it.quantity) <= 1 && styles.qtyBtnOff]}
-                            onPress={() => changeQty(it.key, -1)}
-                            activeOpacity={0.7}
-                          >
-                            <Text style={styles.qtyBtnText}>−</Text>
-                          </TouchableOpacity>
-                          <TextInput
-                            style={[styles.qtyInput, !!rowErr?.quantity && styles.inputError]}
-                            keyboardType="number-pad"
-                            value={String(it.quantity)}
-                            onChangeText={(v) => updateItem(it.key, { quantity: v.replace(/\D/g, '') })}
-                            selectTextOnFocus
-                          />
-                          <TouchableOpacity
-                            style={styles.qtyBtn}
-                            onPress={() => changeQty(it.key, 1)}
-                            activeOpacity={0.7}
-                          >
-                            <Text style={styles.qtyBtnText}>＋</Text>
-                          </TouchableOpacity>
-                        </View>
-                        {!!rowErr?.quantity && <Text style={styles.inlineError}>⚠️ {rowErr.quantity}</Text>}
-
-                        {/* Đơn giá */}
-                        <Text style={styles.fieldLabel}>Đơn giá bán</Text>
-                        <MoneyField
-                          value={it.unitPrice}
-                          onChangeValue={(v) => updateItem(it.key, { unitPrice: v })}
-                          style={[styles.priceWrap, !!rowErr?.unitPrice && styles.inputError]}
-                          inputStyle={styles.priceInput}
-                        />
-                        {!!rowErr?.unitPrice && <Text style={styles.inlineError}>⚠️ {rowErr.unitPrice}</Text>}
-                        {!!product && Number(it.unitPrice) !== Number(product.price) && (
-                          <TouchableOpacity
-                            onPress={() => updateItem(it.key, { unitPrice: product.price ?? 0 })}
-                            activeOpacity={0.7}
-                            style={styles.resetPriceBtn}
-                          >
-                            <Text style={styles.resetPriceText}>
-                              ↺  Về giá niêm yết {formatVnd(product.price)}đ
-                            </Text>
-                          </TouchableOpacity>
-                        )}
-
-                        {/* Thành tiền + Bỏ hàng */}
-                        <View style={styles.itemFooter}>
-                          <Text style={styles.itemFooterLabel}>Thành tiền</Text>
-                          <Text style={styles.itemFooterValue}>{formatVnd(lineTotal)}đ</Text>
-                        </View>
-                        <TouchableOpacity style={styles.removeBtn} onPress={() => removeRow(it.key)} activeOpacity={0.7}>
-                          <Text style={styles.removeBtnText}>🗑  Bỏ mặt hàng này</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )
-                  })
-                )}
-              </>
-            )}
-
-            {/* ══════════ BƯỚC 3: KIỂM TRA & LƯU ══════════ */}
-            {step === 2 && (
-              <>
-                <Text style={styles.bigQuestion}>Kiểm tra lại phiếu</Text>
-
-                <View style={styles.reviewCard}>
-                  <View style={styles.reviewHead}>
-                    <Text style={styles.reviewHeadText}>KHÁCH HÀNG</Text>
-                    <TouchableOpacity onPress={() => setStep(0)} activeOpacity={0.7} style={styles.editLinkBtn}>
-                      <Text style={styles.editLinkText}>Sửa</Text>
-                    </TouchableOpacity>
-                  </View>
-                  <Text style={styles.reviewValue}>{selectedCustomer?.fullName || customerName}</Text>
-                  {!!selectedCustomer?.phoneNumber && (
-                    <Text style={styles.reviewSub}>📞 {selectedCustomer.phoneNumber}</Text>
-                  )}
-                  <View style={styles.reviewDivider} />
-                  <View style={styles.reviewHead}>
-                    <Text style={styles.reviewHeadText}>NGÀY BÁN</Text>
-                  </View>
-                  <Text style={styles.reviewValue}>
-                    {formatDDMMYYYY(invoiceDate)} <Text style={styles.reviewSub}>({dayLabel(invoiceDate)})</Text>
-                  </Text>
-                </View>
-
-                <View style={styles.reviewCard}>
-                  <View style={styles.reviewHead}>
-                    <Text style={styles.reviewHeadText}>HÀNG BÁN ({items.length} mặt hàng)</Text>
-                    <TouchableOpacity onPress={() => setStep(1)} activeOpacity={0.7} style={styles.editLinkBtn}>
-                      <Text style={styles.editLinkText}>Sửa</Text>
-                    </TouchableOpacity>
-                  </View>
-                  {items.map((it, idx) => {
-                    const product = productById(it.productId)
-                    const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
-                    return (
-                      <View key={it.key} style={styles.reviewLine}>
-                        <Text style={styles.reviewLineName} numberOfLines={2}>
-                          {idx + 1}. {product ? product.productName : 'Mặt hàng'}
+                <View style={styles.pickBoxLeft}>
+                  <Text style={styles.pickBoxIcon}>👤</Text>
+                  <View style={styles.pickBoxTextWrap}>
+                    {customerId ? (
+                      <>
+                        <Text style={styles.pickBoxValue} numberOfLines={2}>
+                          {selectedCustomer?.fullName || customerName}
                         </Text>
-                        <View style={styles.reviewLineBottom}>
-                          <Text style={styles.reviewLineCalc}>
-                            {formatVnd(it.quantity)}{product?.unit ? ` ${product.unit}` : ''} × {formatVnd(it.unitPrice)}đ
-                          </Text>
-                          <Text style={styles.reviewLineTotal}>{formatVnd(lineTotal)}đ</Text>
-                        </View>
-                      </View>
-                    )
-                  })}
+                        {!!selectedCustomer?.phoneNumber && (
+                          <Text style={styles.pickBoxSub}>📞 {selectedCustomer.phoneNumber}</Text>
+                        )}
+                      </>
+                    ) : (
+                      <Text style={styles.pickBoxPlaceholder}>Chạm để chọn khách hàng</Text>
+                    )}
+                  </View>
                 </View>
-
-                <View style={styles.totalCard}>
-                  <Text style={styles.totalCardLabel}>KHÁCH PHẢI TRẢ</Text>
-                  <Text style={styles.totalCardValue}>{formatVnd(grandTotal)}đ</Text>
-                </View>
-
-                <Text style={styles.helperNote}>
-                  Nếu mọi thứ đã đúng, bấm nút xanh “LƯU PHIẾU” bên dưới.
-                </Text>
-              </>
-            )}
-          </ScrollView>
-
-          {/* ══ Thanh dưới cùng: luôn hiện, nút to ══ */}
-          <View style={styles.footer}>
-            {step === 1 && items.length > 0 && (
-              <View style={styles.footerTotalRow}>
-                <Text style={styles.footerTotalLabel}>Tổng cộng ({items.length} mặt hàng)</Text>
-                <Text style={styles.footerTotalValue}>{formatVnd(grandTotal)}đ</Text>
-              </View>
-            )}
-            <View style={styles.footerBtnRow}>
-              <TouchableOpacity style={styles.backBigBtn} onPress={handleBack} activeOpacity={0.7}>
-                <Text style={styles.backBigText}>{step === 0 ? 'Hủy' : '‹  Quay lại'}</Text>
+                <Text style={styles.pickBoxAction}>{customerId ? 'Đổi' : 'Chọn'}</Text>
               </TouchableOpacity>
-              {step < 2 ? (
-                <TouchableOpacity style={styles.nextBigBtn} onPress={goNext} activeOpacity={0.85}>
-                  <Text style={styles.nextBigText}>TIẾP TỤC  ›</Text>
-                </TouchableOpacity>
-              ) : (
-                <TouchableOpacity
-                  style={[styles.saveBigBtn, saving && styles.btnDisabled]}
-                  onPress={handleSave}
-                  disabled={saving}
-                  activeOpacity={0.85}
-                >
-                  <Text style={styles.nextBigText}>{saving ? 'ĐANG LƯU...' : '✓  LƯU PHIẾU'}</Text>
-                </TouchableOpacity>
-              )}
-            </View>
-          </View>
-        </KeyboardAvoidingView>
 
-        {/* ══ Bộ chọn khách hàng / sản phẩm ══ */}
-        <BigPickerModal
-          visible={picker === 'customer'}
-          title="Chọn khách hàng"
-          hint="Chạm vào tên khách hàng để chọn"
-          searchPlaceholder="Gõ tên hoặc số điện thoại..."
-          data={customerOptions}
-          onSelect={(option) => {
-            setCustomerId(option.value)
-            setCustomerName(option.label)
-            setDirty(true)
-            setStepError('')
-            setPicker(null)
-          }}
-          onClose={() => setPicker(null)}
-          emptyText="Không tìm thấy khách hàng nào"
-        />
+              <Text style={styles.bigQuestion}>Bán ngày nào?</Text>
 
-        <BigPickerModal
-          visible={picker === 'product'}
-          title="Chọn mặt hàng"
-          hint="Chạm vào mặt hàng để thêm vào phiếu"
-          searchPlaceholder="Gõ tên hoặc mã hàng..."
-          data={productOptions}
-          onSelect={(option) => {
-            const product = productById(option.value)
-            if (product) addProduct(product)
-          }}
-          onClose={() => setPicker(null)}
-          emptyText="Không tìm thấy mặt hàng nào"
-        />
-
-        {/* ══ Lịch chọn ngày ══ */}
-        {Platform.OS === 'android' && showDatePicker && (
-          <DateTimePicker value={invoiceDate} mode="date" display="default" onChange={handleDateChange} />
-        )}
-
-        {Platform.OS === 'ios' && (
-          <Modal visible={showDatePicker} transparent animationType="slide">
-            <TouchableOpacity style={styles.iosOverlay} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
-              <View style={styles.iosSheet}>
-                <View style={styles.iosSheetHead}>
-                  <Text style={styles.iosSheetTitle}>Chọn ngày bán</Text>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.iosDoneBtn} activeOpacity={0.7}>
-                    <Text style={styles.iosDoneText}>Xong</Text>
+              <View style={styles.dateCard}>
+                <View style={styles.dateDisplay}>
+                  <Text style={styles.dateBig}>{formatDDMMYYYY(invoiceDate)}</Text>
+                  <Text style={styles.dateDay}>{dayLabel(invoiceDate)}</Text>
+                </View>
+                <View style={styles.dateBtnRow}>
+                  <TouchableOpacity
+                    style={[styles.dateQuickBtn, isSameDay(invoiceDate, new Date()) && styles.dateQuickBtnOn]}
+                    onPress={() => { setInvoiceDate(new Date()); setDirty(true) }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[styles.dateQuickText, isSameDay(invoiceDate, new Date()) && styles.dateQuickTextOn]}
+                    >
+                      Hôm nay
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.dateQuickBtn}
+                    onPress={() => setShowDatePicker(true)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={styles.dateQuickText}>📅  Chọn ngày khác</Text>
                   </TouchableOpacity>
                 </View>
-                <DateTimePicker
-                  value={invoiceDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={handleDateChange}
-                  locale="vi-VN"
-                  style={styles.iosPicker}
-                />
               </View>
+
+              <Text style={styles.helperNote}>
+                Xong bước này, bấm nút xanh bên dưới để sang bước chọn hàng.
+              </Text>
+            </>
+          )}
+
+          {/* ══════════ BƯỚC 2: HÀNG HÓA ══════════ */}
+          {step === 1 && (
+            <>
+              <Text style={styles.bigQuestion}>Bán những hàng gì?</Text>
+
+              <TouchableOpacity style={styles.addBigBtn} onPress={() => setPicker('product')} activeOpacity={0.8}>
+                <Text style={styles.addBigIcon}>＋</Text>
+                <Text style={styles.addBigText}>THÊM MẶT HÀNG</Text>
+              </TouchableOpacity>
+
+              {items.length === 0 ? (
+                <View style={styles.emptyBox}>
+                  <Text style={styles.emptyIcon}>📦</Text>
+                  <Text style={styles.emptyTitle}>Chưa có mặt hàng nào</Text>
+                  <Text style={styles.emptyHint}>Bấm nút “THÊM MẶT HÀNG” ở trên để chọn hàng cần bán.</Text>
+                </View>
+              ) : (
+                items.map((it, idx) => {
+                  const product = productById(it.productId)
+                  const rowErr = rowErrors[it.key]
+                  const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
+                  return (
+                    <View key={it.key} style={[styles.itemCard, !!rowErr && styles.itemCardError]}>
+                      {/* Tên hàng */}
+                      <View style={styles.itemHead}>
+                        <View style={styles.itemIndex}>
+                          <Text style={styles.itemIndexText}>{idx + 1}</Text>
+                        </View>
+                        <View style={styles.itemHeadText}>
+                          <Text style={styles.itemName} numberOfLines={2}>
+                            {product ? product.productName : 'Mặt hàng'}
+                          </Text>
+                          {!!product && (
+                            <Text style={styles.itemMeta}>
+                              Mã {product.productCode}
+                              {product.unit ? `  ·  Đơn vị: ${product.unit}` : ''}
+                            </Text>
+                          )}
+                        </View>
+                      </View>
+
+                      {/* Số lượng: nút trừ / cộng cỡ lớn */}
+                      <Text style={styles.fieldLabel}>Số lượng</Text>
+                      <View style={styles.qtyRow}>
+                        <TouchableOpacity
+                          style={[styles.qtyBtn, Number(it.quantity) <= 1 && styles.qtyBtnOff]}
+                          onPress={() => changeQty(it.key, -1)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.qtyBtnText}>−</Text>
+                        </TouchableOpacity>
+                        <TextInput
+                          style={[styles.qtyInput, !!rowErr?.quantity && styles.inputError]}
+                          keyboardType="number-pad"
+                          value={String(it.quantity)}
+                          onChangeText={(v) => updateItem(it.key, { quantity: v.replace(/\D/g, '') })}
+                          selectTextOnFocus
+                        />
+                        <TouchableOpacity
+                          style={styles.qtyBtn}
+                          onPress={() => changeQty(it.key, 1)}
+                          activeOpacity={0.7}
+                        >
+                          <Text style={styles.qtyBtnText}>＋</Text>
+                        </TouchableOpacity>
+                      </View>
+                      {!!rowErr?.quantity && <Text style={styles.inlineError}>⚠️ {rowErr.quantity}</Text>}
+
+                      {/* Đơn giá */}
+                      <Text style={styles.fieldLabel}>Đơn giá bán</Text>
+                      <MoneyField
+                        value={it.unitPrice}
+                        onChangeValue={(v) => updateItem(it.key, { unitPrice: v })}
+                        style={[styles.priceWrap, !!rowErr?.unitPrice && styles.inputError]}
+                        inputStyle={styles.priceInput}
+                      />
+                      {!!rowErr?.unitPrice && <Text style={styles.inlineError}>⚠️ {rowErr.unitPrice}</Text>}
+                      {!!product && Number(it.unitPrice) !== Number(product.price) && (
+                        <TouchableOpacity
+                          onPress={() => updateItem(it.key, { unitPrice: product.price ?? 0 })}
+                          activeOpacity={0.7}
+                          style={styles.resetPriceBtn}
+                        >
+                          <Text style={styles.resetPriceText}>
+                            ↺  Về giá niêm yết {formatVnd(product.price)}đ
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {/* Thành tiền + Bỏ hàng */}
+                      <View style={styles.itemFooter}>
+                        <Text style={styles.itemFooterLabel}>Thành tiền</Text>
+                        <Text style={styles.itemFooterValue}>{formatVnd(lineTotal)}đ</Text>
+                      </View>
+                      <TouchableOpacity style={styles.removeBtn} onPress={() => removeRow(it.key)} activeOpacity={0.7}>
+                        <Text style={styles.removeBtnText}>🗑  Bỏ mặt hàng này</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )
+                })
+              )}
+            </>
+          )}
+
+          {/* ══════════ BƯỚC 3: KIỂM TRA & LƯU ══════════ */}
+          {step === 2 && (
+            <>
+              <Text style={styles.bigQuestion}>Kiểm tra lại phiếu</Text>
+
+              <View style={styles.reviewCard}>
+                <View style={styles.reviewHead}>
+                  <Text style={styles.reviewHeadText}>KHÁCH HÀNG</Text>
+                  <TouchableOpacity onPress={() => setStep(0)} activeOpacity={0.7} style={styles.editLinkBtn}>
+                    <Text style={styles.editLinkText}>Sửa</Text>
+                  </TouchableOpacity>
+                </View>
+                <Text style={styles.reviewValue}>{selectedCustomer?.fullName || customerName}</Text>
+                {!!selectedCustomer?.phoneNumber && (
+                  <Text style={styles.reviewSub}>📞 {selectedCustomer.phoneNumber}</Text>
+                )}
+                <View style={styles.reviewDivider} />
+                <View style={styles.reviewHead}>
+                  <Text style={styles.reviewHeadText}>NGÀY BÁN</Text>
+                </View>
+                <Text style={styles.reviewValue}>
+                  {formatDDMMYYYY(invoiceDate)} <Text style={styles.reviewSub}>({dayLabel(invoiceDate)})</Text>
+                </Text>
+              </View>
+
+              <View style={styles.reviewCard}>
+                <View style={styles.reviewHead}>
+                  <Text style={styles.reviewHeadText}>HÀNG BÁN ({items.length} mặt hàng)</Text>
+                  <TouchableOpacity onPress={() => setStep(1)} activeOpacity={0.7} style={styles.editLinkBtn}>
+                    <Text style={styles.editLinkText}>Sửa</Text>
+                  </TouchableOpacity>
+                </View>
+                {items.map((it, idx) => {
+                  const product = productById(it.productId)
+                  const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
+                  return (
+                    <View key={it.key} style={styles.reviewLine}>
+                      <Text style={styles.reviewLineName} numberOfLines={2}>
+                        {idx + 1}. {product ? product.productName : 'Mặt hàng'}
+                      </Text>
+                      <View style={styles.reviewLineBottom}>
+                        <Text style={styles.reviewLineCalc}>
+                          {formatVnd(it.quantity)}{product?.unit ? ` ${product.unit}` : ''} × {formatVnd(it.unitPrice)}đ
+                        </Text>
+                        <Text style={styles.reviewLineTotal}>{formatVnd(lineTotal)}đ</Text>
+                      </View>
+                    </View>
+                  )
+                })}
+              </View>
+
+              <View style={styles.totalCard}>
+                <Text style={styles.totalCardLabel}>KHÁCH PHẢI TRẢ</Text>
+                <Text style={styles.totalCardValue}>{formatVnd(grandTotal)}đ</Text>
+              </View>
+
+              <Text style={styles.helperNote}>
+                Nếu mọi thứ đã đúng, bấm nút xanh “LƯU PHIẾU” bên dưới.
+              </Text>
+            </>
+          )}
+        </ScrollView>
+
+        {/* ══ Thanh dưới cùng: luôn hiện, nút to ══ */}
+        <View style={styles.footer}>
+          {step === 1 && items.length > 0 && (
+            <View style={styles.footerTotalRow}>
+              <Text style={styles.footerTotalLabel}>Tổng cộng ({items.length} mặt hàng)</Text>
+              <Text style={styles.footerTotalValue}>{formatVnd(grandTotal)}đ</Text>
+            </View>
+          )}
+          <View style={styles.footerBtnRow}>
+            <TouchableOpacity style={styles.backBigBtn} onPress={handleBack} activeOpacity={0.7}>
+              <Text style={styles.backBigText}>{step === 0 ? 'Hủy' : '‹  Quay lại'}</Text>
             </TouchableOpacity>
-          </Modal>
-        )}
-      </SafeAreaView>
-    </SafeAreaProvider>
+            {step < 2 ? (
+              <TouchableOpacity style={styles.nextBigBtn} onPress={goNext} activeOpacity={0.85}>
+                <Text style={styles.nextBigText}>TIẾP TỤC  ›</Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={[styles.saveBigBtn, saving && styles.btnDisabled]}
+                onPress={handleSave}
+                disabled={saving}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.nextBigText}>{saving ? 'ĐANG LƯU...' : '✓  LƯU PHIẾU'}</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
+      {/* ══ Bộ chọn khách hàng / sản phẩm ══ */}
+      <BigPickerModal
+        visible={picker === 'customer'}
+        title="Chọn khách hàng"
+        hint="Chạm vào tên khách hàng để chọn"
+        searchPlaceholder="Gõ tên hoặc số điện thoại..."
+        data={customerOptions}
+        onSelect={(option) => {
+          setCustomerId(option.value)
+          setCustomerName(option.label)
+          setDirty(true)
+          setStepError('')
+          setPicker(null)
+        }}
+        onClose={() => setPicker(null)}
+        emptyText="Không tìm thấy khách hàng nào"
+      />
+
+      <BigPickerModal
+        visible={picker === 'product'}
+        title="Chọn mặt hàng"
+        hint="Chạm vào mặt hàng để thêm vào phiếu"
+        searchPlaceholder="Gõ tên hoặc mã hàng..."
+        data={productOptions}
+        onSelect={(option) => {
+          const product = productById(option.value)
+          if (product) addProduct(product)
+        }}
+        onClose={() => setPicker(null)}
+        emptyText="Không tìm thấy mặt hàng nào"
+      />
+
+      {/* ══ Lịch chọn ngày ══ */}
+      {Platform.OS === 'android' && showDatePicker && (
+        <DateTimePicker value={invoiceDate} mode="date" display="default" onChange={handleDateChange} />
+      )}
+
+      {Platform.OS === 'ios' && (
+        <Modal visible={showDatePicker} transparent animationType="slide">
+          <TouchableOpacity style={styles.iosOverlay} activeOpacity={1} onPress={() => setShowDatePicker(false)}>
+            <View style={styles.iosSheet}>
+              <View style={styles.iosSheetHead}>
+                <Text style={styles.iosSheetTitle}>Chọn ngày bán</Text>
+                <TouchableOpacity onPress={() => setShowDatePicker(false)} style={styles.iosDoneBtn} activeOpacity={0.7}>
+                  <Text style={styles.iosDoneText}>Xong</Text>
+                </TouchableOpacity>
+              </View>
+              <DateTimePicker
+                value={invoiceDate}
+                mode="date"
+                display="spinner"
+                onChange={handleDateChange}
+                locale="vi-VN"
+                style={styles.iosPicker}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
+    </SafeAreaView>
   )
 }
 
@@ -698,7 +704,7 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
   flex: { flex: 1 },
   loadingRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg, gap: 14 },
-  loadingText: { fontFamily: fonts.adminBodyMedium, fontSize: 17, color: C.textSoft },
+  loadingText: { fontFamily: fonts.adminBodyMedium, fontSize: 18, color: C.textSoft },
 
   // ── Header ──
   header: {
@@ -712,13 +718,13 @@ const styles = StyleSheet.create({
   },
   backBtnText: { fontSize: 28, lineHeight: 32, color: C.textSoft, fontFamily: fonts.adminBodyBold },
   headerTitleWrap: { flex: 1, gap: 2 },
-  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 17, color: C.text },
-  headerSubtitle: { fontFamily: fonts.adminBodyMedium, fontSize: 12.5, color: C.textMuted },
+  headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 18, color: C.text },
+  headerSubtitle: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
   closeBtn: {
     width: 42, height: 42, borderRadius: 11, backgroundColor: C.dangerSoft,
     alignItems: 'center', justifyContent: 'center',
   },
-  closeBtnText: { fontSize: 17, color: C.danger, fontFamily: fonts.adminBodyBold },
+  closeBtnText: { fontSize: 18, color: C.danger, fontFamily: fonts.adminBodyBold },
 
   // ── Thanh 3 bước ──
   stepsBar: {
@@ -733,9 +739,9 @@ const styles = StyleSheet.create({
   },
   stepDotActive: { backgroundColor: C.primary },
   stepDotDone: { backgroundColor: C.success },
-  stepDotText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.textMuted },
+  stepDotText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.textMuted },
   stepDotTextOn: { color: '#FFFFFF' },
-  stepLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 12, color: C.textMuted },
+  stepLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 13, color: C.textMuted },
   stepLabelActive: { fontFamily: fonts.adminBodyBold, color: C.text },
 
   // ── Nội dung ──
@@ -743,7 +749,7 @@ const styles = StyleSheet.create({
   bodyContent: { padding: 14, paddingBottom: 24, gap: 12 },
   bigQuestion: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: C.text, marginTop: 2 },
   helperNote: {
-    fontFamily: fonts.adminBody, fontSize: 13.5, color: C.textMuted,
+    fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted,
     lineHeight: 20, paddingHorizontal: 2,
   },
 
@@ -752,8 +758,8 @@ const styles = StyleSheet.create({
     backgroundColor: C.dangerSoft, borderWidth: 2, borderColor: '#FCA5A5',
     borderRadius: 12, padding: 12,
   },
-  errorBannerIcon: { fontSize: 17 },
-  errorBannerText: { flex: 1, fontFamily: fonts.adminBodyBold, fontSize: 14, color: '#991B1B', lineHeight: 20 },
+  errorBannerIcon: { fontSize: 18 },
+  errorBannerText: { flex: 1, fontFamily: fonts.adminBodyBold, fontSize: 15, color: '#991B1B', lineHeight: 20 },
 
   // ── Ô chọn lớn (khách hàng) ──
   pickBox: {
@@ -767,11 +773,11 @@ const styles = StyleSheet.create({
   pickBoxLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   pickBoxIcon: { fontSize: 24 },
   pickBoxTextWrap: { flex: 1, gap: 2 },
-  pickBoxPlaceholder: { fontFamily: fonts.adminBodyMedium, fontSize: 15, color: C.textMuted },
-  pickBoxValue: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text, lineHeight: 21 },
-  pickBoxSub: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textSoft },
+  pickBoxPlaceholder: { fontFamily: fonts.adminBodyMedium, fontSize: 16, color: C.textMuted },
+  pickBoxValue: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text, lineHeight: 24 },
+  pickBoxSub: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textSoft },
   pickBoxAction: {
-    fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.primary,
+    fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.primary,
     paddingHorizontal: 10, paddingVertical: 7, backgroundColor: '#FFFFFF',
     borderRadius: 9, overflow: 'hidden',
   },
@@ -783,14 +789,14 @@ const styles = StyleSheet.create({
   },
   dateDisplay: { alignItems: 'center', gap: 2 },
   dateBig: { fontFamily: fonts.adminDisplayBold, fontSize: 27, color: C.text, letterSpacing: 0.4 },
-  dateDay: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textSoft },
+  dateDay: { fontFamily: fonts.adminBodyMedium, fontSize: 15.5, color: C.textSoft },
   dateBtnRow: { flexDirection: 'row', gap: 8 },
   dateQuickBtn: {
     flex: 1, height: 46, borderRadius: 11, borderWidth: 2, borderColor: C.border,
     backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center',
   },
   dateQuickBtnOn: { borderColor: C.primary, backgroundColor: C.primarySoft },
-  dateQuickText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.textSoft },
+  dateQuickText: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.textSoft },
   dateQuickTextOn: { color: C.primary },
 
   // ── Nút thêm mặt hàng ──
@@ -800,7 +806,7 @@ const styles = StyleSheet.create({
     shadowColor: C.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 3,
   },
   addBigIcon: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 20, lineHeight: 24 },
-  addBigText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 15.5, letterSpacing: 0.4 },
+  addBigText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 16.5, letterSpacing: 0.4 },
 
   emptyBox: {
     alignItems: 'center', gap: 8, paddingVertical: 28, paddingHorizontal: 18,
@@ -808,7 +814,7 @@ const styles = StyleSheet.create({
   },
   emptyIcon: { fontSize: 36 },
   emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text },
-  emptyHint: { fontFamily: fonts.adminBody, fontSize: 13.5, color: C.textMuted, textAlign: 'center', lineHeight: 19 },
+  emptyHint: { fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted, textAlign: 'center', lineHeight: 19 },
 
   // ── Thẻ mặt hàng ──
   itemCard: {
@@ -822,12 +828,12 @@ const styles = StyleSheet.create({
     width: 28, height: 28, borderRadius: 14, backgroundColor: C.text,
     alignItems: 'center', justifyContent: 'center',
   },
-  itemIndexText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 13.5 },
+  itemIndexText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 14.5 },
   itemHeadText: { flex: 1, gap: 2 },
-  itemName: { fontFamily: fonts.adminBodyBold, fontSize: 16, color: C.text, lineHeight: 21 },
-  itemMeta: { fontFamily: fonts.adminBody, fontSize: 12.5, color: C.textMuted },
+  itemName: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: C.text, lineHeight: 24 },
+  itemMeta: { fontFamily: fonts.adminBody, fontSize: 13.5, color: C.textMuted },
 
-  fieldLabel: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.textSoft, marginTop: 5 },
+  fieldLabel: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.textSoft, marginTop: 5 },
 
   qtyRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   qtyBtn: {
@@ -848,21 +854,21 @@ const styles = StyleSheet.create({
   },
   priceInput: { fontSize: 18, fontFamily: fonts.adminBodyBold, paddingHorizontal: 14 },
   inputError: { borderColor: C.danger, backgroundColor: '#FEF2F2' },
-  inlineError: { fontFamily: fonts.adminBodyBold, fontSize: 12.5, color: C.danger },
+  inlineError: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.danger },
   resetPriceBtn: { alignSelf: 'flex-start', paddingVertical: 6, paddingHorizontal: 2 },
-  resetPriceText: { fontFamily: fonts.adminBodyMedium, fontSize: 13, color: C.primary },
+  resetPriceText: { fontFamily: fonts.adminBodyMedium, fontSize: 14, color: C.primary },
 
   itemFooter: {
     flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
     borderTopWidth: 1, borderTopColor: '#E2E8F0', paddingTop: 10, marginTop: 6,
   },
-  itemFooterLabel: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.textSoft },
+  itemFooterLabel: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.textSoft },
   itemFooterValue: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: C.money },
   removeBtn: {
     height: 44, borderRadius: 11, borderWidth: 2, borderColor: '#FCA5A5',
     backgroundColor: C.dangerSoft, alignItems: 'center', justifyContent: 'center', marginTop: 3,
   },
-  removeBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.danger },
+  removeBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.danger },
 
   // ── Bước kiểm tra ──
   reviewCard: {
@@ -870,25 +876,25 @@ const styles = StyleSheet.create({
     padding: 14, gap: 5,
   },
   reviewHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 2 },
-  reviewHeadText: { fontFamily: fonts.adminBodyBold, fontSize: 12.5, color: C.textMuted, letterSpacing: 0.5 },
+  reviewHeadText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5, color: C.textMuted, letterSpacing: 0.5 },
   editLinkBtn: {
     paddingHorizontal: 13, paddingVertical: 6, borderRadius: 9,
     backgroundColor: C.primarySoft, borderWidth: 1.5, borderColor: '#BFDBFE',
   },
-  editLinkText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: C.primary },
-  reviewValue: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: C.text, lineHeight: 23 },
-  reviewSub: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textSoft },
+  editLinkText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.primary },
+  reviewValue: { fontFamily: fonts.adminBodyBold, fontSize: 18, color: C.text, lineHeight: 23 },
+  reviewSub: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textSoft },
   reviewDivider: { height: 1, backgroundColor: '#E2E8F0', marginVertical: 10 },
   reviewLine: { paddingVertical: 10, borderTopWidth: 1, borderTopColor: '#F1F5F9', gap: 3 },
-  reviewLineName: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.text, lineHeight: 20 },
+  reviewLineName: { fontFamily: fonts.adminBodyBold, fontSize: 16, color: C.text, lineHeight: 23 },
   reviewLineBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 10 },
-  reviewLineCalc: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textSoft },
-  reviewLineTotal: { fontFamily: fonts.adminBodyBold, fontSize: 15.5, color: C.money },
+  reviewLineCalc: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textSoft },
+  reviewLineTotal: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.money },
 
   totalCard: {
     backgroundColor: C.text, borderRadius: 14, padding: 16, gap: 5, alignItems: 'center',
   },
-  totalCardLabel: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: '#CBD5E1', letterSpacing: 0.8 },
+  totalCardLabel: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: '#CBD5E1', letterSpacing: 0.8 },
   totalCardValue: { fontFamily: fonts.adminDisplayBold, fontSize: 30, color: '#FBBF24' },
 
   // ── Thanh dưới ──
@@ -898,14 +904,14 @@ const styles = StyleSheet.create({
     shadowColor: '#0F172A', shadowOffset: { width: 0, height: -3 }, shadowOpacity: 0.06, shadowRadius: 8, elevation: 8,
   },
   footerTotalRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' },
-  footerTotalLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textSoft },
+  footerTotalLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 14.5, color: C.textSoft },
   footerTotalValue: { fontFamily: fonts.adminDisplayBold, fontSize: 21, color: C.money },
   footerBtnRow: { flexDirection: 'row', gap: 8 },
   backBigBtn: {
     flex: 1, height: 52, borderRadius: 12, borderWidth: 2, borderColor: C.border,
     backgroundColor: '#F8FAFC', alignItems: 'center', justifyContent: 'center',
   },
-  backBigText: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.textSoft },
+  backBigText: { fontFamily: fonts.adminBodyBold, fontSize: 15.5, color: C.textSoft },
   nextBigBtn: {
     flex: 2, height: 52, borderRadius: 12, backgroundColor: C.primary,
     alignItems: 'center', justifyContent: 'center',
@@ -916,7 +922,7 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     shadowColor: C.success, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 3,
   },
-  nextBigText: { fontFamily: fonts.adminBodyBold, fontSize: 16, color: '#FFFFFF', letterSpacing: 0.4 },
+  nextBigText: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: '#FFFFFF', letterSpacing: 0.4 },
   btnDisabled: { opacity: 0.6 },
 
   // ── Lịch iOS ──
@@ -928,6 +934,6 @@ const styles = StyleSheet.create({
   },
   iosSheetTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: C.text },
   iosDoneBtn: { paddingHorizontal: 18, paddingVertical: 10, borderRadius: 10, backgroundColor: C.primarySoft },
-  iosDoneText: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: C.primary },
+  iosDoneText: { fontFamily: fonts.adminBodyBold, fontSize: 18, color: C.primary },
   iosPicker: { height: 220 },
 })

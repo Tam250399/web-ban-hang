@@ -1,28 +1,20 @@
-import { useEffect, useState } from 'react'
 import { StyleSheet, Text } from 'react-native'
-import NetInfo from '@react-native-community/netinfo'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { useNetwork } from '../../context/network-context'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
-// Banner cố định trên cùng toàn app khi mất mạng — NetInfo báo cả trạng thái
-// "có kết nối nhưng không có Internet" (isInternetReachable === false), vì
-// vậy chỉ coi là offline khi isConnected/isInternetReachable rõ ràng là false.
+// Banner cố định trên cùng toàn app khi mất mạng. Trạng thái lấy từ
+// NetworkProvider thay vì tự lắng nghe NetInfo, để cả app chỉ có một nguồn sự
+// thật về mạng (các màn hình còn dùng nó để chặn thao tác ghi và tự tải lại).
 export default function OfflineBanner() {
-  const [offline, setOffline] = useState(false)
+  const { isOnline } = useNetwork()
 
-  useEffect(() => {
-    const unsubscribe = NetInfo.addEventListener((state) => {
-      setOffline(state.isConnected === false || state.isInternetReachable === false)
-    })
-    return unsubscribe
-  }, [])
-
-  if (!offline) return null
+  if (isOnline) return null
 
   return (
     <SafeAreaView edges={['top']} style={styles.root}>
-      <Text style={styles.text}>📡 Mất kết nối mạng — một số tính năng có thể không hoạt động</Text>
+      <Text style={styles.text}>Mất kết nối mạng — đang hiển thị dữ liệu đã lưu trên máy</Text>
     </SafeAreaView>
   )
 }
@@ -32,9 +24,9 @@ const styles = StyleSheet.create({
   text: {
     color: '#FFFFFF',
     fontFamily: fonts.bodyBold,
-    fontSize: 11.5,
+    fontSize: 14,
     textAlign: 'center',
-    paddingVertical: 6,
+    paddingVertical: 7,
     paddingHorizontal: 12,
   },
 })

@@ -1,6 +1,6 @@
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ActivityIndicator, Animated, Dimensions, FlatList,
+  ActivityIndicator, Dimensions, FlatList,
   KeyboardAvoidingView, PanResponder, Platform, Pressable, StyleSheet,
   Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
@@ -10,6 +10,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import * as ImagePicker from 'expo-image-picker'
 import Toast from 'react-native-toast-message'
 import { chatService } from '../services/chatService'
+import { useRequireOnline } from '../hooks/useRequireOnline'
 import { uploadImage } from '../services/uploadService'
 import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
@@ -60,7 +61,7 @@ function shiftColor(hex, amount) {
 // ─── Message bubble ────────────────────────────────────────────────
 // Tách riêng + memo: mỗi ký tự gõ vào ô nhập tin làm cả màn render lại, trước
 // đây kéo theo toàn bộ bong bóng (kể cả loại có ảnh) dựng lại cùng.
-const MessageBubble = memo(function MessageBubble({ message, showDate }) {
+const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const imgUrl = message.imageUrl ? resolveMediaUrl(message.imageUrl) : null
   return (
     <>
@@ -70,6 +71,7 @@ const MessageBubble = memo(function MessageBubble({ message, showDate }) {
           s.bubble,
           message.fromAdmin ? s.bubbleMe : s.bubbleThem,
           imgUrl && !message.content && s.bubbleImageOnly,
+          message.pending && s.bubblePending,
         ]}>
           {!!imgUrl && (
             <Image
@@ -82,8 +84,15 @@ const MessageBubble = memo(function MessageBubble({ message, showDate }) {
           {!!message.content && (
             <Text style={message.fromAdmin ? s.bubbleTextMe : s.bubbleTextThem}>{message.content}</Text>
           )}
-          <Text style={message.fromAdmin ? s.bubbleTimeMe : s.bubbleTimeThem}>{formatTime(message.sentAt)}</Text>
+          <Text style={message.fromAdmin ? s.bubbleTimeMe : s.bubbleTimeThem}>
+            {message.pending ? 'Đang gửi...' : message.failed ? 'Gửi lỗi' : formatTime(message.sentAt)}
+          </Text>
         </View>
+        {message.failed && (
+          <TouchableOpacity onPress={() => onRetry?.(message)} hitSlop={8} style={s.retryBtn}>
+            <Text style={s.retryText}>Gửi lại</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </>
   )
@@ -132,9 +141,9 @@ export default function AdminChatScreen({ route, navigation }) {
   const [messages, setMessages] = useState([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const [input, setInput] = useState('')
-  const [sending, setSending] = useState(false)
   const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
   const [reconnecting, setReconnecting] = useState(false)
+  const requireOnline = useRequireOnline()
   const activeIdRef = useRef(null)
   const flatListRef = useRef(null)
   useEffect(() => { activeIdRef.current = activeId }, [activeId])
@@ -162,7 +171,21 @@ export default function AdminChatScreen({ route, navigation }) {
     const handleReceive = (msg) => {
       const isActive = msg.conversationId === activeIdRef.current
       if (isActive) {
-        setMessages((prev) => [...prev, msg])
+        setMessages((prev) => {
+          // Tin do chính admin vừa gửi được server phát lại — thay bản tạm bằng
+          // bản thật thay vì hiện thành hai dòng trùng nhau.
+          if (msg.fromAdmin) {
+            const idx = prev.findIndex(
+              (m) => m.pending && m.content === (msg.content ?? null) && m.imageUrl === (msg.imageUrl ?? null)
+            )
+            if (idx !== -1) {
+              const next = [...prev]
+              next[idx] = msg
+              return next
+            }
+          }
+          return [...prev, msg]
+        })
       }
       // Trước đây mỗi tin nhắn đến đều gọi lại loadConversations() — một lượt
       // chat sôi nổi là bằng đó request tải lại toàn bộ danh sách. Bản thân tin
@@ -236,11 +259,32 @@ export default function AdminChatScreen({ route, navigation }) {
     }
   }, [route?.params?.conversationId])
 
+  // Optimistic: bong bóng hiện ngay khi bấm gửi, không phải chờ trọn một vòng
+  // WebSocket mới thấy tin của chính mình.
+  const deliver = useCallback(async (conversationId, tempId, content, imageUrl) => {
+    try {
+      await chatService.replyToConversation(conversationId, content, imageUrl)
+    } catch (err) {
+      setMessages((prev) => prev.map((m) =>
+        m.id === tempId ? { ...m, pending: false, failed: true } : m
+      ))
+      Toast.show({ type: 'error', text1: err.message || 'Gửi tin nhắn thất bại' })
+    }
+  }, [])
+
+  const handleRetry = useCallback((message) => {
+    if (!requireOnline('Gửi lại tin nhắn')) return
+    setMessages((prev) => prev.map((m) =>
+      m.id === message.id ? { ...m, failed: false, pending: true } : m
+    ))
+    deliver(message.conversationId, message.id, message.content, message.imageUrl)
+  }, [requireOnline, deliver])
+
   const renderMessage = useCallback(({ item, index }) => {
     const prev = index > 0 ? messages[index - 1] : null
     const showDate = !prev || !isSameDay(prev.sentAt, item.sentAt)
-    return <MessageBubble message={item} showDate={showDate} />
-  }, [messages])
+    return <MessageBubble message={item} showDate={showDate} onRetry={handleRetry} />
+  }, [messages, handleRetry])
 
   const closeConversation = useCallback(() => {
     if (activeId) chatService.leaveConversation(activeId).catch(() => {})
@@ -265,21 +309,29 @@ export default function AdminChatScreen({ route, navigation }) {
   ).current
 
   // ── Gửi tin nhắn ──
-  const handleSend = async () => {
+  const handleSend = () => {
     const text = input.trim()
     const img = pendingImage
-    if ((!text && !img) || sending || !activeId || img?.uploading) return
-    setSending(true)
+    if ((!text && !img) || !activeId || img?.uploading) return
+    if (!requireOnline('Gửi tin nhắn')) return
+
+    const content = text || null
+    const imageUrl = img?.url || null
+    const tempId = `tmp-${Date.now()}`
+
     setInput('')
     setPendingImage(null)
-    try {
-      await chatService.replyToConversation(activeId, text || null, img?.url || null)
-    } catch (err) {
-      setInput(text)
-      if (img) setPendingImage(img)
-      Toast.show({ type: 'error', text1: err.message || 'Gửi tin nhắn thất bại' })
-    }
-    setSending(false)
+    setMessages((prev) => [...prev, {
+      id: tempId,
+      conversationId: activeId,
+      content,
+      imageUrl,
+      sentAt: new Date().toISOString(),
+      fromAdmin: true,
+      pending: true,
+    }])
+
+    deliver(activeId, tempId, content, imageUrl)
   }
 
   // ── Chọn ảnh ──
@@ -376,23 +428,22 @@ export default function AdminChatScreen({ route, navigation }) {
               onChangeText={setInput}
               placeholder="Nhập tin nhắn..."
               placeholderTextColor="#9ca3af"
-              editable={!sending}
               multiline
               maxLength={2000}
             />
             <TouchableOpacity
               style={[
                 s.sendBtn,
-                (sending || (!input.trim() && !pendingImage) || pendingImage?.uploading) && s.sendBtnDisabled,
+                ((!input.trim() && !pendingImage) || pendingImage?.uploading) && s.sendBtnDisabled,
               ]}
               onPress={handleSend}
-              disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}
+              disabled={(!input.trim() && !pendingImage) || pendingImage?.uploading}
               activeOpacity={0.7}
               hitSlop={6}
               accessibilityLabel="Gửi tin nhắn"
             >
               <LinearGradient
-                colors={(sending || (!input.trim() && !pendingImage)) ? ['#c5cdd8', '#b0b8c4'] : ['#4a7fe5', '#2d5fbe']}
+                colors={(!input.trim() && !pendingImage) ? ['#c5cdd8', '#b0b8c4'] : ['#4a7fe5', '#2d5fbe']}
                 style={s.sendBtnGradient}
               >
                 <Text style={s.sendBtnText}>➤</Text>
@@ -496,7 +547,7 @@ const s = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6,
     backgroundColor: '#FEF3C7', paddingVertical: 6,
   },
-  reconnectBannerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 11.5, color: '#B45309' },
+  reconnectBannerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: '#B45309' },
 
   // ── LIST HEADER ──
   listHeader: {
@@ -506,7 +557,7 @@ const s = StyleSheet.create({
     fontFamily: fonts.adminDisplayBold, fontSize: 22, color: admin.text, letterSpacing: -0.3,
   },
   headingSub: {
-    fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted, marginTop: 2,
+    fontFamily: fonts.adminBody, fontSize: 13.5, color: admin.textMuted, marginTop: 2,
   },
 
   // ── SEARCH ──
@@ -518,9 +569,9 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
     elevation: 2,
   },
-  searchIcon: { fontSize: 14, marginRight: 8 },
+  searchIcon: { fontSize: 15, marginRight: 8 },
   search: {
-    flex: 1, fontSize: 13.5, color: admin.text, fontFamily: fonts.adminBody,
+    flex: 1, fontSize: 14.5, color: admin.text, fontFamily: fonts.adminBody,
     paddingVertical: Platform.OS === 'ios' ? 0 : 9,
   },
 
@@ -535,21 +586,21 @@ const s = StyleSheet.create({
   convRowPressed: { backgroundColor: '#f5f7fa', transform: [{ scale: 0.985 }] },
   convInfo: { flex: 1, minWidth: 0 },
   convTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  convName: { flex: 1, fontFamily: fonts.adminBodySemiBold, fontSize: 14, color: admin.text, marginRight: 8 },
-  convDate: { fontFamily: fonts.adminBody, fontSize: 11, color: admin.textMuted },
+  convName: { flex: 1, fontFamily: fonts.adminBodySemiBold, fontSize: 15, color: admin.text, marginRight: 8 },
+  convDate: { fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted },
   convBottom: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 4 },
-  convPreview: { flex: 1, fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted, marginRight: 8 },
+  convPreview: { flex: 1, fontFamily: fonts.adminBody, fontSize: 13.5, color: admin.textMuted, marginRight: 8 },
   convPreviewUnread: { color: admin.text, fontFamily: fonts.adminBodySemiBold },
   unreadBadge: {
-    minWidth: 20, height: 20, borderRadius: 10,
+    minWidth: 22, height: 22, borderRadius: 11,
     backgroundColor: admin.primary, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 6,
   },
-  unreadBadgeText: { color: '#fff', fontFamily: fonts.adminBodyBold, fontSize: 10 },
+  unreadBadgeText: { color: '#fff', fontFamily: fonts.adminBodyBold, fontSize: 12 },
 
   // ── EMPTY LIST ──
   emptyWrap: { alignItems: 'center', marginTop: 60 },
   emptyIcon: { fontSize: 40, marginBottom: 12 },
-  emptyText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
+  emptyText: { fontFamily: fonts.adminBody, fontSize: 15, color: admin.textMuted },
 
   // ── AVATAR ──
   avatarGradient: { alignItems: 'center', justifyContent: 'center' },
@@ -570,8 +621,8 @@ const s = StyleSheet.create({
   backBtn: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center', borderRadius: 18, backgroundColor: '#f0f2f5' },
   backIcon: { fontSize: 22, color: admin.text, fontWeight: '600', marginTop: -2 },
   threadHeaderInfo: { flex: 1, minWidth: 0 },
-  threadHeaderName: { fontFamily: fonts.adminBodySemiBold, fontSize: 15, color: admin.text },
-  onlineLabel: { fontFamily: fonts.adminBody, fontSize: 11, color: '#22c55e', marginTop: 1 },
+  threadHeaderName: { fontFamily: fonts.adminBodySemiBold, fontSize: 16, color: admin.text },
+  onlineLabel: { fontFamily: fonts.adminBody, fontSize: 12.5, color: '#22c55e', marginTop: 1 },
 
   // ── MESSAGES ──
   messageList: { paddingHorizontal: 12, paddingVertical: 12 },
@@ -594,10 +645,13 @@ const s = StyleSheet.create({
     width: BUBBLE_MAX - 28, height: (BUBBLE_MAX - 28) * 0.65,
     borderRadius: 14, marginBottom: 4,
   },
-  bubbleTextMe: { color: '#fff', fontFamily: fonts.adminBody, fontSize: 14, lineHeight: 20 },
-  bubbleTextThem: { color: admin.text, fontFamily: fonts.adminBody, fontSize: 14, lineHeight: 20 },
-  bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.adminBody, fontSize: 10, marginTop: 4, textAlign: 'right' },
-  bubbleTimeThem: { color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 10, marginTop: 4, textAlign: 'right' },
+  bubbleTextMe: { color: '#fff', fontFamily: fonts.adminBody, fontSize: 15, lineHeight: 20 },
+  bubbleTextThem: { color: admin.text, fontFamily: fonts.adminBody, fontSize: 15, lineHeight: 20 },
+  bubblePending: { opacity: 0.65 },
+  retryBtn: { marginTop: 4, alignSelf: 'flex-end' },
+  retryText: { color: '#DC2626', fontFamily: fonts.adminBodyBold, fontSize: 13.5 },
+  bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.adminBody, fontSize: 12, marginTop: 4, textAlign: 'right' },
+  bubbleTimeThem: { color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 12, marginTop: 4, textAlign: 'right' },
 
   // ── Date separator ──
   dateSepRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, paddingHorizontal: 8 },
@@ -605,16 +659,16 @@ const s = StyleSheet.create({
   dateSepPill: {
     backgroundColor: '#e8ebef', borderRadius: 10, paddingHorizontal: 12, paddingVertical: 4, marginHorizontal: 10,
   },
-  dateSepText: { fontFamily: fonts.adminBody, fontSize: 11, color: admin.textMuted },
+  dateSepText: { fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted },
 
   // ── Empty messages ──
   emptyMsgWrap: { alignItems: 'center', marginTop: 60 },
   emptyMsgIcon: { fontSize: 36, marginBottom: 10 },
-  emptyMsgText: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
+  emptyMsgText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
 
   // ── Loading ──
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 40 },
-  loaderText: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted, marginTop: 12 },
+  loaderText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted, marginTop: 12 },
 
   // ── Pending image bar ──
   pendingBar: {
@@ -630,7 +684,7 @@ const s = StyleSheet.create({
     width: 24, height: 24, borderRadius: 12, backgroundColor: '#ef4444',
     alignItems: 'center', justifyContent: 'center', marginLeft: 10,
   },
-  pendingRemoveText: { color: '#fff', fontSize: 12, fontWeight: '700' },
+  pendingRemoveText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
   // ── INPUT ROW ──
   inputRow: {
@@ -646,7 +700,7 @@ const s = StyleSheet.create({
   input: {
     flex: 1, maxHeight: 100, paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 22, backgroundColor: '#f0f2f5',
-    fontSize: 14, color: admin.text, fontFamily: fonts.adminBody,
+    fontSize: 15, color: admin.text, fontFamily: fonts.adminBody,
   },
   sendBtn: { width: 40, height: 40 },
   sendBtnDisabled: { opacity: 0.6 },
@@ -654,5 +708,5 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center',
   },
-  sendBtnText: { color: '#fff', fontSize: 16, marginLeft: 2 },
+  sendBtnText: { color: '#fff', fontSize: 17, marginLeft: 2 },
 })

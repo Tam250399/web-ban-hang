@@ -18,6 +18,6 @@ const styles = StyleSheet.create({
     height: 44, paddingHorizontal: 12, borderWidth: 1, borderColor: admin.border,
     borderRadius: 8, backgroundColor: admin.card, justifyContent: 'center',
   },
-  value: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.text },
-  placeholder: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
+  value: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.text },
+  placeholder: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
 })

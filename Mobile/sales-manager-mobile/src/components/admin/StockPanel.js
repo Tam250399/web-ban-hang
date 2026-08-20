@@ -38,10 +38,10 @@ export default function StockPanel() {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  heading: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text, paddingHorizontal: 16, paddingTop: 16 },
+  heading: { fontFamily: fonts.adminDisplayBold, fontSize: 17, color: admin.text, paddingHorizontal: 16, paddingTop: 16 },
   subTabs: { flexDirection: 'row', gap: 16, borderBottomWidth: 1, borderBottomColor: admin.divider, paddingHorizontal: 16, marginTop: 12 },
   subTab: { paddingBottom: 10 },
-  subTabText: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
+  subTabText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
   subTabTextActive: { fontFamily: fonts.adminBodySemiBold, color: admin.text },
   subTabUnderline: { height: 2, backgroundColor: admin.primary, marginTop: 10, borderRadius: 1 },
   content: { flex: 1 },

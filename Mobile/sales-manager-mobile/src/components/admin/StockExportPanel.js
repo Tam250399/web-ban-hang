@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
 import InvoiceCard from './InvoiceCard'
 import { useDebouncedValue } from '../../hooks/useDebouncedValue'
+import { warningFeedback } from '../../services/haptics'
 import { fonts } from '../../theme/fonts'
 import { formatVnd, formatDDMMYYYY, startOfDay, WEEKDAYS } from '../../utils/format'
 
@@ -116,6 +117,7 @@ export default function StockExportPanel() {
   }
 
   const handleDelete = useCallback((inv) => {
+    warningFeedback()
     Alert.alert(
       'Xóa phiếu bán hàng?',
       `Phiếu của khách "${inv.customerName}" (${formatVnd(inv.total)}đ) sẽ bị xóa.\n\nSố hàng đã xuất sẽ được cộng trả lại vào kho.`,
@@ -286,7 +288,7 @@ const styles = StyleSheet.create({
     shadowColor: C.primary, shadowOffset: { width: 0, height: 3 }, shadowOpacity: 0.28, shadowRadius: 6, elevation: 3,
   },
   addBtnIcon: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 19, lineHeight: 22 },
-  addBtnText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 14.5, letterSpacing: 0.3 },
+  addBtnText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 15.5, letterSpacing: 0.3 },
 
   // ── Phần đầu danh sách (cuộn theo) ──
   listHeader: { gap: 10, paddingBottom: 4 },
@@ -295,15 +297,15 @@ const styles = StyleSheet.create({
     height: 46, paddingHorizontal: 12,
     borderWidth: 2, borderColor: C.border, borderRadius: 12, backgroundColor: C.card,
   },
-  searchIcon: { fontSize: 15 },
+  searchIcon: { fontSize: 16 },
   searchInput: {
-    flex: 1, fontSize: 14, color: C.text, fontFamily: fonts.adminBodyMedium, paddingVertical: 0,
+    flex: 1, fontSize: 15, color: C.text, fontFamily: fonts.adminBodyMedium, paddingVertical: 0,
   },
   clearBtn: {
     width: 28, height: 28, borderRadius: 14, backgroundColor: '#E2E8F0',
     alignItems: 'center', justifyContent: 'center',
   },
-  clearBtnText: { fontSize: 12, color: C.textSoft, fontFamily: fonts.adminBodyBold },
+  clearBtnText: { fontSize: 13, color: C.textSoft, fontFamily: fonts.adminBodyBold },
 
   rangeRow: { flexDirection: 'row', gap: 7 },
   rangeChip: {
@@ -311,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: C.card, alignItems: 'center', justifyContent: 'center',
   },
   rangeChipOn: { borderColor: C.primary, backgroundColor: C.primarySoft },
-  rangeChipText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: C.textSoft },
+  rangeChipText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.textSoft },
   rangeChipTextOn: { color: C.primary },
 
   summaryCard: {
@@ -321,7 +323,7 @@ const styles = StyleSheet.create({
   },
   summaryCol: { flex: 1, alignItems: 'center', gap: 3 },
   summaryDivider: { width: 1, height: 32, backgroundColor: C.borderSoft },
-  summaryLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 12.5, color: C.textMuted },
+  summaryLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
   summaryValue: { fontFamily: fonts.adminDisplayBold, fontSize: 20, color: C.text },
   summaryMoney: { color: C.money, fontSize: 18 },
 
@@ -331,19 +333,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     backgroundColor: C.bg, paddingVertical: 8, marginTop: 3,
   },
-  sectionHeaderText: { fontFamily: fonts.adminBodyBold, fontSize: 13, color: C.textSoft, letterSpacing: 0.5 },
-  sectionHeaderCount: { fontFamily: fonts.adminBodyMedium, fontSize: 12.5, color: C.textMuted },
+  sectionHeaderText: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: C.textSoft, letterSpacing: 0.5 },
+  sectionHeaderCount: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
 
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  loaderText: { fontFamily: fonts.adminBodyMedium, fontSize: 14, color: C.textSoft },
+  loaderText: { fontFamily: fonts.adminBodyMedium, fontSize: 15, color: C.textSoft },
   footerLoader: { alignItems: 'center', justifyContent: 'center', paddingVertical: 15, gap: 7 },
-  footerLoaderText: { fontFamily: fonts.adminBodyMedium, fontSize: 12.5, color: C.textMuted },
+  footerLoaderText: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
 
   emptyWrap: { alignItems: 'center', gap: 8, paddingTop: 34, paddingHorizontal: 18 },
   emptyIcon: { fontSize: 40 },
-  emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: C.text, textAlign: 'center' },
+  emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 18, color: C.text, textAlign: 'center' },
   emptyHint: {
-    fontFamily: fonts.adminBody, fontSize: 13.5, color: C.textMuted,
+    fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted,
     textAlign: 'center', lineHeight: 20,
   },
 })

@@ -1,5 +1,4 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native'
-import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
 export default function FormField({ label, error, rightElement, style, ...inputProps }) {
@@ -22,7 +21,7 @@ export default function FormField({ label, error, rightElement, style, ...inputP
 const styles = StyleSheet.create({
   field: { gap: 6 },
   label: {
-    fontSize: 12.5,
+    fontSize: 13.5,
     fontWeight: '700',
     letterSpacing: 0.2,
     color: '#0F172A',
@@ -37,11 +36,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#CBD5E1',
     backgroundColor: '#FFFFFF',
-    fontSize: 14,
+    fontSize: 15,
     color: '#0F172A',
     fontFamily: fonts.body,
   },
   inputWithRight: { paddingRight: 42 },
   inputError: { borderColor: '#EF4444' },
-  errorText: { color: '#EF4444', fontSize: 12, fontFamily: fonts.body, marginTop: 2 },
+  errorText: { color: '#EF4444', fontSize: 13, fontFamily: fonts.body, marginTop: 2 },
 })

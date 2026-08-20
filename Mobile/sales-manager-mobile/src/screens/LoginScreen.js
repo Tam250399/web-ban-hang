@@ -4,6 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import Toast from 'react-native-toast-message'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/auth-context'
+import { useRequireOnline } from '../hooks/useRequireOnline'
 import DarkAuthShell from '../components/ui/DarkAuthShell'
 import FormField from '../components/ui/FormField'
 import { EyeIcon, EyeOffIcon } from '../components/ui/icons'
@@ -15,6 +16,7 @@ export default function LoginScreen({ navigation }) {
     login, biometricSupported, biometricLabel, biometricEnabled,
     enableBiometricLogin, loginWithBiometric,
   } = useAuth()
+  const requireOnline = useRequireOnline()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -28,8 +30,9 @@ export default function LoginScreen({ navigation }) {
   const promptEnableBiometric = () => {
     if (!biometricSupported || biometricEnabled) return
     Alert.alert(
-      `Đăng nhập bằng ${biometricLabel}?`,
-      `Lần sau bạn có thể đăng nhập nhanh bằng ${biometricLabel} thay vì gõ mật khẩu.`,
+      `Khoá ứng dụng bằng ${biometricLabel}?`,
+      `Ứng dụng sẽ tự khoá mỗi khi bạn thoát ra, và cần ${biometricLabel} để mở lại. `
+      + 'Người khác cầm máy sẽ không xem được đơn hàng và doanh thu của bạn.',
       [
         { text: 'Để sau', style: 'cancel' },
         { text: 'Bật ngay', onPress: () => enableBiometricLogin() },
@@ -38,15 +41,19 @@ export default function LoginScreen({ navigation }) {
   }
 
   const handleSubmit = async () => {
+    // Màn ĐĂNG NHẬP chỉ kiểm tra ô có trống hay không. Chính sách độ mạnh mật
+    // khẩu nằm ở màn đăng ký (src/utils/validation.js) — áp thêm ràng buộc độ
+    // dài ở đây sẽ khoá luôn những tài khoản tạo từ trước khi có chính sách,
+    // mà chẳng thêm chút an toàn nào vì mật khẩu vẫn do server đối chiếu.
     let uErr = ''
     let pErr = ''
     if (!username.trim()) uErr = 'Vui lòng nhập tên đăng nhập'
     if (!password) pErr = 'Vui lòng nhập mật khẩu'
-    else if (password.length < 4) pErr = 'Mật khẩu tối thiểu 4 ký tự'
 
     setUsernameError(uErr)
     setPasswordError(pErr)
     if (uErr || pErr) return
+    if (!requireOnline('Đăng nhập')) return
 
     setSubmitting(true)
     setFormError('')
@@ -208,7 +215,7 @@ const styles = StyleSheet.create({
     marginBottom: 3,
   },
   subtitle: {
-    fontSize: 12.5,
+    fontSize: 13.5,
     color: '#64748B',
     fontFamily: fonts.bodyBold,
     textAlign: 'center',
@@ -217,11 +224,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderWidth: 1.5, borderColor: brand.primary, borderRadius: 12, paddingVertical: 13,
   },
-  bioBtnIcon: { fontSize: 17 },
-  bioBtnText: { color: brand.primary, fontFamily: fonts.bodyBold, fontSize: 14.5 },
+  bioBtnIcon: { fontSize: 18 },
+  bioBtnText: { color: brand.primary, fontFamily: fonts.bodyBold, fontSize: 15.5 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
   dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },
-  dividerText: { fontSize: 12, color: '#94A3B8', fontFamily: fonts.body },
+  dividerText: { fontSize: 13, color: '#94A3B8', fontFamily: fonts.body },
   form: { gap: 14 },
   eyeBtn: { position: 'absolute', right: 12, height: '100%', justifyContent: 'center' },
   row: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
@@ -236,11 +243,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkboxChecked: { backgroundColor: brand.primary, borderColor: brand.primary },
-  checkmark: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', textAlign: 'center', lineHeight: 14 },
-  checkboxLabel: { fontSize: 13, color: '#334155', fontFamily: fonts.bodyBold },
-  forgotLink: { fontSize: 13, color: brand.primary, fontFamily: fonts.bodyBold },
+  checkmark: { color: '#FFFFFF', fontSize: 12.5, fontWeight: '800', textAlign: 'center', lineHeight: 14 },
+  checkboxLabel: { fontSize: 14, color: '#334155', fontFamily: fonts.bodyBold },
+  forgotLink: { fontSize: 14, color: brand.primary, fontFamily: fonts.bodyBold },
   errorBanner: { backgroundColor: '#FEF2F2', borderWidth: 1, borderColor: '#FECACA', borderRadius: 10, padding: 10 },
-  errorBannerText: { color: '#DC2626', fontSize: 12.5, fontFamily: fonts.bodyBold, textAlign: 'center' },
+  errorBannerText: { color: '#DC2626', fontSize: 13.5, fontFamily: fonts.bodyBold, textAlign: 'center' },
   submitBtn: {
     marginTop: 6,
     borderRadius: 12,
@@ -256,12 +263,12 @@ const styles = StyleSheet.create({
   submitText: {
     color: '#FFFFFF',
     fontFamily: fonts.bodyBold,
-    fontSize: 16,
-    lineHeight: 20,
+    fontSize: 17,
+    lineHeight: 22,
     textAlign: 'center',
     includeFontPadding: false,
   },
   switchRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 6 },
-  switchText: { fontSize: 13, color: '#64748B', fontFamily: fonts.body },
-  switchLink: { fontSize: 13, color: brand.primary, fontFamily: fonts.bodyBold },
+  switchText: { fontSize: 14, color: '#64748B', fontFamily: fonts.body },
+  switchLink: { fontSize: 14, color: brand.primary, fontFamily: fonts.bodyBold },
 })

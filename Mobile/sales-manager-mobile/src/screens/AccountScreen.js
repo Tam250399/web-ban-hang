@@ -65,7 +65,12 @@ export default function AccountScreen({ navigation }) {
         {biometricSupported && (
           <View style={styles.row}>
             <Text style={styles.rowIcon}>{biometricLabel === 'Face ID' ? '🙂' : '👆'}</Text>
-            <Text style={styles.rowText}>Đăng nhập bằng {biometricLabel}</Text>
+            <View style={styles.rowTextWrap}>
+              <Text style={styles.rowText}>Khoá ứng dụng bằng {biometricLabel}</Text>
+              <Text style={styles.rowHint}>
+                Mỗi lần mở lại ứng dụng sẽ phải xác thực mới xem được nội dung.
+              </Text>
+            </View>
             <Switch
               value={biometricEnabled}
               onValueChange={handleToggleBiometric}
@@ -92,9 +97,9 @@ const styles = StyleSheet.create({
   },
   guestIcon: { fontSize: 48, marginBottom: 12 },
   guestTitle: { fontFamily: fonts.displayExtraBold, fontSize: 20, color: '#0F172A', marginBottom: 6 },
-  hint: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 13.5, marginBottom: 20, textAlign: 'center', lineHeight: 20 },
+  hint: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 14.5, marginBottom: 20, textAlign: 'center', lineHeight: 20 },
   loginBtn: { backgroundColor: brand.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32, alignItems: 'center' },
-  loginBtnText: { color: brand.white, fontFamily: fonts.displayBold, fontSize: 15 },
+  loginBtnText: { color: brand.white, fontFamily: fonts.displayBold, fontSize: 16 },
 
   profileCard: {
     flexDirection: 'row', alignItems: 'center', gap: 14,
@@ -106,7 +111,7 @@ const styles = StyleSheet.create({
   avatarText: { color: '#FFFFFF', fontFamily: fonts.displayExtraBold, fontSize: 20 },
   profileInfo: { flex: 1 },
   name: { fontFamily: fonts.displayExtraBold, fontSize: 18, color: '#0F172A' },
-  username: { fontFamily: fonts.monoBold, fontSize: 12, color: brand.textMuted, marginTop: 2 },
+  username: { fontFamily: fonts.monoBold, fontSize: 13, color: brand.textMuted, marginTop: 2 },
 
   menuSection: { gap: 10 },
   row: {
@@ -117,7 +122,9 @@ const styles = StyleSheet.create({
   },
   logoutRow: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
   rowIcon: { fontSize: 18 },
-  rowText: { flex: 1, fontFamily: fonts.bodyBold, fontSize: 14.5, color: '#0F172A' },
+  rowTextWrap: { flex: 1, gap: 2 },
+  rowText: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: '#0F172A' },
+  rowHint: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: '#64748B' },
   rowChevron: { fontSize: 18, color: '#94A3B8', fontFamily: fonts.bodyBold },
   logoutText: { color: '#EF4444' },
 })
