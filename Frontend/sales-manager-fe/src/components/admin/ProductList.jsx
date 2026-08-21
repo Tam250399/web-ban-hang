@@ -7,6 +7,7 @@ import ConfirmModal from '../common/ConfirmModal'
 import MoneyInput from '../common/MoneyInput'
 import OverflowMenu from '../common/OverflowMenu'
 import AddProduct from './AddProduct'
+import { resolveMediaUrl } from '../../services/config'
 
 const IMPORT_STATUS_LABEL = { New: 'Mới', Duplicate: 'Trùng mã', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { New: 'new', Duplicate: 'duplicate', Invalid: 'invalid' }
@@ -51,7 +52,9 @@ function ImportPreviewModal({ result, onClose, onImported }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: bảng chọn dòng khi nhập Excel rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Xem trước dữ liệu nhập</h3>
@@ -180,7 +183,9 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: form sửa sản phẩm (có upload ảnh) rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Chỉnh sửa sản phẩm</h3>
@@ -403,9 +408,11 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
                 <td>
                   {p.imageUrl ? (
                     <img
-                      src={p.imageUrl}
+                      src={resolveMediaUrl(p.imageUrl)}
                       alt={p.productName}
                       className="product-thumb"
+                      loading="lazy"
+                      decoding="async"
                     />
                   ) : (
                     <div className="product-thumb-placeholder">🧱</div>

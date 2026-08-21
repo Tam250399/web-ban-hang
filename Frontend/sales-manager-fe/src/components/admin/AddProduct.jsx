@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { productService } from '../../services/productService'
 import { categoryService } from '../../services/categoryService'
@@ -16,7 +16,6 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
   const [categories, setCategories] = useState([])
   const [unitTypes, setUnitTypes] = useState([])
   const [productNames, setProductNames] = useState([])
-  const [filteredNames, setFilteredNames] = useState([])
   const [loading, setLoading] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [imagePreview, setImagePreview] = useState(null)
@@ -28,12 +27,12 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
     categoryService.getProductNames().then(setProductNames).catch(() => {})
   }, [])
 
-  useEffect(() => {
-    if (form.categoryId) {
-      setFilteredNames(productNames.filter(n => n.categoryId === +form.categoryId))
-    } else {
-      setFilteredNames(productNames)
-    }
+  // Đây là giá trị SUY RA từ productNames + categoryId, không phải state cần
+  // đồng bộ với hệ thống bên ngoài. Trước đây tính trong useEffect rồi setState
+  // nên mỗi lần đổi danh mục phải render hai lượt (eslint: set-state-in-effect).
+  const filteredNames = useMemo(() => {
+    if (!form.categoryId) return productNames
+    return productNames.filter(n => n.categoryId === +form.categoryId)
   }, [form.categoryId, productNames])
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))

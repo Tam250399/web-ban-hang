@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# vite-plugin-pwa sinh ra
+dev-dist
+sw.js
+workbox-*.js

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { chatService } from '../../services/chatService'
 import { uploadImage } from '../../services/uploadService'
+import { resolveMediaUrl } from '../../services/config'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
@@ -224,7 +225,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
                     <div className="chat-bubble">
                       {m.imageUrl && (
                         <a href={m.imageUrl} target="_blank" rel="noreferrer">
-                          <img src={m.imageUrl} alt="Ảnh gửi" className="chat-bubble-image" />
+                          <img src={resolveMediaUrl(m.imageUrl)} alt="Ảnh gửi" className="chat-bubble-image" loading="lazy" decoding="async" />
                         </a>
                       )}
                       {m.content && <span>{m.content}</span>}

@@ -1,8 +1,9 @@
 import * as signalR from '@microsoft/signalr'
 import { BASE_URL, request } from './apiClient'
+import { HUB_URL } from './config'
+import { registerChatDisconnect } from './chatSession'
 
 const CHAT = `${BASE_URL}/chat`
-const HUB_URL = '/chathub'
 
 let connection = null
 let startPromise = null
@@ -37,7 +38,9 @@ export const chatService = {
   },
   disconnect() {
     if (connection) {
-      connection.stop()
+      // stop() trả về promise; không bắt lỗi ở đây sẽ tạo unhandled rejection
+      // khi đăng xuất lúc kết nối đang dở dang.
+      connection.stop().catch(() => {})
       connection = null
       startPromise = null
     }
@@ -54,3 +57,7 @@ export const chatService = {
   leaveConversation:    (conversationId)     => getConnection().invoke('LeaveConversation', conversationId),
   markRead:             ()                   => getConnection().invoke('MarkRead'),
 }
+
+// Đăng ký ngay khi module được nạp, để App.jsx ngắt được kết nối qua chatSession
+// mà không cần import tĩnh file này.
+registerChatDisconnect(() => chatService.disconnect())

@@ -18,9 +18,21 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Origin được phép gọi API. Trước đây hardcode đúng http://localhost:5173 nên
+// khi deploy lên domain thật, trình duyệt chặn sạch mọi request bằng CORS.
+//
+// Cấu hình qua appsettings hoặc biến môi trường, phân tách bằng dấu phẩy:
+//   Cors__AllowedOrigins="https://lysau.vn,https://www.lysau.vn"
+//
+// Lưu ý: AllowCredentials() bắt buộc phải đi kèm danh sách origin cụ thể —
+// không được dùng AllowAnyOrigin() vì cookie phiên sẽ không gửi kèm được.
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+    ?? new[] { "http://localhost:5173" };
+
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowReact", policy => {
-        policy.WithOrigins("http://localhost:5173").AllowAnyMethod().AllowAnyHeader().AllowCredentials();
+        policy.WithOrigins(allowedOrigins).AllowAnyMethod().AllowAnyHeader().AllowCredentials();
     });
 });
 

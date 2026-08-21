@@ -1,32 +1,49 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import '../App.css'
 import { orderService } from '../services/orderService'
+import { useCachedResource } from '../hooks/useCachedResource'
+import { useRequireOnline } from '../hooks/useRequireOnline'
+import { CACHE_KEYS, formatCacheAge } from '../services/cache'
+import PageMeta from './common/PageMeta'
+import ConfirmModal from './common/ConfirmModal'
 import LogoBadge from './LogoBadge'
+import { PATHS } from '../routes/paths'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_CLASS = { Pending: 'pending', Confirmed: 'confirmed', Cancelled: 'cancelled' }
 
-function MyOrders({ onBack }) {
-  const [orders, setOrders] = useState([])
-  const [loading, setLoading] = useState(true)
+function MyOrders() {
+  const requireOnline = useRequireOnline()
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
+  // Huỷ đơn trước đây chỉ cách một cú bấm, không hỏi lại câu nào — trong khi
+  // khu quản trị đã dùng ConfirmModal ở 9 chỗ. Thao tác phá huỷ duy nhất mà
+  // khách hàng chạm tới lại là chỗ thiếu bảo vệ.
+  const [confirmCancelOrder, setConfirmCancelOrder] = useState(null)
 
-  const load = () => {
-    orderService.getMine()
-      .then(setOrders)
-      .catch(() => toast.error('Không tải được danh sách đơn hàng.'))
-      .finally(() => setLoading(false))
-  }
-  useEffect(() => { load() }, [])
+  // Cache-then-network: đơn hàng đã xem vẫn tra cứu được khi ra công trình mất
+  // sóng, thay vì trang trắng như trước.
+  const {
+    data,
+    loading,
+    isStale,
+    cachedAt,
+    isOnline,
+    reload,
+  } = useCachedResource(CACHE_KEYS.myOrders, () => orderService.getMine())
+
+  const orders = data ?? []
 
   const handleCancel = async (id) => {
+    setConfirmCancelOrder(null)
+    if (!requireOnline('Hủy đơn hàng')) return
     setCancellingId(id)
     try {
       await orderService.cancel(id, {})
       toast.success('Đã huỷ đơn hàng.')
-      load()
+      reload()
     } catch (err) {
       toast.error(err.message || 'Huỷ đơn thất bại.')
     }
@@ -36,11 +53,12 @@ function MyOrders({ onBack }) {
   // Đặt lại đơn đã huỷ: cập nhật lại CHÍNH đơn đó về Pending (không tạo đơn mới),
   // giá được backend làm mới theo giá hiện tại, sản phẩm hết hàng sẽ tự bị loại.
   const handleReorder = async (id) => {
+    if (!requireOnline('Đặt lại đơn hàng')) return
     setReorderingId(id)
     try {
       const res = await orderService.reorder(id)
       toast.success(res.message || 'Đã đặt lại đơn hàng.')
-      load()
+      reload()
     } catch (err) {
       toast.error(err.message || 'Không đặt lại được đơn hàng.')
     }
@@ -49,6 +67,7 @@ function MyOrders({ onBack }) {
 
   return (
     <div className="site-wrapper">
+      <PageMeta title="Đơn hàng của tôi" noIndex />
       <header className="site-header">
         <div className="header-inner">
           <div className="brand">
@@ -59,7 +78,7 @@ function MyOrders({ onBack }) {
             </div>
           </div>
           <div className="header-actions">
-            <button className="btn-ghost" onClick={onBack}>← Về trang chủ</button>
+            <Link className="btn-ghost" to={PATHS.home}>← Về trang chủ</Link>
           </div>
         </div>
       </header>
@@ -67,10 +86,27 @@ function MyOrders({ onBack }) {
       <div className="hzd" />
 
       <div className="my-orders-page">
+        {isStale && !loading && (
+          <div className="stale-bar" role="status">
+            {isOnline
+              ? `Chưa cập nhật được — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`
+              : `Đang ngoại tuyến — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`}
+          </div>
+        )}
+
         {loading ? (
           <div className="loading-state"><div className="spinner" /><p>Đang tải đơn hàng...</p></div>
         ) : orders.length === 0 ? (
-          <div className="empty-state"><p>Bạn chưa có đơn hàng nào. Hãy chọn sản phẩm và đặt hàng nhé!</p></div>
+          <div className="empty-state">
+            {!isOnline ? (
+              <>
+                <p><strong>Chưa có dữ liệu ngoại tuyến</strong></p>
+                <p>Kết nối mạng một lần để tải đơn hàng về máy, sau đó vẫn tra cứu được khi mất sóng.</p>
+              </>
+            ) : (
+              <p>Bạn chưa có đơn hàng nào. Hãy chọn sản phẩm và đặt hàng nhé!</p>
+            )}
+          </div>
         ) : (
           <div className="my-orders-list">
             {orders.map(o => (
@@ -107,7 +143,7 @@ function MyOrders({ onBack }) {
                   <div className="order-card-footer">
                     <button
                       className="btn-danger-sm"
-                      onClick={() => handleCancel(o.id)}
+                      onClick={() => setConfirmCancelOrder(o)}
                       disabled={cancellingId === o.id}
                     >
                       {cancellingId === o.id ? 'Đang huỷ...' : 'Huỷ đơn'}
@@ -130,6 +166,19 @@ function MyOrders({ onBack }) {
           </div>
         )}
       </div>
+
+      {confirmCancelOrder && (
+        <ConfirmModal
+          icon="⚠️"
+          title="Huỷ đơn hàng?"
+          message={`Đơn #${confirmCancelOrder.id} trị giá ${confirmCancelOrder.total?.toLocaleString('vi-VN')}đ sẽ được huỷ.`}
+          warning="Bạn vẫn có thể đặt lại đơn này sau."
+          confirmLabel="Huỷ đơn"
+          cancelLabel="Không huỷ"
+          onConfirm={() => handleCancel(confirmCancelOrder.id)}
+          onCancel={() => setConfirmCancelOrder(null)}
+        />
+      )}
     </div>
   )
 }

@@ -16,10 +16,6 @@ const IMPORT_STATUS_CLASS = { Valid: 'new', Invalid: 'invalid' }
 const EMPTY_IMPORT_FORM = { productId: '', quantity: '', unitPrice: '', note: '' }
 const today = () => new Date().toISOString().slice(0, 10)
 const emptyItem = () => ({ productId: '', quantity: 1, unitPrice: 0 })
-const currentUser = () => {
-  try { return JSON.parse(localStorage.getItem('salesManagerUser') || 'null') } catch { return null }
-}
-
 function ImportModal({ products, transaction, onClose, onSaved }) {
   const isEdit = !!transaction
   const [form, setForm] = useState(isEdit ? {
@@ -58,7 +54,9 @@ function ImportModal({ products, transaction, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: form phiếu nhập kho rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</h3>
@@ -140,7 +138,9 @@ function StockImportPreviewModal({ result, onClose, onImported }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: bảng chọn dòng khi nhập kho từ Excel rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Xem trước dữ liệu nhập kho</h3>
@@ -450,11 +450,11 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
 
     setSaving(true)
     try {
-      const user = currentUser()
+      // Không gửi preparedByName nữa: backend tự lấy tên người lập từ danh tính
+      // đã xác thực (SalesInvoiceController.GetPreparedByNameAsync).
       const payload = {
         customerId: +customerId,
         invoiceDate,
-        preparedByName: user?.fullName || user?.username || '',
         items: validItems.map(it => ({
           productId: +it.productId,
           quantity: +it.quantity,
@@ -664,9 +664,8 @@ function ExportPanel({ products, customers, invoices, reload }) {
 
     setDownloading(true)
     try {
-      const user = currentUser()
       const customerName = uniqueCustomerNames[0] || 'KhachHang'
-      await salesInvoiceService.downloadBulkExport(selectedIds, user?.fullName || user?.username || '', customerName)
+      await salesInvoiceService.downloadBulkExport(selectedIds, customerName)
     } catch (err) {
       toast.error(err.message || 'Tải file thất bại.')
     }

@@ -19,9 +19,10 @@ export const salesInvoiceService = {
 
   downloadExport: (id) => downloadFile(`${URL}/${id}/export`, `PhieuBanHang_${id}.xlsx`, resolveInvoiceFileName),
 
-  downloadBulkExport: (ids, preparedByName, customerName) => {
+  downloadBulkExport: (ids, customerName) => {
+    // Không gửi preparedBy nữa — backend tự điền tên người lập từ danh tính đã
+    // xác thực, client không được quyền quyết định trường truy vết này.
     const params = new URLSearchParams({ ids: ids.join(',') })
-    if (preparedByName) params.set('preparedBy', preparedByName)
     const safeName = (customerName || 'KhachHang').replace(/[<>:"/\\|?*]/g, '_')
     return downloadFile(`${URL}/export?${params.toString()}`, `PhieuBanHang_${safeName}.xlsx`, resolveInvoiceFileName)
   },

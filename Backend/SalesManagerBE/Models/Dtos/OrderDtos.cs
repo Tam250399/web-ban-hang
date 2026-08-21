@@ -17,7 +17,6 @@ namespace SalesManagerBE.Models.Dtos
 
     public class ConfirmOrderDto
     {
-        public string? PreparedByName { get; set; }
     }
 
     public class CancelOrderDto

@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Reverse proxy cho bản build production của web.
+#
+# Vì sao cần: apiClient dùng đường dẫn tương đối `/api`, ở dev chạy được là nhờ
+# proxy khai báo trong vite.config.js. Bản `vite build` chỉ ra file tĩnh, không
+# có proxy nào — thiếu file này thì `/api` trỏ vào chính web server và trả 404.
+#
+# File dùng cú pháp template của image nginx chính thức: mọi ${BIEN} được thay
+# bằng biến môi trường lúc container khởi động (xem Dockerfile).
+#   BACKEND_URL  — địa chỉ backend, vd. http://backend:5000 hoặc http://172.17.0.1:5000
+#   MINIO_URL    — địa chỉ MinIO,   vd. http://minio:9000
+# ─────────────────────────────────────────────────────────────────────────
+
+server {
+    listen 80;
+    server_name _;
+
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # Nén text: bundle JS ~240KB xuống còn ~73KB trên đường truyền.
+    gzip on;
+    gzip_vary on;
+    gzip_min_length 1024;
+    gzip_types text/plain text/css application/javascript application/json image/svg+xml;
+
+    # Vài header an toàn cơ bản. Chưa đặt Content-Security-Policy vì app đang
+    # dùng style inline và tải font từ Google Fonts — bật CSP cần rà lại trước,
+    # không nên thêm mù vào đây rồi vỡ giao diện.
+    add_header X-Content-Type-Options "nosniff" always;
+    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+
+    # Asset build có hash trong tên nên cache vĩnh viễn được.
+    location /assets/ {
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+        try_files $uri =404;
+    }
+
+    location /api/ {
+        proxy_pass ${BACKEND_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Upload ảnh có thể tới 5MB (FormOptions.MultipartBodyLengthLimit ở backend).
+        client_max_body_size 8m;
+        proxy_read_timeout 60s;
+    }
+
+    # SignalR chạy trên WebSocket — thiếu hai header Upgrade/Connection thì
+    # kết nối sẽ tụt về long-polling hoặc hỏng hẳn.
+    location /chathub {
+        proxy_pass ${BACKEND_URL};
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade           $http_upgrade;
+        proxy_set_header Connection        "upgrade";
+        proxy_set_header Host              $host;
+        proxy_set_header X-Real-IP         $remote_addr;
+        proxy_set_header X-Forwarded-For   $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        # Kết nối chat để mở lâu, đừng cắt sau mặc định 60s.
+        proxy_read_timeout 1h;
+        proxy_send_timeout 1h;
+    }
+
+    # Ảnh sản phẩm/banner nằm trên MinIO. Đi qua đây thì cùng origin với web,
+    # không cần mở cổng 9000 ra ngoài và cũng không dính CORS.
+    # Muốn dùng: build web với VITE_MEDIA_URL=/media
+    location /media/ {
+        proxy_pass ${MINIO_URL}/;
+        proxy_set_header Host $host;
+        proxy_buffering off;
+    }
+
+    # SPA: mọi đường dẫn chưa khớp đều trả index.html. Hiện app chưa có router
+    # nên chưa cần tới, nhưng có sẵn thì thêm react-router sau không phải sửa
+    # lại cấu hình nữa.
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+}

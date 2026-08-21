@@ -3,8 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+    <!-- Bỏ maximum-scale: khoá phóng to là vi phạm WCAG 1.4.4, mà khách của
+         cửa hàng VLXD phần nhiều lớn tuổi, cần zoom để đọc giá và mã hàng. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#1F1D1A" />
+    <!-- description / og:title / og:description / canonical do PageMeta đặt
+         theo từng trang (src/components/common/PageMeta.jsx). Khai báo cứng
+         thêm ở đây sẽ thành thẻ trùng, công cụ tìm kiếm không biết tin cái nào. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Cửa Hàng VLXD Lý Sáu" />
+    <meta name="robots" content="index, follow" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />

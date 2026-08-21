@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using SalesManagerBE.Data;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Extensions;
 using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Controllers
@@ -15,6 +16,29 @@ namespace SalesManagerBE.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IExcelExportService _excelExportService;
+
+
+        /// <summary>
+        /// Tên người lập phiếu, lấy từ danh tính ĐÃ XÁC THỰC chứ không nhận từ
+        /// client. Trước đây web gửi lên trường này bằng dữ liệu đọc từ
+        /// localStorage, nên chỉ cần sửa localStorage trong devtools là ghi được
+        /// tên người khác vào phiếu — trong khi đây chính là trường dùng để truy
+        /// vết ai đã lập phiếu.
+        /// </summary>
+        private async Task<string> GetPreparedByNameAsync()
+        {
+            var userId = User.GetUserId();
+            if (userId is null) return User.GetUsername() ?? "";
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.FullName, u.Username })
+                .FirstOrDefaultAsync();
+
+            if (user is null) return User.GetUsername() ?? "";
+            return string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
+        }
 
         public SalesInvoiceController(AppDbContext context, IExcelExportService excelExportService)
         {
@@ -93,7 +117,7 @@ namespace SalesManagerBE.Controllers
                 CustomerId = customer.Id,
                 CustomerName = customerName,
                 InvoiceDate = invoiceDateUtc,
-                PreparedByName = dto.PreparedByName,
+                PreparedByName = await GetPreparedByNameAsync(),
             };
 
             foreach (var item in dto.Items)
@@ -175,7 +199,7 @@ namespace SalesManagerBE.Controllers
             invoice.CustomerId = customer.Id;
             invoice.CustomerName = customerName;
             invoice.InvoiceDate = invoiceDateUtc;
-            invoice.PreparedByName = dto.PreparedByName;
+            invoice.PreparedByName = await GetPreparedByNameAsync();
 
             foreach (var item in dto.Items)
             {
@@ -230,7 +254,8 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("export")]
-        public async Task<IActionResult> ExportMultiple([FromQuery] string ids, [FromQuery] string? preparedBy)
+        // preparedBy đã bỏ khỏi query: tên người lập lấy từ danh tính đã xác thực.
+        public async Task<IActionResult> ExportMultiple([FromQuery] string ids)
         {
             if (string.IsNullOrWhiteSpace(ids))
                 return BadRequest(new { message = "Vui lòng chọn ít nhất 1 phiếu." });
@@ -253,7 +278,7 @@ namespace SalesManagerBE.Controllers
             if (invoices.Count == 0)
                 return NotFound(new { message = "Không tìm thấy phiếu nào." });
 
-            var bytes = _excelExportService.ExportSalesInvoicesMerged(invoices, preparedBy ?? "");
+            var bytes = _excelExportService.ExportSalesInvoicesMerged(invoices, await GetPreparedByNameAsync());
             var customerName = invoices.First().CustomerName?.Trim() ?? "KhachHang";
             // Remove invalid filename characters
             var safeName = string.Join("_", customerName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));

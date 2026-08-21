@@ -2,12 +2,15 @@ import { useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
 import { chatService } from '../../services/chatService'
 import { uploadImage } from '../../services/uploadService'
+import { useRequireOnline } from '../../hooks/useRequireOnline'
+import { resolveMediaUrl } from '../../services/config'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }
 
 function ChatWidget({ user }) {
+  const requireOnline = useRequireOnline()
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
@@ -74,6 +77,7 @@ function ChatWidget({ user }) {
     const text = input.trim()
     const img = pendingImage
     if ((!text && !img) || sending || img?.uploading) return
+    if (!requireOnline('Gửi tin nhắn')) return
     setSending(true)
     setInput('')
     setPendingImage(null)
@@ -154,7 +158,7 @@ function ChatWidget({ user }) {
                 <div className="chat-bubble">
                   {m.imageUrl && (
                     <a href={m.imageUrl} target="_blank" rel="noreferrer">
-                      <img src={m.imageUrl} alt="Ảnh gửi" className="chat-bubble-image" />
+                      <img src={resolveMediaUrl(m.imageUrl)} alt="Ảnh gửi" className="chat-bubble-image" loading="lazy" decoding="async" />
                     </a>
                   )}
                   {m.content && <span>{m.content}</span>}

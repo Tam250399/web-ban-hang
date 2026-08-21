@@ -1921,3 +1921,142 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="date"],
 body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
   height: 38px; padding: 0 10px; box-sizing: border-box;
 }
+
+/* ── Thanh độ mạnh mật khẩu ở màn đăng ký ────────────────────────────── */
+.pw-strength {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.pw-strength-track { flex: 1; display: flex; gap: 4px; }
+
+.pw-strength-seg {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: #E2E8F0;
+}
+
+.pw-strength-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  min-width: 84px;
+  text-align: right;
+}
+
+/* Nút tạm dừng banner — đặt cạnh bộ chấm chỉ số ở góc dưới bên phải. */
+.carousel-pause {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  z-index: 3;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  background: rgba(15, 23, 42, 0.55);
+  color: #fff;
+  font-size: 0.7rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-pause:hover { background: rgba(15, 23, 42, 0.8); }
+.carousel-pause:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ── Banner mất mạng + dải báo dữ liệu cũ ────────────────────────────── */
+.offline-banner {
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  background: #9B360B;
+  color: #fff;
+  text-align: center;
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.stale-bar {
+  background: #FEF3C7;
+  border: 1px solid #FDE68A;
+  color: #92400E;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+/* Thẻ sản phẩm giờ là <a>: bỏ gạch chân và màu link mặc định của trình duyệt. */
+a.product-card {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+
+/* ── Nút xem thêm dưới lưới sản phẩm ─────────────────────────────────── */
+.product-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 28px;
+}
+
+.product-load-more button {
+  min-width: 260px;
+  padding: 12px 24px;
+}
+
+/* ── Ranh giới lỗi & màn chờ khi tải chunk quản trị ───────────────────── */
+.error-boundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: #f8fafc;
+}
+
+.error-boundary-card {
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 36px 28px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+}
+
+.error-boundary-icon { font-size: 42px; display: block; margin-bottom: 8px; }
+.error-boundary-card h1 { margin: 0 0 10px; font-size: 1.5rem; color: #0f172a; }
+.error-boundary-card p { margin: 0 0 20px; color: #475569; line-height: 1.6; }
+
+.error-boundary-detail {
+  text-align: left;
+  background: #1e293b;
+  color: #fca5a5;
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 0.8rem;
+  overflow-x: auto;
+  margin-bottom: 20px;
+}
+
+.error-boundary-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+.route-loading {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  color: #64748b;
+}

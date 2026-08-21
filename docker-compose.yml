@@ -26,6 +26,32 @@ services:
     command: server /data --console-address ":9001"
     restart: unless-stopped
 
+  # Web bán hàng: nginx phục vụ file tĩnh đã build + forward /api, /chathub,
+  # /media sang backend và MinIO. Thiếu lớp này thì bản build gọi /api sẽ 404
+  # vì proxy của Vite chỉ tồn tại lúc `npm run dev`.
+  #
+  # BACKEND_URL mặc định trỏ về host vì backend hiện chạy bằng `dotnet run`
+  # ngoài Docker. Khi nào đóng gói backend thành container thì đổi thành
+  # http://backend:5000 và thêm depends_on.
+  web:
+    build:
+      context: ./Frontend/sales-manager-fe
+      args:
+        # Để trống -> web gọi /api cùng origin, nginx lo phần forward.
+        VITE_API_URL: ""
+        VITE_MEDIA_URL: "/media"
+    container_name: web-ban-hang-fe
+    ports:
+      - "8080:80"
+    environment:
+      BACKEND_URL: ${BACKEND_URL:-http://host.docker.internal:5000}
+      MINIO_URL: http://minio:9000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      - minio
+    restart: unless-stopped
+
 volumes:
   minio-data:
   postgres-data:

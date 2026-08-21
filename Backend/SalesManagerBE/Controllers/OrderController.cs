@@ -7,6 +7,7 @@ using SalesManagerBE.Data;
 using SalesManagerBE.Hubs;
 using SalesManagerBE.Models;
 using SalesManagerBE.Models.Dtos;
+using SalesManagerBE.Extensions;
 
 namespace SalesManagerBE.Controllers
 {
@@ -17,6 +18,29 @@ namespace SalesManagerBE.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IHubContext<ChatHub> _hub;
+
+        /// <summary>
+        /// Tên người lập phiếu, lấy từ danh tính ĐÃ XÁC THỰC chứ không nhận từ
+        /// client. Trước đây web gửi lên trường này bằng dữ liệu đọc từ
+        /// localStorage, nên chỉ cần sửa localStorage trong devtools là ghi được
+        /// tên người khác vào phiếu — trong khi đây chính là trường dùng để truy
+        /// vết ai đã lập phiếu.
+        /// </summary>
+        private async Task<string> GetPreparedByNameAsync()
+        {
+            var userId = User.GetUserId();
+            if (userId is null) return User.GetUsername() ?? "";
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.FullName, u.Username })
+                .FirstOrDefaultAsync();
+
+            if (user is null) return User.GetUsername() ?? "";
+            return string.IsNullOrWhiteSpace(user.FullName) ? user.Username : user.FullName;
+        }
+
         public OrderController(AppDbContext context, IHubContext<ChatHub> hub)
         {
             _context = context;
@@ -207,7 +231,7 @@ namespace SalesManagerBE.Controllers
                 Customer = customer,
                 CustomerName = customer.FullName,
                 InvoiceDate = DateTime.UtcNow,
-                PreparedByName = dto?.PreparedByName,
+                PreparedByName = await GetPreparedByNameAsync(),
             };
 
             foreach (var item in order.Items)

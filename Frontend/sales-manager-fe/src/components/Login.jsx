@@ -1,7 +1,12 @@
 import { useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import '../App.css'
 import { authService } from '../services/authService'
+import { useAuth } from '../context/auth-context'
+import { useRequireOnline } from '../hooks/useRequireOnline'
+import PageMeta from './common/PageMeta'
+import { PATHS } from '../routes/paths'
 
 function EyeIcon() {
   return (
@@ -22,7 +27,11 @@ function EyeOffIcon() {
   )
 }
 
-function Login({ onSwitchToRegister, onLoginSuccess }) {
+function Login() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
+  const requireOnline = useRequireOnline()
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -47,25 +56,33 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
+    // Màn ĐĂNG NHẬP chỉ kiểm tra ô có trống hay không. Ràng buộc độ dài ở đây
+    // sẽ khoá luôn tài khoản tạo từ trước khi có chính sách, mà chẳng thêm chút
+    // an toàn nào vì mật khẩu vẫn do server đối chiếu.
     let uErr = ''
     let pErr = ''
     if (!username.trim()) uErr = 'Vui lòng nhập tên đăng nhập'
     if (!password) pErr = 'Vui lòng nhập mật khẩu'
-    else if (password.length < 4) pErr = 'Mật khẩu tối thiểu 4 ký tự'
 
     if (uErr || pErr) {
       setUsernameError(uErr)
       setPasswordError(pErr)
       return
     }
+    if (!requireOnline('Đăng nhập')) return
 
     setSubmitting(true)
     setFormError('')
 
     try {
       const data = await authService.login(username, password)
-      toast.success(`Đăng nhập thành công! Xin chào ${data?.user?.fullName || data?.user?.username || username}`)
-      onLoginSuccess(data?.user || { username })
+      const loggedIn = data?.user || { username }
+      toast.success(`Đăng nhập thành công! Xin chào ${loggedIn.fullName || loggedIn.username}`)
+      login(loggedIn)
+      // Bị guard đá về đây thì quay lại đúng trang định vào; còn lại thì Admin
+      // vào thẳng khu quản trị, khách về trang chủ.
+      const from = location.state?.from?.pathname
+      navigate(from || (loggedIn.role === 'Admin' ? PATHS.admin : PATHS.home), { replace: true })
     } catch (error) {
       setFormError(error.message || 'Không thể kết nối tới backend.')
       setSubmitting(false)
@@ -74,6 +91,7 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
 
   return (
     <div className="auth-shell">
+      <PageMeta title="Đăng nhập" noIndex />
       <div className="hzd" />
       <div className="auth-center">
         <div className="auth-card">
@@ -146,6 +164,11 @@ function Login({ onSwitchToRegister, onLoginSuccess }) {
             <button type="submit" disabled={submitting} className="auth-submit">
               {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
+
+            <p className="auth-switch">
+              Chưa có tài khoản?{' '}
+              <Link className="auth-switch-link" to={PATHS.register}>Đăng ký ngay</Link>
+            </p>
           </form>
         </div>
       </div>

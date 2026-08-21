@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { bannerService } from '../../services/bannerService'
 import { uploadImage } from '../../services/uploadService'
 import ConfirmModal from '../common/ConfirmModal'
+import { resolveMediaUrl } from '../../services/config'
 
 const EMPTY_FORM = { title: '', description: '', imageUrl: '', displayOrder: 0, isActive: true }
 
@@ -60,7 +61,9 @@ function BannerModal({ banner, onClose, onSaved }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: form thêm/sửa banner (có upload ảnh) rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{isEdit ? 'Chỉnh sửa banner' : 'Thêm banner mới'}</h3>
@@ -196,7 +199,7 @@ function BannerManager() {
             {filtered.map((b, i) => (
               <tr key={b.id}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
-                <td><img src={b.imageUrl} alt={b.title} style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 6 }} /></td>
+                <td><img src={resolveMediaUrl(b.imageUrl)} alt={b.title} width={64} height={40} loading="lazy" decoding="async" style={{ width: 64, height: 40, objectFit: 'cover', borderRadius: 6 }} /></td>
                 <td><strong>{b.title}</strong></td>
                 <td>{b.displayOrder}</td>
                 <td>{b.isActive ? <span style={{ color: 'var(--success)' }}>Hiển thị</span> : <span style={{ color: 'var(--text)' }}>Ẩn</span>}</td>

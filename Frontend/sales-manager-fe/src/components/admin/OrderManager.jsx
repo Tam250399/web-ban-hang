@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { orderService } from '../../services/orderService'
 import Pagination from '../common/Pagination'
@@ -12,10 +12,6 @@ const FILTERS = [
   { key: 'Cancelled', label: 'Đã huỷ' },
 ]
 
-const currentUser = () => {
-  try { return JSON.parse(localStorage.getItem('salesManagerUser') || 'null') } catch { return null }
-}
-
 function CancelReasonModal({ onClose, onConfirm }) {
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
@@ -28,7 +24,9 @@ function CancelReasonModal({ onClose, onConfirm }) {
   }
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    // Không đóng khi bấm ra ngoài: form nhập lý do huỷ đơn rất dễ bị tắt nhầm
+    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
+    <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Huỷ đơn hàng</h3>
@@ -119,20 +117,20 @@ function OrderManager({ onChanged }) {
     setLoadingDetailId(null)
   }
 
-  const load = () => {
+  const load = useCallback(() => {
     orderService.getAll(filter)
       .then(setOrders)
       .catch(() => toast.error('Không tải được danh sách đơn hàng.'))
       .finally(() => setLoading(false))
-  }
-  useEffect(() => { load() }, [filter])
+  }, [filter])
+  useEffect(() => { load() }, [load])
   const changeFilter = (key) => { setFilter(key); setPage(1); setLoading(true) }
 
   const handleConfirm = async (id) => {
     setConfirmingId(id)
     try {
-      const user = currentUser()
-      await orderService.confirm(id, { preparedByName: user?.fullName || user?.username || '' })
+      // preparedByName do backend tự điền từ danh tính đã xác thực.
+      await orderService.confirm(id, {})
       toast.success('Đã xác nhận đơn hàng và tạo phiếu bán hàng!')
       load()
       onChanged?.()

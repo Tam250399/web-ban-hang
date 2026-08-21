@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import { categoryService } from '../../services/categoryService'
 import Pagination from '../common/Pagination'
@@ -371,13 +371,15 @@ function CategoryManager() {
   const [names, setNames]         = useState([])
   const [units, setUnits]         = useState([])
 
-  const reload = {
+  // useMemo để `reload` giữ nguyên tham chiếu qua các lần render — nhờ vậy mới
+  // khai báo được nó trong deps của useEffect mà không tạo vòng lặp tải lại.
+  const reload = useMemo(() => ({
     categories: () => categoryService.getCategories().then(setCategories).catch(() => {}),
     names:      () => categoryService.getProductNames().then(setNames).catch(() => {}),
     units:      () => categoryService.getUnitTypes().then(setUnits).catch(() => {}),
-  }
+  }), [])
 
-  useEffect(() => { reload.categories(); reload.names(); reload.units() }, [])
+  useEffect(() => { reload.categories(); reload.names(); reload.units() }, [reload])
 
   const catApi = {
     add:    (body) => categoryService.createCategory(body).then(() => reload.categories()),

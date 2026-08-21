@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import toast from 'react-hot-toast'
 import '../App.css'
 import { productService } from '../services/productService'
@@ -14,25 +15,24 @@ import SystemManager from './admin/SystemManager'
 import ChatManager from './admin/ChatManager'
 import CustomerManager from './admin/CustomerManager'
 import OrderManager from './admin/OrderManager'
+import PageMeta from './common/PageMeta'
+import { useAuth } from '../context/auth-context'
+import { ADMIN_TABS, DEFAULT_ADMIN_TAB, PATHS, adminTabBySlug } from '../routes/paths'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }
 
-const TABS = [
-  { key: 'list',       label: '📋 Sản phẩm' },
-  { key: 'orders',     label: '🛒 Đơn hàng' },
-  { key: 'stock',      label: '📦 Nhập/Xuất kho' },
-  { key: 'customers',  label: '👥 Khách hàng' },
-  { key: 'categories', label: '🏷️ Danh mục' },
-  { key: 'banners',    label: '🖼️ Banner' },
-  { key: 'chat',       label: '💬 Chat' },
-  { key: 'stats',      label: '📊 Thống kê' },
-  { key: 'system',     label: '⚙️ Hệ thống' },
-]
+function AdminDashboard() {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const { tabSlug } = useParams()
 
-function AdminDashboard({ user, onBackToHome }) {
-  const [tab, setTab] = useState('list')
+  // Tab lấy thẳng từ URL: admin bookmark được /quan-tri/don-hang, F5 vẫn ở đúng
+  // tab, và nút Back của trình duyệt quay lại tab trước thay vì thoát khỏi web.
+  const activeTab = adminTabBySlug(tabSlug)
+  const tab = activeTab?.key ?? DEFAULT_ADMIN_TAB.key
+
   const [products, setProducts] = useState([])
   const [categories, setCategories] = useState([])
   const [unitTypes, setUnitTypes] = useState([])
@@ -46,11 +46,11 @@ function AdminDashboard({ user, onBackToHome }) {
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
 
-  const loadProducts   = () => productService.getAll().then(setProducts).catch(() => {})
-  const loadCategories = () => categoryService.getCategories().then(setCategories).catch(() => {})
-  const loadUnitTypes  = () => categoryService.getUnitTypes().then(setUnitTypes).catch(() => {})
-  const loadStats      = () => productService.getStatistics().then(setStats).catch(() => {})
-  const loadPendingOrders = () => orderService.getAll('Pending').then(setPendingOrders).catch(() => {})
+  const loadProducts   = useCallback(() => productService.getAll().then(setProducts).catch(() => {}), [])
+  const loadCategories = useCallback(() => categoryService.getCategories().then(setCategories).catch(() => {}), [])
+  const loadUnitTypes  = useCallback(() => categoryService.getUnitTypes().then(setUnitTypes).catch(() => {}), [])
+  const loadStats      = useCallback(() => productService.getStatistics().then(setStats).catch(() => {}), [])
+  const loadPendingOrders = useCallback(() => orderService.getAll('Pending').then(setPendingOrders).catch(() => {}), [])
 
   useEffect(() => {
     loadProducts()
@@ -58,7 +58,7 @@ function AdminDashboard({ user, onBackToHome }) {
     loadUnitTypes()
     loadStats()
     loadPendingOrders()
-  }, [])
+  }, [loadProducts, loadCategories, loadUnitTypes, loadStats, loadPendingOrders])
 
   // Theme riêng cho khu vực quản trị (bảng màu/typography khác trang bán hàng).
   // Gắn class lên <body> thay vì .admin-shell để các panel render qua Portal
@@ -97,7 +97,7 @@ function AdminDashboard({ user, onBackToHome }) {
       chatService.off('CustomerPresenceChanged', handlePresence)
       chatService.off('NewOrder', handleNewOrder)
     }
-  }, [])
+  }, [loadPendingOrders])
 
   // Đóng dropdown thông báo khi bấm ra ngoài.
   useEffect(() => {
@@ -115,15 +115,23 @@ function AdminDashboard({ user, onBackToHome }) {
     // Rời tab Chat thì bỏ chọn hội thoại đang mở, để lần sau vào lại Chat
     // không tự động focus vào hội thoại đã mở trước đó.
     if (tab === 'chat' && key !== 'chat') setActiveConversationId(null)
-    setTab(key)
+    const target = ADMIN_TABS.find((t) => t.key === key) ?? DEFAULT_ADMIN_TAB
+    navigate(PATHS.adminTab(target.slug))
     if (key === 'stats') loadStats()
     if (key === 'orders') loadPendingOrders()
     if (key === 'categories') { loadCategories(); loadUnitTypes() }
     window.scrollTo(0, 0)
   }
 
+  // Gõ sai slug (vd. /quan-tri/linh-tinh) thì đưa về tab mặc định, đừng để
+  // sidebar không tab nào sáng và vùng nội dung trống trơn.
+  if (tabSlug && !activeTab) {
+    return <Navigate to={PATHS.adminTab(DEFAULT_ADMIN_TAB.slug)} replace />
+  }
+
   return (
     <div className="admin-shell">
+      <PageMeta title={`Quản trị · ${(activeTab ?? DEFAULT_ADMIN_TAB).label.replace(/^\S+\s/, '')}`} noIndex />
 
       {/* Header */}
       <header className="admin-header">
@@ -176,7 +184,7 @@ function AdminDashboard({ user, onBackToHome }) {
                         className="notif-item"
                         onClick={() => {
                           setConversations(prev => prev.map(o => o.id === c.id ? { ...o, unreadCount: 0 } : o))
-                          setTab('chat')
+                          navigate(PATHS.adminTab('chat'))
                           setActiveConversationId(c.id)
                           setNotifOpen(false)
                           window.scrollTo(0, 0)
@@ -195,7 +203,7 @@ function AdminDashboard({ user, onBackToHome }) {
             <strong>{user?.fullName || user?.username}</strong>
             <span className="role-badge">Admin</span>
           </span>
-          <button className="btn-ghost" onClick={onBackToHome}>← Trang chủ</button>
+          <Link className="btn-ghost" to={PATHS.home}>← Trang chủ</Link>
         </div>
       </header>
 
@@ -204,7 +212,7 @@ function AdminDashboard({ user, onBackToHome }) {
         {/* Sidebar */}
         <aside className="admin-sidebar">
           <p className="sidebar-label">Quản lý</p>
-          {TABS.map(t => (
+          {ADMIN_TABS.map(t => (
             <button
               key={t.key}
               className={`sidebar-btn ${tab === t.key ? 'active' : ''}`}
