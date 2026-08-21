@@ -19,7 +19,7 @@ const CATEGORY_ICONS = {
 }
 
 // Tương đương ProductDetailModal trong TrangChu.jsx bên web.
-export default function ProductDetailModal({ visible, product, onClose, onAddToCart }) {
+export default function ProductDetailModal({ visible, product, onClose, onAddToCart, hideAddToCart }) {
   if (!product) return null
 
   const catName = product.categoryName || product.category || 'Khác'
@@ -94,16 +94,25 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
           </ScrollView>
 
           {/* ── Nút CTA cố định dưới cùng ── */}
+          {/* Admin không mua hàng: thẻ sản phẩm đã ẩn nút thêm giỏ từ trước,
+              nhưng modal chi tiết thì bỏ sót nên vẫn đặt hàng được từ đây. */}
           <View style={styles.ctaRow}>
+            {!hideAddToCart && (
+              <TouchableOpacity
+                style={[styles.addBtn, outOfStock && styles.addBtnDisabled]}
+                onPress={() => onAddToCart(product)}
+                disabled={outOfStock}
+              >
+                <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}</Text>
+              </TouchableOpacity>
+            )}
+            {/* Còn một mình thì "Đóng" thành nút chính, không để một nút viền
+                trống trải chiếm hết chiều ngang. */}
             <TouchableOpacity
-              style={[styles.addBtn, outOfStock && styles.addBtnDisabled]}
-              onPress={() => onAddToCart(product)}
-              disabled={outOfStock}
+              style={hideAddToCart ? styles.addBtn : styles.closeCta}
+              onPress={onClose}
             >
-              <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.closeCta} onPress={onClose}>
-              <Text style={styles.closeCtaText}>Đóng</Text>
+              <Text style={hideAddToCart ? styles.addBtnText : styles.closeCtaText}>Đóng</Text>
             </TouchableOpacity>
           </View>
         </SafeAreaView>

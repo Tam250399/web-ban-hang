@@ -214,6 +214,7 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
       <ProductDetailModal
         visible={!!detailProduct}
         product={detailProduct}
+        hideAddToCart={isAdmin}
         onClose={() => setDetailProduct(null)}
         onAddToCart={(product) => { handleAddToCart(product); setDetailProduct(null) }}
       />
