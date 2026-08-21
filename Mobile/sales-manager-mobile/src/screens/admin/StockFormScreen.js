@@ -3,7 +3,7 @@ import {
   ActivityIndicator, Alert, KeyboardAvoidingView, Modal, Platform, ScrollView,
   StyleSheet, Text, TextInput, TouchableOpacity, View,
 } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import Toast from 'react-native-toast-message'
 import { salesInvoiceService } from '../../services/salesInvoiceService'
@@ -320,6 +320,7 @@ export default function StockFormScreen({ navigation, route }) {
   }
 
   return (
+    <SafeAreaProvider>
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       {/* ══ Thanh trên cùng ══ */}
       <View style={styles.header}>
@@ -697,6 +698,7 @@ export default function StockFormScreen({ navigation, route }) {
         </Modal>
       )}
     </SafeAreaView>
+    </SafeAreaProvider>
   )
 }
 

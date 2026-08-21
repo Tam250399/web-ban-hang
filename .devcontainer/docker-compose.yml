@@ -1,0 +1,16 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - .:/workspace:cached
+    command: sleep infinity
+    depends_on:
+      - postgres
+      - minio
+    environment:
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=SalesManagerDb;Username=postgres;Password=Tam2503"
+      Minio__Endpoint: "minio:9000"
+      Minio__AccessKey: "minioadmin"
+      Minio__SecretKey: "minioadmin"
