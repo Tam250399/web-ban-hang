@@ -387,7 +387,11 @@ export default function AdminChatScreen({ route, navigation }) {
           </View>
         )}
 
-        <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
+        {/* Màn này nằm trong Tab Navigator dạng PagerView (material-top-tabs) —
+            windowSoftInputMode=adjustResize của Android không tự resize được bên
+            trong PagerView như với màn hình Stack thường, nên phải tự đẩy layout
+            lên bằng behavior="height" thay vì để trống. */}
+        <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
           {loadingMsgs ? (
             <View style={s.loaderWrap}>
               <ActivityIndicator size="large" color={admin.primary} />

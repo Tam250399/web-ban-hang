@@ -26,10 +26,10 @@ const BUBBLE_MAX_W = 280
 // (kể cả những cái có ảnh) render lại cùng. `showDate` được tính ở ngoài rồi
 // truyền vào dạng boolean để props vẫn là giá trị nguyên thuỷ, so sánh nông đủ dùng.
 const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
-  const isMe = !message.isFromAdmin
+  const isMe = !message.fromAdmin
   return (
     <View>
-      {showDate && <DateSeparator date={message.createdAt} />}
+      {showDate && <DateSeparator date={message.sentAt} />}
       <View style={[s.bubbleWrap, isMe ? s.bubbleWrapMe : s.bubbleWrapThem]}>
         <View style={[s.bubble, isMe ? s.bubbleMe : s.bubbleThem, message.pending && s.bubblePending]}>
           {!!message.imageUrl && (
@@ -44,7 +44,7 @@ const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }
             <Text style={isMe ? s.bubbleTextMe : s.bubbleTextThem}>{message.content}</Text>
           )}
           <Text style={isMe ? s.bubbleTimeMe : s.bubbleTimeThem}>
-            {message.pending ? 'Đang gửi...' : message.failed ? 'Gửi lỗi' : formatTime(message.createdAt)}
+            {message.pending ? 'Đang gửi...' : message.failed ? 'Gửi lỗi' : formatTime(message.sentAt)}
           </Text>
         </View>
         {message.failed && (
@@ -114,7 +114,7 @@ export default function CustomerChatScreen() {
         // thật (có id, thời gian chuẩn từ server) thay vì hiện thành hai dòng.
         // Không có clientId trong payload nên đối chiếu theo nội dung — chỉ xét
         // bản tạm đầu tiên còn treo, đủ dùng vì tin gửi đi được xử lý tuần tự.
-        if (!msg.isFromAdmin) {
+        if (!msg.fromAdmin) {
           const idx = prev.findIndex(
             (m) => m.pending && m.content === (msg.content ?? null) && m.imageUrl === (msg.imageUrl ?? null)
           )
@@ -182,7 +182,7 @@ export default function CustomerChatScreen() {
 
   const renderMessage = useCallback(({ item, index }) => {
     const prev = messages[index - 1]
-    const showDate = !prev || !isSameDay(prev.createdAt, item.createdAt)
+    const showDate = !prev || !isSameDay(prev.sentAt, item.sentAt)
     return <MessageBubble message={item} showDate={showDate} onRetry={handleRetry} />
   }, [messages, handleRetry])
 
@@ -229,8 +229,8 @@ export default function CustomerChatScreen() {
       id: tempId,
       content,
       imageUrl,
-      createdAt: new Date().toISOString(),
-      isFromAdmin: false,
+      sentAt: new Date().toISOString(),
+      fromAdmin: false,
       pending: true,
     }])
 
@@ -281,7 +281,11 @@ export default function CustomerChatScreen() {
         </View>
       )}
 
-      <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={0}>
+      {/* Màn này nằm trong Tab Navigator dạng PagerView (material-top-tabs) —
+          windowSoftInputMode=adjustResize của Android không tự resize được bên
+          trong PagerView như với màn hình Stack thường, nên phải tự đẩy layout
+          lên bằng behavior="height" thay vì để trống. */}
+      <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
         {loading ? (
           <View style={s.loaderWrap}>
             <ActivityIndicator size="large" color={brand.primary} />
