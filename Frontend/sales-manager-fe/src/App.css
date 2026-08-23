@@ -38,6 +38,10 @@ body {
 }
 
 a { text-decoration: none; color: inherit; }
+img, svg, video, canvas { max-width: 100%; }
+/* Tên sản phẩm / email dài không có dấu cách sẽ đẩy rộng cả lưới nếu không
+   cho phép ngắt giữa từ. */
+body { overflow-wrap: break-word; }
 button { font-family: inherit; cursor: pointer; }
 
 /* ====== UTILITIES ====== */
@@ -150,6 +154,14 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ====== SITE LAYOUT ====== */
 .site-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
+/* Con trực tiếp của .site-wrapper là flex item. Các section dùng
+   `max-width: 1280px; margin: 0 auto` để căn giữa trên màn hình rộng, nhưng
+   trong flex column thì margin ngang `auto` biến item thành co-vừa-nội-dung
+   (shrink-to-fit) thay vì giãn hết chiều ngang.
+   Hệ quả thấy rõ ở 1090px: .contact-section chỉ rộng 723px trong khi
+   .about-section rộng 1075px — chữ bị dồn vào cột hẹp và các khối lệch nhau.
+   width: 100% khôi phục hành vi giãn; max-width vẫn giữ vai trò chặn trên. */
+.site-wrapper > * { width: 100%; }
 
 /* ====== HEADER ====== */
 .site-header {
@@ -228,9 +240,9 @@ button { font-family: inherit; cursor: pointer; }
 .stat-label { font-size: 0.8rem; color: var(--text-light); }
 
 /* ====== PRODUCTS SECTION ====== */
-.products-section { max-width: 1280px; margin: 0 auto; padding: 64px 24px 0; }
+.products-section { max-width: 1280px; margin: 0 auto; padding: clamp(36px, 5vw, 64px) clamp(16px, 2.5vw, 24px) 0; }
 .section-header { text-align: center; margin-bottom: 40px; }
-.section-header h2 { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; margin-bottom: 8px; }
+.section-header h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; margin-bottom: 8px; }
 .section-header p { color: var(--text); }
 .product-controls { margin-bottom: 28px; display: flex; flex-direction: column; gap: 14px; }
 .search-input {
@@ -255,8 +267,11 @@ button { font-family: inherit; cursor: pointer; }
 
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  /* auto-fill + minmax: số cột tự tính theo bề rộng thật của lưới ở MỌI kích
+     thước thay vì nhảy bậc theo breakpoint. min(100%, 300px) để màn hình hẹp
+     hơn 300px thì thẻ co lại chứ không tràn ngang. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: clamp(12px, 1.6vw, 20px);
 }
 .product-card {
   background: var(--surface);
@@ -308,10 +323,10 @@ button { font-family: inherit; cursor: pointer; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ====== ABOUT ====== */
-.about-section { background: var(--surface); padding: 88px 24px; }
+.about-section { background: var(--surface); padding: clamp(40px, 6.5vw, 88px) clamp(16px, 2.5vw, 24px); }
 .about-content { max-width: 1280px; margin: 0 auto; }
-.about-content h2 { font-family: var(--font-display); font-size: 2.2rem; font-weight: 800; text-align: center; margin-bottom: 40px; }
-.feature-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 24px; }
+.about-content h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; text-align: center; margin-bottom: clamp(24px, 3vw, 40px); }
+.feature-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: clamp(14px, 1.8vw, 24px); }
 .feature-card {
   padding: 28px; border-radius: var(--radius-lg);
   border: none;
@@ -326,9 +341,9 @@ button { font-family: inherit; cursor: pointer; }
 .feature-card p { font-size: 0.88rem; color: var(--text); }
 
 /* ====== CONTACT ====== */
-.contact-section { max-width: 1280px; margin: 0 auto; padding: 80px 24px; }
-.contact-section h2 { font-family: var(--font-display); font-size: 2.1rem; font-weight: 800; margin-bottom: 32px; }
-.contact-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 20px; }
+.contact-section { max-width: 1280px; margin: 0 auto; padding: clamp(40px, 6vw, 80px) clamp(16px, 2.5vw, 24px); }
+.contact-section h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 800; margin-bottom: clamp(20px, 2.6vw, 32px); }
+.contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 20px; }
 .contact-info {
   padding: 32px; background: white;
   border: none; border-radius: var(--radius-lg);
@@ -351,7 +366,7 @@ button { font-family: inherit; cursor: pointer; }
 .site-footer {
   background: var(--ink);
   color: var(--text-light);
-  padding: 56px 24px 24px;
+  padding: clamp(32px, 4vw, 56px) clamp(16px, 2.5vw, 24px) 24px;
   margin-top: auto;
   display: flex;
   flex-direction: column;
@@ -361,7 +376,7 @@ button { font-family: inherit; cursor: pointer; }
 .footer-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; margin-top: 24px; }
 .footer-brand strong { color: #F5F2EA; font-family: var(--font-display); font-weight: 800; }
 .footer-brand span { color: var(--text-light); font-size: 0.82rem; }
-.footer-links { display: flex; gap: 48px; margin-bottom: 32px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: clamp(20px, 3.5vw, 48px); margin-bottom: 32px; }
 .footer-links > div { display: flex; flex-direction: column; gap: 8px; }
 .footer-links h4 { color: #F5F2EA; font-family: var(--font-display); font-size: 0.9rem; margin-bottom: 4px; }
 .footer-links a { font-size: 0.88rem; color: var(--text-light); transition: color 0.15s; }
@@ -433,8 +448,8 @@ button { font-family: inherit; cursor: pointer; }
 .admin-shell { height: 100vh; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
 .admin-header {
   background: var(--admin-dark); border-bottom: 4px solid var(--primary);
-  padding: 14px 24px;
-  display: flex; justify-content: space-between; align-items: center;
+  padding: 14px clamp(14px, 2vw, 24px);
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
   box-shadow: none;
   position: sticky; top: 0; z-index: 100;
 }
@@ -510,12 +525,17 @@ button { font-family: inherit; cursor: pointer; }
 .quick-stat strong { color: #F5F2EA; font-family: var(--font-mono); }
 .quick-stat.warn strong { color: var(--accent); }
 
-.admin-main { flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
+.admin-main { flex: 1; padding: clamp(14px, 2.2vw, 32px); overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
 .tab-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 24px; color: var(--text-h); }
 
 /* ====== ADMIN TABLE ====== */
 .admin-table-wrap { overflow-x: auto; border-radius: 12px; border: 1.5px solid var(--ink); box-shadow: 0 4px 16px rgba(31,29,26,0.06); }
-.admin-table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+/* min-width đi cùng overflow-x của .admin-table-wrap: dưới ngưỡng này bảng
+   CUỘN ngang thay vì bóp cột lại làm chữ xuống dòng từng từ một. */
+.admin-table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 0.86rem; }
+/* Bảng khu thống kê chỉ 3-4 cột và nằm trong cột hẹp nên không ép min-width,
+   nếu không sẽ sinh thanh cuộn ngang thừa. */
+.stats-detail-grid .admin-table { min-width: 0; }
 .admin-table thead { background: var(--ink); }
 .admin-table th { padding: 12px 14px; text-align: left; font-weight: 600; color: var(--white); font-size: 15px; font-family: var(--font-mono); text-transform: none; border-bottom: none; }
 .admin-table td { padding: 12px 14px; border-bottom: 1px solid var(--divider); }
@@ -532,7 +552,7 @@ button { font-family: inherit; cursor: pointer; }
 .form-card { background: var(--surface); border: 1.5px solid var(--ink); border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 4px 18px rgba(31,29,26,0.07); }
 .form-card h4 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; color: var(--ink); }
 .add-product-form, .stock-form { display: flex; flex-direction: column; gap: 16px; }
-.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; }
 .form-field { display: flex; flex-direction: column; gap: 6px; font-weight: 600; font-size: 0.85rem; color: var(--ink); }
 .form-field input, .form-field select, .form-field textarea {
   width: 100%;
@@ -656,7 +676,7 @@ button { font-family: inherit; cursor: pointer; }
 .role-select:disabled { opacity: 0.6; cursor: not-allowed; }
 
 /* ====== STATS ====== */
-.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 2px; background: var(--ink); border: 1.5px solid var(--ink); margin-bottom: 28px; }
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 2px; background: var(--ink); border: 1.5px solid var(--ink); margin-bottom: 28px; }
 .stat-box {
   background: var(--surface); border: none; border-top: 4px solid var(--primary);
   border-radius: 0; padding: 20px 20px;
@@ -666,8 +686,8 @@ button { font-family: inherit; cursor: pointer; }
 .stat-box-icon { font-size: 2rem; }
 .stat-box-label { font-size: 0.75rem; color: var(--ink); font-weight: 600; margin-bottom: 4px; }
 .stat-box-value { font-family: var(--font-mono); font-size: 1.05rem; font-weight: 700; color: var(--ink); }
-.stats-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
-.stock-layout { display: grid; grid-template-columns: 380px 1fr; gap: 28px; align-items: start; }
+.stats-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: clamp(16px, 2vw, 24px); }
+.stock-layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: clamp(16px, 2vw, 28px); align-items: start; }
 
 /* ====== MODAL ====== */
 .modal-overlay {
@@ -681,7 +701,7 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--surface); border: 1.5px solid var(--ink); border-radius: var(--radius-lg);
   width: 100%; max-width: 560px;
   box-shadow: var(--shadow-lg);
-  max-height: 90vh; overflow-y: auto;
+  max-height: 90vh; max-height: 90dvh; overflow-y: auto;
 }
 .modal-header {
   display: flex; justify-content: space-between; align-items: center;
@@ -711,6 +731,7 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%;
   max-width: 720px;
   max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   position: relative;
@@ -737,7 +758,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .product-detail-body {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: minmax(0, 280px) minmax(0, 1fr);
 }
 .product-detail-image {
   position: relative;
@@ -850,7 +871,7 @@ button { font-family: inherit; cursor: pointer; }
 .edit-product-modal { max-width: 780px; }
 .edit-modal-body {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: minmax(0, 220px) minmax(0, 1fr);
   gap: 24px;
   padding: 20px 24px;
 }
@@ -1012,6 +1033,7 @@ button { font-family: inherit; cursor: pointer; }
   width: 100%;
   max-width: 920px;
   max-height: 92vh;
+  max-height: 92dvh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1028,7 +1050,7 @@ button { font-family: inherit; cursor: pointer; }
   display: grid; place-items: center; flex-shrink: 0; transition: background .15s;
 }
 .invoice-modal-close:hover { background: var(--primary); }
-.invoice-modal-fields { display: grid; grid-template-columns: 1fr 200px; gap: 16px; margin-top: 20px; }
+.invoice-modal-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 16px; margin-top: 20px; }
 .invoice-modal-fields .form-field span { color: #D8D3C7; }
 .invoice-modal-fields input { background: var(--surface); }
 
@@ -1106,7 +1128,7 @@ button { font-family: inherit; cursor: pointer; }
 .sub-tab-btn.active { background: var(--surface); color: var(--ink); box-shadow: none; }
 .crud-section { }
 .crud-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 16px; }
-.crud-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; align-items: start; }
+.crud-layout { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
 
 /* ====== HAMBURGER MENU ====== */
 .hamburger {
@@ -1157,18 +1179,66 @@ button { font-family: inherit; cursor: pointer; }
 .mobile-menu .mobile-divider { height: 1px; background: var(--divider-dark); margin: 6px 0; }
 .mobile-menu .btn-primary { margin-top: 4px; border-radius: 10px; text-align: center; }
 
+/* ================================================================
+   THANG BREAKPOINT — xếp theo thứ tự GIẢM DẦN. Media query không cộng thêm
+   độ ưu tiên, nên block hẹp hơn phải nằm SAU block rộng hơn thì mới đè được.
+
+     ≥1700  màn hình 2K/4K
+     ≤1280  laptop nhỏ      ← khoảng trống trước đây: 1025-1280px không có
+                              breakpoint nào, khu admin bị bóp nguyên si
+     ≤1120  laptop hẹp
+     ≤1024  tablet ngang
+     ≤ 768  mobile / tablet dọc
+     ≤ 480  điện thoại
+     ≤ 380  điện thoại nhỏ
+
+   Phần lớn lưới (sản phẩm, đơn hàng, thẻ tính năng, thống kê) đã tự đếm số
+   cột bằng auto-fill/auto-fit + minmax nên không còn cần override ở đây.
+   ================================================================ */
+
+/* ====== RESPONSIVE — Màn hình rộng (≥1700px) ====== */
+/* Bố cục khoá ở 1280px nên trên màn 2K/4K hai bên thừa rất nhiều khoảng
+   trắng. Nới trần lên 1500px thay vì dồn nội dung vào một dải hẹp giữa. */
+@media (min-width: 1700px) {
+  .header-inner,
+  .hero-content,
+  .products-section,
+  .about-content,
+  .contact-section,
+  .footer-inner { max-width: 1500px; }
+}
+
+/* ====== RESPONSIVE — Laptop nhỏ (≤1280px) ====== */
+/* Khu admin = sidebar 220px + .admin-main. Ở 1090px phần nội dung chỉ còn
+   ~820px, bảng 7-9 cột bị bóp lại khiến chữ xuống dòng từng từ một. Thu gọn
+   sidebar và padding ô để trả chỗ lại cho bảng. */
+@media (max-width: 1280px) {
+  .admin-sidebar { width: 188px; padding: 20px 12px; }
+  .sidebar-btn { padding: 11px 12px; font-size: 0.88rem; }
+  .admin-table th, .admin-table td { padding: 10px 11px; }
+  .admin-table th { font-size: 14px; }
+  .chat-admin-layout { grid-template-columns: minmax(0, 260px) minmax(0, 1fr); }
+  .header-inner { gap: 16px; }
+}
+
+/* ====== RESPONSIVE — Laptop hẹp (≤1120px) ====== */
+@media (max-width: 1120px) {
+  .admin-sidebar { width: 166px; padding: 18px 10px; }
+  .sidebar-btn { padding: 10px 10px; font-size: 0.84rem; }
+  .quick-stat { font-size: 0.78rem; }
+  .admin-table { font-size: 0.82rem; }
+  .admin-header-left span { display: none; }
+  .header-inner { gap: 12px; }
+  .header-nav a { padding: 8px 12px; }
+  .brand span { font-size: 0.68rem; }
+}
+
 /* ====== RESPONSIVE — Tablet (≤1024px) ====== */
 @media (max-width: 1024px) {
   .stock-layout { grid-template-columns: 1fr; }
-  .stats-detail-grid { grid-template-columns: 1fr; }
-  .contact-grid { grid-template-columns: 1fr; }
+  .chat-admin-layout { grid-template-columns: minmax(0, 230px) minmax(0, 1fr); }
   .hero-stats { gap: 0; }
   .stat-card { padding: 16px 20px 0 0; margin-right: 20px; }
-}
-
-/* ====== RESPONSIVE — Tablet (≤900px) — 2 cột sản phẩm ====== */
-@media (max-width: 900px) {
-  .product-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 /* ====== RESPONSIVE — Mobile (≤768px) ====== */
@@ -1201,13 +1271,11 @@ button { font-family: inherit; cursor: pointer; }
   /* About */
   .about-section { padding: 40px 16px; }
   .about-content h2 { font-size: 1.5rem; }
-  .feature-cards { grid-template-columns: repeat(2, 1fr); gap: 14px; }
   .feature-card { padding: 20px 16px; }
 
   /* Contact */
   .contact-section { padding: 40px 16px; }
   .contact-section h2 { font-size: 1.5rem; }
-  .contact-grid { grid-template-columns: 1fr; }
 
   /* Footer */
   .site-footer { padding: 36px 16px 20px; }
@@ -1236,7 +1304,6 @@ button { font-family: inherit; cursor: pointer; }
   .admin-main { padding: 14px; }
   .tab-title { font-size: 1.15rem; margin-bottom: 14px; }
   .form-row { grid-template-columns: 1fr; }
-  .stats-detail-grid { grid-template-columns: 1fr; }
   .stock-layout { grid-template-columns: 1fr; }
   .admin-table { font-size: 0.8rem; }
   .admin-table th, .admin-table td { padding: 8px 10px; }
@@ -1265,11 +1332,7 @@ button { font-family: inherit; cursor: pointer; }
   .category-tabs { gap: 6px; }
   .cat-tab { padding: 7px 12px; font-size: 0.82rem; }
 
-  /* About */
-  .feature-cards { grid-template-columns: 1fr; }
-
   /* Stats */
-  .stats-grid { grid-template-columns: 1fr; }
   .stat-box { padding: 16px; }
 
   /* Admin table - horizontal scroll hint */
@@ -1280,9 +1343,36 @@ button { font-family: inherit; cursor: pointer; }
   .footer-brand strong { font-size: 0.9rem; }
 
   /* Carousel */
-  .carousel-slide { height: 220px; }
-  .carousel-caption h3 { font-size: 1.1rem; }
   .carousel-caption p { font-size: 0.85rem; }
+}
+
+/* ====== RESPONSIVE — Điện thoại nhỏ (≤380px) ====== */
+@media (max-width: 380px) {
+  .header-inner { padding: 10px 12px; gap: 8px; }
+  .products-section,
+  .about-section,
+  .contact-section { padding-left: 12px; padding-right: 12px; }
+  .auth-card { padding: 28px 20px; }
+  .auth-title { font-size: 1.6rem; }
+  .modal-overlay { padding: 8px; }
+  .modal-header, .modal-footer, .modal-box .add-product-form { padding-left: 16px; padding-right: 16px; }
+  .btn-primary, .btn-outline { padding: 11px 16px; font-size: 0.9rem; }
+  .cat-tab { padding: 6px 10px; font-size: 0.78rem; }
+  .page-btn { min-width: 32px; height: 32px; padding: 0 7px; font-size: 0.82rem; }
+  .sub-tab-btn { padding: 8px 12px; font-size: 0.8rem; }
+  .order-card { padding: 14px; }
+  .confirm-modal { padding: 24px 18px 18px; }
+}
+
+/* ====== RESPONSIVE — Màn hình thấp (chiều cao ≤760px) ====== */
+/* Laptop 1366x768 hay cửa sổ 1090x738: hero padding 80px cộng carousel đẩy
+   toàn bộ danh sách sản phẩm xuống dưới nếp gấp. */
+@media (min-width: 769px) and (max-height: 760px) {
+  .hero-banner { padding: 44px 24px; }
+  .hero-btns { margin-bottom: 28px; }
+  .stat-card { padding-top: 14px; }
+  .modal-box,
+  .product-detail-modal { max-height: 94vh; max-height: 94dvh; }
 }
 
 /* ====== HERO CAROUSEL ====== */
@@ -1299,7 +1389,9 @@ button { font-family: inherit; cursor: pointer; }
 .carousel-slide {
   position: relative;
   min-width: 100%;
-  height: 450px;
+  /* Cao cố định 450px chiếm gần hết màn hình laptop cao 738px. clamp theo vw
+     giữ tỷ lệ hợp lý từ điện thoại đến màn hình rộng. */
+  height: clamp(200px, 33vw, 450px);
   background: var(--ink);
 }
 .carousel-slide img {
@@ -1315,7 +1407,7 @@ button { font-family: inherit; cursor: pointer; }
   background: linear-gradient(0deg, rgba(31,29,26,0.85), transparent);
   color: white;
 }
-.carousel-caption h3 { font-family: var(--font-display); font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
+.carousel-caption h3 { font-family: var(--font-display); font-size: clamp(1.05rem, 1.6vw, 1.4rem); font-weight: 800; margin-bottom: 6px; }
 .carousel-caption p { font-size: 0.95rem; opacity: 0.9; }
 .carousel-arrow {
   position: absolute;
@@ -1447,7 +1539,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ====== CHAT ADMIN ====== */
 .chat-page { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .chat-admin-layout {
-  display: grid; grid-template-columns: 300px 1fr;
+  display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
   flex: 1; min-height: 400px;
   background: white; border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
 }
@@ -1529,7 +1621,7 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--surface); border: 1.5px solid var(--ink); border-radius: var(--radius-lg);
   width: 100%; max-width: 420px; margin-left: auto;
   box-shadow: var(--shadow-lg);
-  max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;
+  max-height: 90vh; max-height: 90dvh; display: flex; flex-direction: column; overflow: hidden;
 }
 .cart-empty { padding: 40px 24px; text-align: center; color: var(--text); }
 .cart-items { flex: 1; overflow-y: auto; padding: 12px 20px; display: flex; flex-direction: column; gap: 14px; }
@@ -1576,8 +1668,8 @@ button { font-family: inherit; cursor: pointer; }
 /* ================================================================
    MY ORDERS page
    ================================================================ */
-.my-orders-page { max-width: 1600px; margin: 0 auto; padding: 32px 24px 64px; }
-.my-orders-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+.my-orders-page { max-width: 1600px; margin: 0 auto; padding: clamp(20px, 2.6vw, 32px) clamp(16px, 2.5vw, 24px) 64px; }
+.my-orders-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: clamp(14px, 1.8vw, 24px); }
 .order-card {
   background: var(--surface); border: 1.5px solid var(--divider); border-radius: var(--radius-lg);
   padding: 18px 20px;
@@ -1626,15 +1718,8 @@ button { font-family: inherit; cursor: pointer; }
 .order-card-footer { display: flex; justify-content: flex-end; margin-top: 12px; }
 .order-cancel-reason { font-size: 0.82rem; color: var(--text-light); margin: 10px 0 0; }
 
-@media (max-width: 1024px) {
-  .my-orders-list { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 768px) {
-  .my-orders-list { grid-template-columns: repeat(2, 1fr); }
-}
 @media (max-width: 640px) {
   .cart-drawer { max-width: 100%; }
-  .my-orders-list { grid-template-columns: 1fr; }
 }
 
 /* ================================================================

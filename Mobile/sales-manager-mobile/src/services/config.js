@@ -44,9 +44,18 @@ function resolveProdServerUrl() {
   return extra.apiPort ? `http://${host}:${extra.apiPort}` : `https://${host}`
 }
 
-export const SERVER_URL = __DEV__
-  ? `http://${resolveDevHost()}:${DEV_SERVER_PORT}`
-  : resolveProdServerUrl()
+// true khi SERVER_URL trỏ tới origin nginx (web) thay vì trỏ thẳng backend
+// .NET — chỉ nginx mới có route /media proxy sang MinIO (xem nginx.conf.template
+// của Frontend), nên resolveMediaUrl bên dưới cần biết để chọn cách viết lại URL.
+const usesNginxOrigin = Boolean(extra.apiUrl)
+
+// extra.apiUrl thắng ở mọi chế độ (kể cả dev) — dùng khi muốn máy dev gọi
+// thẳng backend public thay vì tự dò IP LAN của máy chạy Metro.
+export const SERVER_URL = extra.apiUrl
+  ? String(extra.apiUrl).replace(/\/+$/, '')
+  : __DEV__
+    ? `http://${resolveDevHost()}:${DEV_SERVER_PORT}`
+    : resolveProdServerUrl()
 
 // Host dùng để viết lại URL ảnh MinIO (xem resolveMediaUrl bên dưới).
 export const API_HOST = (() => {
@@ -64,10 +73,15 @@ if (__DEV__ && !SERVER_URL.startsWith('http')) {
   console.warn('[config] SERVER_URL không hợp lệ:', SERVER_URL)
 }
 
-// Backend trả URL ảnh MinIO cứng dạng "http://localhost:9000/..." (đúng khi trình
-// duyệt và backend chạy chung máy dev, nhưng "localhost" trên điện thoại lại là
-// chính điện thoại). Viết lại host về đúng API_HOST đã suy ra ở trên, giữ nguyên
-// cổng 9000 của MinIO.
+// Backend trả URL ảnh MinIO cứng dạng "http://localhost:9000/..." (cổng nội bộ
+// của MinIO, không lộ ra ngoài qua Cloudflare Tunnel). Hai cách viết lại tuỳ
+// theo SERVER_URL đang trỏ đi đâu:
+//   - Qua nginx (usesNginxOrigin, vd. build production trỏ apiUrl) -> đổi
+//     thành "<SERVER_URL>/media/<bucket>/<object>", đi qua route /media của
+//     nginx (giống Frontend/sales-manager-fe/src/services/config.js) thay vì
+//     gọi thẳng cổng 9000.
+//   - Gọi thẳng backend .NET (dev, tự dò IP LAN) -> không có nginx đứng trước
+//     nên chỉ đổi hostname, giữ nguyên cổng 9000 để gọi thẳng MinIO trên LAN.
 // Hàm này được gọi trong render của từng ProductCard/bong bóng chat, mà `new URL()`
 // (polyfill react-native-url-polyfill) không hề rẻ — cache lại theo URL gốc vì
 // cùng một ảnh xuất hiện lại liên tục khi cuộn danh sách.
@@ -82,8 +96,12 @@ export function resolveMediaUrl(url) {
   try {
     const parsed = new URL(url)
     if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
-      parsed.hostname = API_HOST
-      resolved = parsed.toString()
+      resolved = usesNginxOrigin
+        ? `${SERVER_URL}/media${parsed.pathname}${parsed.search}`
+        : (() => {
+            parsed.hostname = API_HOST
+            return parsed.toString()
+          })()
     }
   } catch {
     // URL không parse được thì dùng nguyên trạng.
