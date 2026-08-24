@@ -16,7 +16,7 @@
       }
     },
     "android": {
-      "package": "com.ducloi.salesmanager",
+      "package": "com.lysau.salesmanager",
       "adaptiveIcon": {
         "backgroundColor": "#f3f5f8",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -58,7 +58,9 @@
       ]
     ],
     "extra": {
-      "apiUrl": "https://lysauvlxd.shop",
+      // "apiUrl": "https://lysauvlxd.shop",
+      "apiHost": "192.168.10.65",
+      "apiPort": 5000,
       "eas": {
         "projectId": "9a33e4b1-8eec-43e0-a2eb-e1f5e3c8be46"
       }

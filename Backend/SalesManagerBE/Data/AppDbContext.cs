@@ -21,6 +21,7 @@ namespace SalesManagerBE.Data
         public DbSet<Message> Messages => Set<Message>();
         public DbSet<Order> Orders => Set<Order>();
         public DbSet<OrderItem> OrderItems => Set<OrderItem>();
+        public DbSet<ContactInfo> ContactInfos => Set<ContactInfo>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -235,6 +236,28 @@ namespace SalesManagerBE.Data
                     .WithMany(si => si.Orders)
                     .HasForeignKey(e => e.SalesInvoiceId)
                     .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // ContactInfo config — seed đúng nội dung đang hardcode trên trang chủ,
+            // để sau migration trang chủ vẫn hiện được ngay chứ không trống trơn.
+            modelBuilder.Entity<ContactInfo>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Address).IsRequired().HasMaxLength(300);
+                entity.Property(e => e.Phone).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.Email).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.WorkingHours).IsRequired().HasMaxLength(100);
+                entity.HasData(
+                    new ContactInfo
+                    {
+                        Id = 1,
+                        Address = "Khánh Tân, Sài Sơn, Quốc Oai, Hà Nội",
+                        Phone = "0901 234 567",
+                        Email = "info@vlxdpro.vn",
+                        WorkingHours = "Thứ 2 - Thứ 7: 7:00 - 18:00",
+                        IsActive = true,
+                    }
+                );
             });
 
             // OrderItem config

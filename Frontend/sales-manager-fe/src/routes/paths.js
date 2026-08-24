@@ -21,6 +21,7 @@ export const ADMIN_TABS = [
   { key: 'customers',  slug: 'khach-hang',  label: '👥 Khách hàng' },
   { key: 'categories', slug: 'danh-muc',    label: '🏷️ Danh mục' },
   { key: 'banners',    slug: 'banner',      label: '🖼️ Banner' },
+  { key: 'contact',    slug: 'lien-he',     label: '📞 Liên hệ' },
   { key: 'chat',       slug: 'chat',        label: '💬 Chat' },
   { key: 'stats',      slug: 'thong-ke',    label: '📊 Thống kê' },
   { key: 'system',     slug: 'he-thong',    label: '⚙️ Hệ thống' },

@@ -11,6 +11,7 @@ import StockManager from './admin/StockManager'
 import Statistics from './admin/Statistics'
 import CategoryManager from './admin/CategoryManager'
 import BannerManager from './admin/BannerManager'
+import ContactManager from './admin/ContactManager'
 import SystemManager from './admin/SystemManager'
 import ChatManager from './admin/ChatManager'
 import CustomerManager from './admin/CustomerManager'
@@ -256,6 +257,7 @@ function AdminDashboard() {
           {tab === 'customers' && <CustomerManager />}
           {tab === 'categories' && <CategoryManager />}
           {tab === 'banners' && <BannerManager />}
+          {tab === 'contact' && <ContactManager />}
           {tab === 'chat' && (
             <ChatManager
               conversations={conversations}

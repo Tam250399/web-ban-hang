@@ -5,6 +5,8 @@ import '../App.css'
 import Carousel from './Carousel'
 import { bannerService } from '../services/bannerService'
 import { productService } from '../services/productService'
+import { categoryService } from '../services/categoryService'
+import { contactService } from '../services/contactService'
 import { useCart } from '../context/cart-context'
 import { useAuth } from '../context/auth-context'
 import { useCachedResource } from '../hooks/useCachedResource'
@@ -95,6 +97,8 @@ function TrangChu() {
   const [visibleCount, setVisibleCount]   = useState(PAGE_SIZE)
   const [menuOpen, setMenuOpen]           = useState(false)
   const [banners, setBanners]             = useState([])
+  const [homeCategories, setHomeCategories] = useState([])
+  const [contact, setContact] = useState(null)
   const [cartOpen, setCartOpen]           = useState(false)
   const { addItem, totalCount } = useCart()
 
@@ -122,11 +126,15 @@ function TrangChu() {
 
   useEffect(() => {
     bannerService.getActive().then(setBanners).catch(() => {})
+    categoryService.getHomeCategories().then(setHomeCategories).catch(() => {})
+    contactService.getActive().then(setContact).catch(() => {})
   }, [])
 
+  // Nút lọc theo danh mục do admin chọn ở "Danh mục sản phẩm" (cờ "hiển thị ở
+  // trang chủ"), không còn tự suy ra từ danh mục có sẵn trên sản phẩm nữa.
   const categories = useMemo(
-    () => ['Tất cả', ...new Set(products.map(p => p.categoryName || p.category || 'Khác'))],
-    [products]
+    () => ['Tất cả', ...homeCategories.map(c => c.name)],
+    [homeCategories]
   )
 
   const filtered = useMemo(() => {
@@ -395,18 +403,20 @@ function TrangChu() {
         </div>
       </section>
 
-      {/* CONTACT */}
-      <section id="contact" className="contact-section">
-        <h2>Liên hệ với chúng tôi</h2>
-        <div className="contact-grid">
-          <div className="contact-info">
-            <p>📍 Khánh Tân, Sài Sơn, Quốc Oai, Hà Nội</p>
-            <p>📞 0901 234 567</p>
-            <p>✉️ info@vlxdpro.vn</p>
-            <p>🕐 Thứ 2 - Thứ 7: 7:00 - 18:00</p>
+      {/* CONTACT — admin quản lý ở khu quản trị, luôn chỉ 1 bản ghi đang bật */}
+      {contact && (
+        <section id="contact" className="contact-section">
+          <h2>Liên hệ với chúng tôi</h2>
+          <div className="contact-grid">
+            <div className="contact-info">
+              <p>📍 {contact.address}</p>
+              <p>📞 {contact.phone}</p>
+              <p>✉️ {contact.email}</p>
+              <p>🕐 {contact.workingHours}</p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Route con /san-pham/:id render modal chi tiết ở đây. Truyền dữ liệu
           xuống qua context của Outlet để khỏi tải lại sản phẩm lần nữa. */}

@@ -20,12 +20,21 @@ namespace SalesManagerBE.Controllers
         public async Task<IActionResult> GetProductCategories() =>
             Ok(await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync());
 
+        // Dùng cho trang chủ — chỉ lấy danh mục được bật hiển thị
+        [HttpGet("product-categories/home")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetHomeProductCategories() =>
+            Ok(await _context.ProductCategories
+                .Where(c => c.ShowOnHome)
+                .OrderBy(c => c.Name)
+                .ToListAsync());
+
         [HttpPost("product-categories")]
         public async Task<IActionResult> CreateProductCategory([FromBody] CategoryDto dto)
         {
             if (await _context.ProductCategories.AnyAsync(c => c.Name == dto.Name))
                 return BadRequest(new { message = "Danh mục đã tồn tại." });
-            var entity = new ProductCategory { Name = dto.Name, Description = dto.Description };
+            var entity = new ProductCategory { Name = dto.Name, Description = dto.Description, ShowOnHome = dto.ShowOnHome };
             _context.ProductCategories.Add(entity);
             await _context.SaveChangesAsync();
             return Ok(entity);
@@ -38,6 +47,7 @@ namespace SalesManagerBE.Controllers
             if (entity == null) return NotFound();
             entity.Name = dto.Name;
             entity.Description = dto.Description;
+            entity.ShowOnHome = dto.ShowOnHome;
             await _context.SaveChangesAsync();
             return Ok(entity);
         }

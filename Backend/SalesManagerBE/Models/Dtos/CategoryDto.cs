@@ -4,6 +4,7 @@ namespace SalesManagerBE.Models.Dtos
     {
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public bool ShowOnHome { get; set; } = true;
     }
 
     public class ProductNameTemplateDto

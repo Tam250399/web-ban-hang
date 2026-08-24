@@ -5,6 +5,7 @@ namespace SalesManagerBE.Models
         public int Id { get; set; }
         public string Name { get; set; } = string.Empty;
         public string? Description { get; set; }
+        public bool ShowOnHome { get; set; } = true;
         public List<Product> Products { get; set; } = new();
         public List<ProductNameTemplate> ProductNameTemplates { get; set; } = new();
     }

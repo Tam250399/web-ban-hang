@@ -7,6 +7,7 @@ const NAME = `${BASE_URL}/category/product-names`
 export const categoryService = {
   // Danh mục sản phẩm
   getCategories:  ()         => request(CAT),
+  getHomeCategories: ()      => request(`${CAT}/home`),
   createCategory: (data)     => request(CAT, { method: 'POST', body: data }),
   updateCategory: (id, data) => request(`${CAT}/${id}`, { method: 'PUT', body: data }),
   deleteCategory: (id)       => request(`${CAT}/${id}`, { method: 'DELETE' }),

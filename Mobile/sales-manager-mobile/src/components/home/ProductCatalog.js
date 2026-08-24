@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { FlatList, RefreshControl, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
 import Toast from 'react-native-toast-message'
 import { productService } from '../../services/productService'
+import { categoryService } from '../../services/categoryService'
 import { useCart } from '../../context/cart-context'
 import { useAuth } from '../../context/auth-context'
 import ProductCard from './ProductCard'
@@ -43,6 +44,14 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
 
   const allProducts = data ?? []
 
+  // Danh mục hiện ở nút lọc do admin chọn (cờ "hiển thị ở trang chủ" bên web),
+  // không còn tự suy ra từ danh mục có trong sản phẩm nữa — giống trang web.
+  const { data: homeCategoriesData, reload: reloadHomeCategories } = useCachedResource(
+    CACHE_KEYS.homeCategories,
+    () => categoryService.getHomeCategories()
+  )
+  const homeCategories = homeCategoriesData ?? []
+
   // HomeScreen tăng reloadKey khi người dùng kéo refresh — bỏ qua lần đầu vì
   // useCachedResource đã tự tải rồi.
   const isFirstReloadKey = useRef(true)
@@ -52,7 +61,8 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
       return
     }
     reload()
-  }, [reloadKey, reload])
+    reloadHomeCategories()
+  }, [reloadKey, reload, reloadHomeCategories])
 
   // Reset phân trang khi tìm kiếm hoặc đổi danh mục
   useEffect(() => {
@@ -60,8 +70,8 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
   }, [debouncedSearch, activeCategory])
 
   const categoryNames = useMemo(
-    () => [...new Set(allProducts.map((p) => p.categoryName || p.category || 'Khác'))],
-    [allProducts]
+    () => homeCategories.map((c) => c.name),
+    [homeCategories]
   )
 
   const products = useMemo(() => {

@@ -4,12 +4,13 @@ import { categoryService } from '../../services/categoryService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 
-// ---- Modal thêm/sửa chung (tên + mô tả) ----
-function SimpleFormModal({ title, item, onSave, onClose }) {
+// ---- Modal thêm/sửa chung (tên + mô tả, tuỳ chọn cờ hiển thị trang chủ) ----
+function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
   const isEdit = !!item
   const [form, setForm] = useState({
     name: item?.name || '',
-    description: item?.description || ''
+    description: item?.description || '',
+    ...(withHomeToggle ? { showOnHome: item?.showOnHome ?? true } : {}),
   })
   const [loading, setLoading] = useState(false)
 
@@ -51,6 +52,16 @@ function SimpleFormModal({ title, item, onSave, onClose }) {
                 placeholder="Mô tả (tuỳ chọn)..."
               />
             </label>
+            {withHomeToggle && (
+              <label className="form-field" style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="checkbox"
+                  checked={form.showOnHome}
+                  onChange={e => setForm(f => ({ ...f, showOnHome: e.target.checked }))}
+                />
+                <span>Hiển thị làm bộ lọc ở trang chủ</span>
+              </label>
+            )}
           </div>
           <div className="modal-footer">
             <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
@@ -125,10 +136,11 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
 }
 
 // ---- CRUD table chung (danh mục, đơn vị tính) ----
-function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) {
+function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, withHomeToggle }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [deleting, setDeleting] = useState(null)
+  const [toggling, setToggling] = useState(null)
   const [confirmId, setConfirmId] = useState(null)
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -155,6 +167,16 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
       toast.error(err.message || 'Xóa thất bại.')
     }
     setDeleting(null)
+  }
+
+  const handleToggleHome = async (item) => {
+    setToggling(item.id)
+    try {
+      await onEdit(item.id, { name: item.name, description: item.description, showOnHome: !item.showOnHome })
+    } catch (err) {
+      toast.error(err.message || 'Cập nhật thất bại.')
+    }
+    setToggling(null)
   }
 
   const filtered = items.filter(item =>
@@ -185,11 +207,11 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>
-            <tr><th>#</th><th>Tên</th><th>Mô tả</th><th>Thao tác</th></tr>
+            <tr><th>#</th><th>Tên</th><th>Mô tả</th>{withHomeToggle && <th>Trang chủ</th>}<th>Thao tác</th></tr>
           </thead>
           <tbody>
             {filtered.length === 0 && (
-              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
+              <tr><td colSpan={withHomeToggle ? 5 : 4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
                 {items.length === 0 ? 'Chưa có dữ liệu' : 'Không tìm thấy kết quả phù hợp'}
               </td></tr>
             )}
@@ -198,6 +220,19 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                 <td><strong>{item.name}</strong></td>
                 <td style={{ color: 'var(--text)', fontSize: '0.88rem' }}>{item.description || '-'}</td>
+                {withHomeToggle && (
+                  <td>
+                    <label className="toggle-switch" style={{ opacity: toggling === item.id ? 0.6 : 1 }}>
+                      <input
+                        type="checkbox"
+                        checked={item.showOnHome}
+                        disabled={toggling === item.id}
+                        onChange={() => handleToggleHome(item)}
+                      />
+                      <span className="toggle-track"><span className="toggle-thumb" /></span>
+                    </label>
+                  </td>
+                )}
                 <td>
                   <div className="action-btns">
                     <button className="btn-edit-sm" onClick={() => openEdit(item)}>✏️ Sửa</button>
@@ -227,6 +262,7 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete }) 
           item={editItem}
           onSave={handleSave}
           onClose={closeModal}
+          withHomeToggle={withHomeToggle}
         />
       )}
 
@@ -433,6 +469,7 @@ function CategoryManager() {
             onAdd={catApi.add}
             onEdit={catApi.edit}
             onDelete={catApi.delete}
+            withHomeToggle
           />
         )}
         {sub === 'units' && (
