@@ -1,9 +1,54 @@
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
+import { useState } from 'react'
+import { Linking, Modal, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useAuth } from '../context/auth-context'
+import { contactService } from '../services/contactService'
+import { useCachedResource } from '../hooks/useCachedResource'
+import { CACHE_KEYS } from '../services/cache'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+
+// Thông tin liên hệ do admin quản lý bên web (khu quản trị > Liên hệ), luôn
+// chỉ 1 bản ghi đang bật — giống hệt cách trang chủ web hiển thị.
+function ContactModal({ visible, contact, onClose }) {
+  if (!contact) return null
+  return (
+    <Modal visible={visible} animationType="slide" onRequestClose={onClose} transparent>
+      <SafeAreaProvider>
+        <View style={styles.contactOverlay}>
+          <SafeAreaView style={styles.contactSheet} edges={['bottom']}>
+            <View style={styles.headerRow}>
+              <Text style={styles.headerTitle}>Liên hệ với chúng tôi</Text>
+              <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8} accessibilityLabel="Đóng">
+                <Text style={styles.closeBtnText}>✕</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.contactBody}>
+              <View style={styles.contactRow}>
+                <Text style={styles.rowIcon}>📍</Text>
+                <Text style={styles.contactText}>{contact.address}</Text>
+              </View>
+              <TouchableOpacity style={styles.contactRow} onPress={() => Linking.openURL(`tel:${contact.phone.replace(/\s/g, '')}`)} activeOpacity={0.7}>
+                <Text style={styles.rowIcon}>📞</Text>
+                <Text style={[styles.contactText, styles.contactLink]}>{contact.phone}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.contactRow} onPress={() => Linking.openURL(`mailto:${contact.email}`)} activeOpacity={0.7}>
+                <Text style={styles.rowIcon}>✉️</Text>
+                <Text style={[styles.contactText, styles.contactLink]}>{contact.email}</Text>
+              </TouchableOpacity>
+              <View style={styles.contactRow}>
+                <Text style={styles.rowIcon}>🕐</Text>
+                <Text style={styles.contactText}>{contact.workingHours}</Text>
+              </View>
+            </View>
+          </SafeAreaView>
+        </View>
+      </SafeAreaProvider>
+    </Modal>
+  )
+}
 
 export default function AccountScreen({ navigation }) {
   const {
@@ -11,6 +56,9 @@ export default function AccountScreen({ navigation }) {
     biometricSupported, biometricLabel, biometricEnabled,
     enableBiometricLogin, disableBiometricLogin,
   } = useAuth()
+
+  const { data: contact } = useCachedResource(CACHE_KEYS.contact, () => contactService.getActive())
+  const [showContact, setShowContact] = useState(false)
 
   const handleToggleBiometric = async (value) => {
     if (value) await enableBiometricLogin()
@@ -28,6 +76,14 @@ export default function AccountScreen({ navigation }) {
             <Text style={styles.loginBtnText}>Đăng nhập ngay</Text>
           </TouchableOpacity>
         </View>
+        {contact && (
+          <TouchableOpacity style={styles.row} onPress={() => setShowContact(true)} activeOpacity={0.7}>
+            <Text style={styles.rowIcon}>📞</Text>
+            <Text style={styles.rowText}>Liên hệ</Text>
+            <Text style={styles.rowChevron}>›</Text>
+          </TouchableOpacity>
+        )}
+        <ContactModal visible={showContact} contact={contact} onClose={() => setShowContact(false)} />
       </SafeAreaView>
     )
   }
@@ -78,12 +134,21 @@ export default function AccountScreen({ navigation }) {
             />
           </View>
         )}
+        {contact && (
+          <TouchableOpacity style={styles.row} onPress={() => setShowContact(true)} activeOpacity={0.7}>
+            <Text style={styles.rowIcon}>📞</Text>
+            <Text style={styles.rowText}>Liên hệ</Text>
+            <Text style={styles.rowChevron}>›</Text>
+          </TouchableOpacity>
+        )}
         <TouchableOpacity style={[styles.row, styles.logoutRow]} onPress={logout} activeOpacity={0.7}>
           <Text style={styles.rowIcon}>🚪</Text>
           <Text style={[styles.rowText, styles.logoutText]}>Đăng xuất</Text>
           <Text style={styles.rowChevron}>›</Text>
         </TouchableOpacity>
       </View>
+
+      <ContactModal visible={showContact} contact={contact} onClose={() => setShowContact(false)} />
     </SafeAreaView>
   )
 }
@@ -127,4 +192,22 @@ const styles = StyleSheet.create({
   rowHint: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: '#64748B' },
   rowChevron: { fontSize: 18, color: '#94A3B8', fontFamily: fonts.bodyBold },
   logoutText: { color: '#EF4444' },
+
+  contactOverlay: { flex: 1, backgroundColor: 'rgba(15,23,42,0.45)', justifyContent: 'flex-end' },
+  contactSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20 },
+  headerRow: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 16,
+    borderBottomWidth: 1, borderBottomColor: '#E2E8F0',
+  },
+  headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 17, color: '#0F172A' },
+  closeBtn: {
+    width: 32, height: 32, borderRadius: 16, backgroundColor: '#fee2e2',
+    alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: '#fca5a5',
+  },
+  closeBtnText: { color: '#dc2626', fontSize: 15, fontWeight: '700' },
+  contactBody: { padding: 20, paddingBottom: 32, gap: 16 },
+  contactRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  contactText: { flex: 1, fontFamily: fonts.body, fontSize: 15, color: '#334155', lineHeight: 21 },
+  contactLink: { color: brand.primary, fontFamily: fonts.bodyBold },
 })

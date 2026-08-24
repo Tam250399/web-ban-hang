@@ -41,7 +41,7 @@ export default function CustomerTabs() {
     <Tab.Navigator
       tabBarPosition="bottom"
       screenOptions={({ route }) => ({
-        swipeEnabled: true,
+        swipeEnabled: false,
         lazy: true,
         tabBarScrollEnabled: false,
         tabBarPressColor: 'transparent',

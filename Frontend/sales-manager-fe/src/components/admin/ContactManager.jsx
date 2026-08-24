@@ -130,10 +130,6 @@ function ContactManager() {
         </h3>
         <button className="btn-primary" onClick={openAdd}>+ Thêm thông tin liên hệ</button>
       </div>
-      <p style={{ color: 'var(--text)', fontSize: '0.88rem', marginTop: -8, marginBottom: 16 }}>
-        Chỉ một thông tin liên hệ được bật hiển thị trên trang chủ tại một thời điểm — bật cái nào thì các cái khác tự tắt.
-      </p>
-
       <div className="admin-table-wrap">
         <table className="admin-table">
           <thead>

@@ -10,6 +10,7 @@ export const CACHE_KEYS = {
   products: 'products',
   myOrders: 'myOrders',
   homeCategories: 'homeCategories',
+  contact: 'contact',
 }
 
 /**

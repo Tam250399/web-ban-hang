@@ -132,7 +132,7 @@ function PendingImageBar({ image, onRemove }) {
 // ────────────────────────────────────────────────────────────────────
 // Chat với khách hàng dành cho Admin — tương ứng ChatManager.jsx bên web.
 // ────────────────────────────────────────────────────────────────────
-export default function AdminChatScreen({ route, navigation }) {
+export default function AdminChatScreen({ route }) {
   const [conversations, setConversations] = useState([])
   const [loadingList, setLoadingList] = useState(true)
   const [search, setSearch] = useState('')
@@ -147,14 +147,6 @@ export default function AdminChatScreen({ route, navigation }) {
   const activeIdRef = useRef(null)
   const flatListRef = useRef(null)
   useEffect(() => { activeIdRef.current = activeId }, [activeId])
-
-  // Khi đang trong màn nhắn tin: tắt swipe của Tab Navigator (không bị lướt sang tab khác)
-  // Khi ở màn danh sách chat: bật lại swipe của Tab Navigator (thoải mái lướt trái/phải)
-  useEffect(() => {
-    navigation?.setOptions?.({
-      swipeEnabled: !activeId,
-    })
-  }, [activeId, navigation])
 
   // ── Load conversations ──
   const loadConversations = useCallback(() => {
