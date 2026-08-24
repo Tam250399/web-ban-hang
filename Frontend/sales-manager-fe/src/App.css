@@ -520,6 +520,18 @@ button { font-family: inherit; cursor: pointer; }
 }
 .sidebar-btn:hover { background: rgba(255,255,255,0.06); color: #F5F2EA; }
 .sidebar-btn.active { background: var(--admin-dark-active); color: var(--accent); border-left: 3px solid var(--primary); }
+
+/* ---- Menu cha/con trong sidebar ---- */
+.sidebar-group-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.sidebar-group-arrow { font-size: 0.7rem; opacity: 0.7; transition: transform 0.15s; }
+.sidebar-group-toggle.open .sidebar-group-arrow { transform: rotate(180deg); }
+.sidebar-group-body {
+  display: flex; flex-direction: column;
+  margin: 2px 0 6px 10px; padding-left: 8px;
+  border-left: 1px solid rgba(255,255,255,0.12);
+}
+.sidebar-subbtn { font-size: 0.86rem; padding: 9px 12px; }
+
 .sidebar-summary { margin-top: auto; }
 .quick-stat { display: flex; justify-content: space-between; padding: 8px 4px; font-size: 0.85rem; color: #D8D3C7; border-bottom: 1px solid rgba(255,255,255,0.08); }
 .quick-stat strong { color: #F5F2EA; font-family: var(--font-mono); }
@@ -1301,6 +1313,10 @@ button { font-family: inherit; cursor: pointer; }
   .sidebar-summary { display: none; }
   .sidebar-btn { width: auto; padding: 9px 13px; font-size: 0.82rem; margin-bottom: 0; white-space: nowrap; border-left: none; border-bottom: 3px solid transparent; }
   .sidebar-btn.active { border-left: none; border-bottom: 3px solid var(--primary); }
+  /* Hàng ngang cuộn được thì nhóm cha/con cũng nằm ngang luôn cho đồng bộ,
+     thay vì xổ dọc như trên desktop. */
+  .sidebar-group { display: flex; flex-direction: row; align-items: center; gap: 6px; }
+  .sidebar-group-body { flex-direction: row; flex-wrap: nowrap; margin: 0; padding-left: 6px; border-left: 1px solid var(--divider-dark); }
   .admin-main { padding: 14px; }
   .tab-title { font-size: 1.15rem; margin-bottom: 14px; }
   .form-row { grid-template-columns: 1fr; }
@@ -1776,6 +1792,7 @@ body.admin-theme .sidebar-btn.active {
   border-radius: 8px;
   box-shadow: inset 3px 0 0 var(--primary);
 }
+body.admin-theme .sidebar-group-body { border-left-color: var(--border); }
 
 /* ---- Buttons ---- */
 body.admin-theme .btn-primary,

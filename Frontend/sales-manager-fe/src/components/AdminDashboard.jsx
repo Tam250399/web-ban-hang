@@ -18,7 +18,9 @@ import CustomerManager from './admin/CustomerManager'
 import OrderManager from './admin/OrderManager'
 import PageMeta from './common/PageMeta'
 import { useAuth } from '../context/auth-context'
-import { ADMIN_TABS, DEFAULT_ADMIN_TAB, PATHS, adminTabBySlug } from '../routes/paths'
+import { ADMIN_TABS, DEFAULT_ADMIN_TAB, PATHS, SIDEBAR_GROUPS, adminTabBySlug } from '../routes/paths'
+
+const GROUPED_TAB_KEYS = new Set(SIDEBAR_GROUPS.flatMap(g => g.tabKeys))
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
@@ -46,6 +48,18 @@ function AdminDashboard() {
   const pendingOrdersCount = pendingOrders.length
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
+
+  // Nhóm cha nào đang xổ ra — hoàn toàn do người dùng tự bấm, không tự ép mở
+  // lại theo tab active (làm vậy thì bấm đóng trong lúc tab con vẫn active sẽ
+  // vô tác dụng). Mặc định mở sẵn nhóm chứa tab lúc vào trang.
+  const [openGroups, setOpenGroups] = useState(() => new Set(
+    SIDEBAR_GROUPS.filter(g => g.tabKeys.includes(tab)).map(g => g.key)
+  ))
+  const toggleGroup = (key) => setOpenGroups(prev => {
+    const next = new Set(prev)
+    next.has(key) ? next.delete(key) : next.add(key)
+    return next
+  })
 
   const loadProducts   = useCallback(() => productService.getAll().then(setProducts).catch(() => {}), [])
   const loadCategories = useCallback(() => categoryService.getCategories().then(setCategories).catch(() => {}), [])
@@ -213,7 +227,39 @@ function AdminDashboard() {
         {/* Sidebar */}
         <aside className="admin-sidebar">
           <p className="sidebar-label">Quản lý</p>
-          {ADMIN_TABS.map(t => (
+          {SIDEBAR_GROUPS.map(group => {
+            const isOpen = openGroups.has(group.key)
+            const childTabs = ADMIN_TABS.filter(t => group.tabKeys.includes(t.key))
+            return (
+              <div key={group.key} className="sidebar-group">
+                <button
+                  type="button"
+                  className={`sidebar-btn sidebar-group-toggle ${isOpen ? 'open' : ''}`}
+                  onClick={() => toggleGroup(group.key)}
+                >
+                  <span>{group.label}</span>
+                  <span className="sidebar-group-arrow">▾</span>
+                </button>
+                {isOpen && (
+                  <div className="sidebar-group-body">
+                    {childTabs.map(t => (
+                      <button
+                        key={t.key}
+                        className={`sidebar-btn sidebar-subbtn ${tab === t.key ? 'active' : ''}`}
+                        onClick={() => switchTab(t.key)}
+                      >
+                        {t.label}
+                        {t.key === 'orders' && pendingOrdersCount > 0 && (
+                          <span className="count-badge" style={{ marginLeft: 6 }}>{pendingOrdersCount}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+          {ADMIN_TABS.filter(t => !GROUPED_TAB_KEYS.has(t.key)).map(t => (
             <button
               key={t.key}
               className={`sidebar-btn ${tab === t.key ? 'active' : ''}`}

@@ -27,6 +27,15 @@ export const ADMIN_TABS = [
   { key: 'system',     slug: 'he-thong',    label: '⚙️ Hệ thống' },
 ]
 
+// Nhóm menu cha/con cho sidebar — chỉ ảnh hưởng cách hiển thị, không đụng tới
+// key/slug dùng cho routing ở trên. Tab nào không nằm trong nhóm nào thì vẫn
+// hiện rời như cũ (Chat, Thống kê, Hệ thống — mỗi thứ chỉ có 1 mục nên gom vào
+// nhóm chỉ tổ dài dòng thêm một cấp bấm).
+export const SIDEBAR_GROUPS = [
+  { key: 'sales',   label: '🏪 Bán hàng', tabKeys: ['list', 'orders', 'stock', 'customers'] },
+  { key: 'content', label: '🎨 Trang chủ', tabKeys: ['categories', 'banners', 'contact'] },
+]
+
 export const DEFAULT_ADMIN_TAB = ADMIN_TABS[0]
 
 /** Tab quản lý đơn hàng online — nơi Admin được đưa tới thay cho "Đơn hàng của tôi". */
