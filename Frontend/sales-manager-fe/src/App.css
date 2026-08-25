@@ -743,6 +743,20 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 /* ====== PRODUCT DETAIL MODAL ====== */
+/* Overlay riêng của modal chi tiết sản phẩm (khác .modal-overlay dùng chung
+   cho ConfirmModal/edit-product...) để chỉnh hiệu ứng mà không ảnh hưởng các
+   modal khác. */
+@keyframes product-detail-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.product-detail-overlay {
+  animation: product-detail-overlay-in 0.18s ease-out;
+}
+@keyframes product-detail-in {
+  from { opacity: 0; transform: scale(0.92) translateY(24px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
 .product-detail-modal {
   background: var(--surface);
   border: 1.5px solid var(--ink);
@@ -754,7 +768,7 @@ button { font-family: inherit; cursor: pointer; }
   overflow-y: auto;
   box-shadow: var(--shadow-lg);
   position: relative;
-  animation: confirm-in 0.2s ease;
+  animation: product-detail-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .product-detail-close {
   position: absolute;

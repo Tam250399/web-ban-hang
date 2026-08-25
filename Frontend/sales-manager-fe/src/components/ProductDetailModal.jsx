@@ -17,7 +17,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
   const outOfStock = product.stockQuantity <= 0
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay product-detail-overlay" onClick={onClose}>
       <div
         className="product-detail-modal"
         onClick={e => e.stopPropagation()}

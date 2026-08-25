@@ -24,7 +24,7 @@ function ProductDetailRoute() {
   // kết luận là sản phẩm không tồn tại.
   if (loading) {
     return (
-      <div className="modal-overlay" onClick={close}>
+      <div className="modal-overlay product-detail-overlay" onClick={close}>
         <div className="product-detail-modal" onClick={(e) => e.stopPropagation()}>
           <div className="route-loading">
             <div className="spinner" />
@@ -37,7 +37,7 @@ function ProductDetailRoute() {
 
   if (!product) {
     return (
-      <div className="modal-overlay" onClick={close}>
+      <div className="modal-overlay product-detail-overlay" onClick={close}>
         <div className="product-detail-modal" onClick={(e) => e.stopPropagation()}>
           <button className="modal-close product-detail-close" onClick={close} aria-label="Đóng">✕</button>
           <div className="empty-state" style={{ padding: 40 }}>

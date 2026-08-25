@@ -28,15 +28,17 @@ const PAGE_SIZE = 12
 // memo: mỗi ký tự gõ vào ô tìm kiếm làm TrangChu render lại, trước đây kéo
 // theo toàn bộ thẻ sản phẩm đang hiện dựng lại cùng. Các prop đều là tham chiếu
 // ổn định (onClick/onAddToCart đã bọc useCallback ở dưới) nên so sánh nông là đủ.
-const ProductCard = memo(function ProductCard({ product, onClick, onAddToCart, hideAddToCart }) {
+const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToCart }) {
   const catName  = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
   const icon = CATEGORY_ICONS[catName] || DEFAULT_CATEGORY_ICON
   const outOfStock = product.stockQuantity <= 0
   return (
     // Link thay cho div onClick: khách bấm chuột giữa/Ctrl+click mở tab mới
-    // được, và trình thu thập của Google lần theo được từng sản phẩm.
-    <Link className="product-card" to={PATHS.productDetail(product.id)} onClick={onClick}>
+    // được, và trình thu thập của Google lần theo được từng sản phẩm. Modal
+    // chi tiết là overlay position:fixed nên không cần cuộn trang nền lên đầu —
+    // giữ nguyên vị trí đang xem, đóng modal là quay lại đúng chỗ cũ.
+    <Link className="product-card" to={PATHS.productDetail(product.id)}>
       <div className="product-img-placeholder">
         {product.imageUrl ? (
           <img
@@ -109,9 +111,6 @@ function TrangChu() {
     addItem(product, 1)
     toast.success(`Đã thêm "${product.productName}" vào giỏ hàng.`)
   }, [addItem])
-
-  // ProductCard đã là <Link> nên chỉ cần cuộn lên đầu; điều hướng do router lo.
-  const handleSelectProduct = useCallback(() => window.scrollTo(0, 0), [])
 
   // Cache-then-network: vào trang là thấy ngay danh sách của lần trước (kể cả
   // đang mất mạng), request nền chạy song song để cập nhật.
@@ -353,7 +352,6 @@ function TrangChu() {
                 <ProductCard
                   key={p.id}
                   product={p}
-                  onClick={handleSelectProduct}
                   onAddToCart={handleAddToCart}
                   hideAddToCart={!canBuy}
                 />
