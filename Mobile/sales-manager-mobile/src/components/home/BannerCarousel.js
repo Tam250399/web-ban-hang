@@ -56,7 +56,14 @@ export default function BannerCarousel({ banners }) {
       {banners.length > 1 && (
         <View style={styles.dots}>
           {banners.map((_, i) => (
-            <TouchableOpacity key={i} onPress={() => pagerRef.current?.setPage(i)} hitSlop={8}>
+            <TouchableOpacity
+              key={i}
+              onPress={() => pagerRef.current?.setPage(i)}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={`Xem ảnh ${i + 1} trên ${banners.length}`}
+              accessibilityState={{ selected: i === index }}
+            >
               <View style={[styles.dot, i === index && styles.dotActive]} />
             </TouchableOpacity>
           ))}

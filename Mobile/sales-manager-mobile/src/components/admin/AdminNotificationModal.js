@@ -9,6 +9,7 @@ import { chatService } from '../../services/chatService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { formatVnd, formatTime } from '../../utils/format'
+import { Icon, ICON_ROW } from '../ui/Icon'
 
 export default function AdminNotificationModal({ visible, onClose, navigation }) {
   const [pendingOrders, setPendingOrders] = useState([])
@@ -58,7 +59,7 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
             {/* ── Header ── */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
-                <Text style={styles.headerIcon}>🔔</Text>
+                <Icon name="bell" size={20} color={admin.text} />
                 <Text style={styles.headerTitle}>Thông báo mới</Text>
               </View>
               <TouchableOpacity style={styles.closeBtn} onPress={onClose} activeOpacity={0.7} hitSlop={8} accessibilityLabel="Đóng">
@@ -76,7 +77,9 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
               <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
                 {!hasContent ? (
                   <View style={styles.emptyWrap}>
-                    <Text style={styles.emptyIcon}>🎉</Text>
+                    <View style={styles.emptyIcon}>
+                      <Icon name="checkRing" size={40} color={admin.textMuted} />
+                    </View>
                     <Text style={styles.emptyText}>Không có thông báo mới</Text>
                   </View>
                 ) : (
@@ -84,7 +87,10 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
                     {/* ── Đơn hàng mới ── */}
                     {pendingOrders.length > 0 && (
                       <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>🛒 ĐƠN HÀNG MỚI ({pendingOrders.length})</Text>
+                        <View style={ICON_ROW}>
+                          <Icon name="cart" size={14} color={admin.textMuted} />
+                          <Text style={styles.sectionTitle}>ĐƠN HÀNG MỚI ({pendingOrders.length})</Text>
+                        </View>
                         {pendingOrders.slice(0, 5).map((o) => {
                           const isUnread = !readOrderIds.has(o.id)
                           return (
@@ -117,7 +123,10 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
                     {/* ── Tin nhắn mới ── */}
                     {unreadConversations.length > 0 && (
                       <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>💬 TIN NHẮN MỚI ({unreadConversations.length})</Text>
+                        <View style={ICON_ROW}>
+                          <Icon name="chat" size={14} color={admin.textMuted} />
+                          <Text style={styles.sectionTitle}>TIN NHẮN MỚI ({unreadConversations.length})</Text>
+                        </View>
                         {unreadConversations.slice(0, 5).map((c) => {
                           const isUnread = !readConvIds.has(c.id)
                           return (
@@ -187,7 +196,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#ffffff',
   },
   headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  headerIcon: { fontSize: 20 },
   headerTitle: { fontFamily: fonts.adminDisplayBold, fontSize: 18, color: admin.text },
   closeBtn: {
     width: 30, height: 30, borderRadius: 15,
@@ -198,7 +206,7 @@ const styles = StyleSheet.create({
   loaderWrap: { padding: 36, alignItems: 'center', justifyContent: 'center' },
   loaderText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted, marginTop: 10 },
   emptyWrap: { padding: 36, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { fontSize: 40, marginBottom: 8 },
+  emptyIcon: { marginBottom: 8 },
   emptyText: { fontFamily: fonts.adminBody, fontSize: 15, color: admin.textMuted },
   section: { marginBottom: 16 },
   sectionTitle: {

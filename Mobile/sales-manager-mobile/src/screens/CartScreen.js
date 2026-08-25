@@ -11,6 +11,7 @@ import { orderService } from '../services/orderService'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { formatVnd } from '../utils/format'
+import { Icon, ICON_ROW } from '../components/ui/Icon'
 
 // Component điều khiển số lượng: có nút − / + và ô TextInput nhập số trực tiếp
 function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {
@@ -154,7 +155,7 @@ export default function CartScreen() {
   if (items.length === 0) {
     return (
       <SafeAreaView style={styles.empty} edges={['top']}>
-        <Text style={styles.emptyIcon}>🛒</Text>
+        <Icon name="cart" size={48} color={brand.textMuted} />
         <Text style={styles.emptyText}>Giỏ hàng của bạn đang trống</Text>
       </SafeAreaView>
     )
@@ -207,7 +208,10 @@ export default function CartScreen() {
             <ScrollView contentContainerStyle={styles.modalBody} keyboardShouldPersistTaps="handled">
               {/* ── Danh sách sản phẩm trong đơn (có thể điền số lượng trực tiếp) ── */}
               <View style={styles.orderSummarySection}>
-                <Text style={styles.sectionTitle}>📦 Sản phẩm trong đơn</Text>
+                <View style={ICON_ROW}>
+                  <Icon name="box" size={16} color={brand.text} />
+                  <Text style={styles.sectionTitle}>Sản phẩm trong đơn</Text>
+                </View>
                 {items.map((item) => (
                   <View key={item.productId} style={styles.modalItemRow}>
                     <View style={styles.modalItemInfo}>
@@ -225,7 +229,10 @@ export default function CartScreen() {
               </View>
 
               {/* ── Thông tin người nhận & giao hàng ── */}
-              <Text style={[styles.sectionTitle, { marginTop: 6 }]}>📍 Thông tin giao hàng</Text>
+              <View style={[ICON_ROW, { marginTop: 6 }]}>
+                <Icon name="pin" size={16} color={brand.text} />
+                <Text style={styles.sectionTitle}>Thông tin giao hàng</Text>
+              </View>
 
               <View style={styles.field}>
                 <Text style={styles.fieldLabel}>Tên người nhận *</Text>
@@ -277,7 +284,6 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F8FAFC' },
   flex: { flex: 1 },
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F8FAFC', gap: 8 },
-  emptyIcon: { fontSize: 48 },
   emptyText: { color: brand.textMuted, fontFamily: fonts.bodyBold, fontSize: 15 },
   list: { padding: 16, gap: 12 },
   row: {

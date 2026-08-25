@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { orderService } from '../../services/orderService'
 import Pagination from '../common/Pagination'
+import { Icon } from '../common/Icon'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_CLASS = { Pending: 'pending', Confirmed: 'confirmed', Cancelled: 'cancelled' }
@@ -240,14 +241,14 @@ function OrderManager({ onChanged }) {
                 <td>
                   <div className="action-btns">
                     <button className="btn-edit-sm" onClick={() => openDetail(o.id)} disabled={loadingDetailId === o.id}>
-                      {loadingDetailId === o.id ? '...' : '👁️ Xem'}
+                      {loadingDetailId === o.id ? '...' : <><Icon name="eye" /> Xem</>}
                     </button>
                     {o.status === 'Pending' && (
                       <>
                         <button className="btn-edit-sm" onClick={() => handleConfirm(o.id)} disabled={confirmingId === o.id}>
-                          {confirmingId === o.id ? '...' : '✅ Xác nhận'}
+                          {confirmingId === o.id ? '...' : <><Icon name="check" /> Xác nhận</>}
                         </button>
-                        <button className="btn-danger-sm" onClick={() => setCancellingOrderId(o.id)}>🗑️ Huỷ</button>
+                        <button className="btn-danger-sm" onClick={() => setCancellingOrderId(o.id)}><Icon name="trash" /> Huỷ</button>
                       </>
                     )}
                   </div>

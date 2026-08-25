@@ -1,13 +1,15 @@
-// Icon minh hoa cho tung danh muc, dung chung giua the san pham va man
-// chi tiet. Tach rieng de ca hai noi khong lech nhau khi them danh muc moi.
+
 const CATEGORY_ICONS = {
-  'Xi măng': '🏗️',
-  'Gạch': '🧱',
-  'Cát - Đá': '⛏️',
-  'Thép': '🔩',
-  'Tôn - Mái': '🏠',
-  'Cửa - Khung': '🚪',
-  'Sơn': '🎨',
+  'Xi măng': 'cement',
+  'Gạch': 'brick',
+  'Cát - Đá': 'pickaxe',
+  'Thép': 'bolt',
+  'Tôn - Mái': 'roof',
+  'Cửa - Khung': 'door',
+  'Sơn': 'palette',
 }
 
-export { CATEGORY_ICONS }
+// Danh mục lạ (admin tự thêm) chưa có icon riêng thì dùng thùng hàng chung.
+const DEFAULT_CATEGORY_ICON = 'box'
+
+export { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON }

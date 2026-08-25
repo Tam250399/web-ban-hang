@@ -2,6 +2,7 @@ import { memo } from 'react'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { fonts } from '../../theme/fonts'
 import { formatVnd, formatDDMMYYYY } from '../../utils/format'
+import { Icon } from '../ui/Icon'
 
 // Bảng màu tương phản cao, đồng bộ với màn tạo phiếu bán hàng.
 const C = {
@@ -28,16 +29,21 @@ const C = {
 // nên memo() sẽ không bao giờ khớp và mọi thẻ đều render lại.
 function InvoiceCard({ invoice, onEdit, onDelete }) {
   const isOnline = !!invoice.fromOrderId
-  const sourceLabel = isOnline ? `🛒 Từ đơn hàng #${invoice.fromOrderId}` : '✍️ Tự tạo tại quầy'
+  const sourceLabel = isOnline ? `Từ đơn hàng #${invoice.fromOrderId}` : 'Tự tạo tại quầy'
   return (
     <View style={styles.card}>
       {/* ── Tên khách hàng ── */}
       <View style={styles.topRow}>
-        <Text style={styles.customerIcon}>👤</Text>
+        <Icon name="user" size={19} color={C.textSoft} />
         <Text style={styles.customer} numberOfLines={2}>{invoice.customerName}</Text>
       </View>
 
       <View style={[styles.badge, isOnline ? styles.badgeOnline : styles.badgeManual]}>
+        <Icon
+          name={isOnline ? 'cart' : 'edit'}
+          size={13}
+          color={isOnline ? C.onlineText : C.manualText}
+        />
         <Text style={[styles.badgeText, isOnline ? styles.badgeTextOnline : styles.badgeTextManual]}>
           {sourceLabel}
         </Text>
@@ -69,7 +75,8 @@ function InvoiceCard({ invoice, onEdit, onDelete }) {
           activeOpacity={0.75}
           accessibilityLabel={`Sửa phiếu của ${invoice.customerName}`}
         >
-          <Text style={styles.editText}>✏️  Xem / Sửa</Text>
+          <Icon name="edit" size={16} color={C.primary} />
+          <Text style={styles.editText}>Xem / Sửa</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.deleteBtn}
@@ -77,7 +84,8 @@ function InvoiceCard({ invoice, onEdit, onDelete }) {
           activeOpacity={0.75}
           accessibilityLabel={`Xóa phiếu của ${invoice.customerName}`}
         >
-          <Text style={styles.deleteText}>🗑  Xóa</Text>
+          <Icon name="trash" size={16} color={C.danger} />
+          <Text style={styles.deleteText}>Xóa</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -99,10 +107,13 @@ const styles = StyleSheet.create({
     elevation: 2,
   },
   topRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  customerIcon: { fontSize: 19, lineHeight: 24 },
+
   customer: { flex: 1, fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text, lineHeight: 22 },
 
-  badge: { alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 9 },
+  badge: {
+    alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 9,
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+  },
   badgeOnline: { backgroundColor: C.onlineBg },
   badgeManual: { backgroundColor: C.manualBg },
   badgeText: { fontFamily: fonts.adminBodyBold, fontSize: 13.5 },
@@ -135,11 +146,13 @@ const styles = StyleSheet.create({
   editBtn: {
     flex: 2, height: 46, borderRadius: 11, borderWidth: 2, borderColor: '#BFDBFE',
     backgroundColor: C.primarySoft, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 7,
   },
   editText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.primary },
   deleteBtn: {
     flex: 1, height: 46, borderRadius: 11, borderWidth: 2, borderColor: '#FCA5A5',
     backgroundColor: C.dangerSoft, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 7,
   },
   deleteText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: C.danger },
 })

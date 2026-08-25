@@ -5,6 +5,7 @@ import { orderService } from '../../services/orderService'
 import { useRequireOnline } from '../../hooks/useRequireOnline'
 import { useModalA11y } from '../../hooks/useModalA11y'
 import { resolveMediaUrl } from '../../services/config'
+import { Icon } from './Icon'
 
 function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }) {
   const { items, updateQuantity, removeItem, clear, totalPrice } = useCart()
@@ -87,7 +88,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
         aria-labelledby="cart-drawer-title"
       >
         <div className="modal-header">
-          <h3 id="cart-drawer-title">🛒 Giỏ hàng</h3>
+          <h3 id="cart-drawer-title"><Icon name="cart" size={20} /> Giỏ hàng</h3>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
@@ -99,7 +100,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
               {items.map(i => (
                 <div className="cart-item" key={i.productId}>
                   <div className="cart-item-thumb">
-                    {i.imageUrl ? <img src={resolveMediaUrl(i.imageUrl)} alt={i.productName} loading="lazy" decoding="async" /> : <span>📦</span>}
+                    {i.imageUrl ? <img src={resolveMediaUrl(i.imageUrl)} alt={i.productName} loading="lazy" decoding="async" /> : <Icon name="box" size={26} />}
                   </div>
                   <div className="cart-item-info">
                     <strong>{i.productName}</strong>
@@ -121,7 +122,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
                     </div>
                     {i.quantity >= i.maxStock && <span className="cart-item-max-note">Tối đa {i.maxStock}</span>}
                   </div>
-                  <button type="button" className="cart-item-remove" onClick={() => removeItem(i.productId)} title="Xóa">🗑️</button>
+                  <button type="button" className="cart-item-remove" onClick={() => removeItem(i.productId)} title="Xóa" aria-label="Xoá khỏi giỏ"><Icon name="trash" size={17} /></button>
                 </div>
               ))}
             </div>

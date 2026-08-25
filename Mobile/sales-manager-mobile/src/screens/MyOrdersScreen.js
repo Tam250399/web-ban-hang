@@ -15,6 +15,7 @@ import { OrderCardSkeleton } from '../components/ui/Skeleton'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { formatVnd, formatDay } from '../utils/format'
+import { Icon, ICON_ROW } from '../components/ui/Icon'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_COLOR = {
@@ -127,7 +128,9 @@ export default function MyOrdersScreen() {
           <Text style={styles.headerSub}>Cửa Hàng VLXD Lý Sáu</Text>
         </View>
         <View style={styles.guestWrap}>
-          <Text style={styles.guestIcon}>📦</Text>
+          <View style={styles.guestIcon}>
+            <Icon name="box" size={54} color={brand.textMuted} />
+          </View>
           <Text style={styles.guestTitle}>Đăng nhập để xem đơn hàng</Text>
           <Text style={styles.guestSub}>
             Vui lòng đăng nhập tài khoản khách hàng để theo dõi trạng thái và lịch sử mua hàng của bạn.
@@ -230,13 +233,19 @@ export default function MyOrdersScreen() {
 
                 {/* ── Delivery info ── */}
                 <View style={styles.deliverySection}>
-                  <Text style={styles.recipientName}>
-                    👤 {item.recipientName} • {item.phoneNumber}
-                  </Text>
-                  {!!item.address && (
-                    <Text style={styles.addressText} numberOfLines={2}>
-                      📍 {item.address}
+                  <View style={ICON_ROW}>
+                    <Icon name="user" size={14} color={brand.textMuted} />
+                    <Text style={styles.recipientName}>
+                      {item.recipientName} • {item.phoneNumber}
                     </Text>
+                  </View>
+                  {!!item.address && (
+                    <View style={ICON_ROW}>
+                      <Icon name="pin" size={14} color={brand.textMuted} />
+                      <Text style={styles.addressText} numberOfLines={2}>
+                        {item.address}
+                      </Text>
+                    </View>
                   )}
                 </View>
 
@@ -287,9 +296,12 @@ export default function MyOrdersScreen() {
                       disabled={isReordering}
                       activeOpacity={0.7}
                     >
-                      <Text style={styles.reorderBtnText}>
-                        {isReordering ? 'Đang xử lý...' : '🔁 Đặt lại đơn'}
-                      </Text>
+                      <View style={ICON_ROW}>
+                        {!isReordering && <Icon name="refresh" size={15} color={brand.primary} />}
+                        <Text style={styles.reorderBtnText}>
+                          {isReordering ? 'Đang xử lý...' : 'Đặt lại đơn'}
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   </View>
                 )}
@@ -306,7 +318,9 @@ export default function MyOrdersScreen() {
           }
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyIcon}>📦</Text>
+              <View style={styles.emptyIcon}>
+                <Icon name="box" size={44} color={brand.textMuted} />
+              </View>
               <Text style={styles.emptyTitle}>Chưa có đơn hàng</Text>
               <Text style={styles.emptyText}>
                 {filter
@@ -336,7 +350,7 @@ const styles = StyleSheet.create({
 
   // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  guestIcon: { fontSize: 54, marginBottom: 14 },
+  guestIcon: { marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
   guestSub: { fontFamily: fonts.body, fontSize: 15, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   loginBtn: { backgroundColor: brand.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 12 },
@@ -432,7 +446,7 @@ const styles = StyleSheet.create({
   reorderBtnText: { fontFamily: fonts.bodyBold, fontSize: 14.5, lineHeight: 21, color: brand.ink, textAlign: 'center', includeFontPadding: false },
 
   emptyWrap: { alignItems: 'center', marginTop: 60, paddingHorizontal: 40 },
-  emptyIcon: { fontSize: 44, marginBottom: 10 },
+  emptyIcon: { marginBottom: 10 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 19, color: brand.ink, marginBottom: 6 },
   emptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
 

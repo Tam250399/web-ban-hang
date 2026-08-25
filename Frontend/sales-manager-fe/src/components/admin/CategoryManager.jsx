@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { categoryService } from '../../services/categoryService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
+import { Icon } from '../common/Icon'
 
 // ---- Modal thêm/sửa chung (tên + mô tả, tuỳ chọn cờ hiển thị trang chủ) ----
 function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
@@ -29,7 +30,7 @@ function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
-          <h3>{isEdit ? `✏️ Chỉnh sửa ${title}` : `➕ Thêm ${title}`}</h3>
+          <h3>{isEdit ? <><Icon name="edit" /> {`Chỉnh sửa ${title}`}</> : <><Icon name="plus" /> {`Thêm ${title}`}</>}</h3>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -100,7 +101,7 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
-          <h3>{isEdit ? '✏️ Chỉnh sửa tên sản phẩm' : '➕ Thêm tên sản phẩm'}</h3>
+          <h3>{isEdit ? <><Icon name="edit" /> Chỉnh sửa tên sản phẩm</> : <><Icon name="plus" /> Thêm tên sản phẩm</>}</h3>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
@@ -239,9 +240,9 @@ function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onD
                 )}
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}><Icon name="edit" /> Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
-                      {deleting === item.id ? '...' : '🗑️ Xóa'}
+                      {deleting === item.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>
@@ -360,9 +361,9 @@ function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }
                 <td>{item.categoryName ? <span className="cat-tag">{item.categoryName}</span> : '-'}</td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}><Icon name="edit" /> Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
-                      {deleting === item.id ? '...' : '🗑️ Xóa'}
+                      {deleting === item.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>
@@ -403,9 +404,9 @@ function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }
 
 // ---- Main CategoryManager ----
 const SUB_TABS = [
-  { key: 'names',      label: '📝 Tên sản phẩm' },
-  { key: 'categories', label: '🏷️ Danh mục sản phẩm' },
-  { key: 'units',      label: '📐 Đơn vị tính' },
+  { key: 'names',      label: <><Icon name="note" /> Tên sản phẩm</> },
+  { key: 'categories', label: <><Icon name="tag" /> Danh mục sản phẩm</> },
+  { key: 'units',      label: <><Icon name="ruler" /> Đơn vị tính</> },
 ]
 
 function CategoryManager() {

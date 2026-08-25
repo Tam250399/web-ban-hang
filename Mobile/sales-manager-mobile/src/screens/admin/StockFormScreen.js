@@ -16,6 +16,7 @@ import BigPickerModal from '../../components/ui/BigPickerModal'
 import MoneyField from '../../components/ui/MoneyField'
 import { fonts } from '../../theme/fonts'
 import { formatVnd, isSameDay, formatDDMMYYYY, formatYYYYMMDD, WEEKDAYS } from '../../utils/format'
+import { ICON_ROW, Icon } from '../../components/ui/Icon'
 
 // ── Bảng màu riêng cho màn hình này: tương phản cao, dễ nhìn với người lớn tuổi ──
 const C = {
@@ -295,7 +296,7 @@ export default function StockFormScreen({ navigation, route }) {
   const customerOptions = customers.map((c) => ({
     value: String(c.id),
     label: c.fullName,
-    sublabel: c.phoneNumber ? `📞 ${c.phoneNumber}` : '',
+    sublabel: c.phoneNumber || '',
     note: c.address || '',
     picked: String(c.id) === String(customerId),
   }))
@@ -324,14 +325,26 @@ export default function StockFormScreen({ navigation, route }) {
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       {/* ══ Thanh trên cùng ══ */}
       <View style={styles.header}>
-        <TouchableOpacity style={styles.backBtn} onPress={handleBack} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.backBtn}
+          onPress={handleBack}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Quay lại bước trước"
+        >
           <Text style={styles.backBtnText}>‹</Text>
         </TouchableOpacity>
         <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>{isEdit ? 'Sửa phiếu bán hàng' : 'Tạo phiếu bán hàng'}</Text>
           <Text style={styles.headerSubtitle}>Bước {step + 1} trên 3 · {STEP_LABELS[step]}</Text>
         </View>
-        <TouchableOpacity style={styles.closeBtn} onPress={handleClose} activeOpacity={0.7}>
+        <TouchableOpacity
+          style={styles.closeBtn}
+          onPress={handleClose}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel="Đóng phiếu"
+        >
           <Text style={styles.closeBtnText}>✕</Text>
         </TouchableOpacity>
       </View>
@@ -371,7 +384,7 @@ export default function StockFormScreen({ navigation, route }) {
           {/* ── Băng thông báo lỗi bằng lời dễ hiểu ── */}
           {!!stepError && (
             <View style={styles.errorBanner}>
-              <Text style={styles.errorBannerIcon}>⚠️</Text>
+              <Icon name="alert" size={18} color={C.danger} />
               <Text style={styles.errorBannerText}>{stepError}</Text>
             </View>
           )}
@@ -387,7 +400,7 @@ export default function StockFormScreen({ navigation, route }) {
                 activeOpacity={0.7}
               >
                 <View style={styles.pickBoxLeft}>
-                  <Text style={styles.pickBoxIcon}>👤</Text>
+                  <Icon name="user" size={24} color={C.textMuted} />
                   <View style={styles.pickBoxTextWrap}>
                     {customerId ? (
                       <>
@@ -395,7 +408,7 @@ export default function StockFormScreen({ navigation, route }) {
                           {selectedCustomer?.fullName || customerName}
                         </Text>
                         {!!selectedCustomer?.phoneNumber && (
-                          <Text style={styles.pickBoxSub}>📞 {selectedCustomer.phoneNumber}</Text>
+                          <Text style={styles.pickBoxSub}>{selectedCustomer.phoneNumber}</Text>
                         )}
                       </>
                     ) : (
@@ -430,7 +443,8 @@ export default function StockFormScreen({ navigation, route }) {
                     onPress={() => setShowDatePicker(true)}
                     activeOpacity={0.7}
                   >
-                    <Text style={styles.dateQuickText}>📅  Chọn ngày khác</Text>
+                    <Icon name="calendar" size={16} color={C.primary} />
+                    <Text style={styles.dateQuickText}>Chọn ngày khác</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -453,7 +467,7 @@ export default function StockFormScreen({ navigation, route }) {
 
               {items.length === 0 ? (
                 <View style={styles.emptyBox}>
-                  <Text style={styles.emptyIcon}>📦</Text>
+                  <Icon name="box" size={36} color={C.textMuted} />
                   <Text style={styles.emptyTitle}>Chưa có mặt hàng nào</Text>
                   <Text style={styles.emptyHint}>Bấm nút “THÊM MẶT HÀNG” ở trên để chọn hàng cần bán.</Text>
                 </View>
@@ -489,6 +503,8 @@ export default function StockFormScreen({ navigation, route }) {
                           style={[styles.qtyBtn, Number(it.quantity) <= 1 && styles.qtyBtnOff]}
                           onPress={() => changeQty(it.key, -1)}
                           activeOpacity={0.7}
+                          accessibilityRole="button"
+                          accessibilityLabel="Giảm số lượng"
                         >
                           <Text style={styles.qtyBtnText}>−</Text>
                         </TouchableOpacity>
@@ -503,11 +519,18 @@ export default function StockFormScreen({ navigation, route }) {
                           style={styles.qtyBtn}
                           onPress={() => changeQty(it.key, 1)}
                           activeOpacity={0.7}
+                          accessibilityRole="button"
+                          accessibilityLabel="Tăng số lượng"
                         >
                           <Text style={styles.qtyBtnText}>＋</Text>
                         </TouchableOpacity>
                       </View>
-                      {!!rowErr?.quantity && <Text style={styles.inlineError}>⚠️ {rowErr.quantity}</Text>}
+                      {!!rowErr?.quantity && (
+                        <View style={ICON_ROW}>
+                          <Icon name="alert" size={13} color={C.danger} />
+                          <Text style={styles.inlineError}>{rowErr.quantity}</Text>
+                        </View>
+                      )}
 
                       {/* Đơn giá */}
                       <Text style={styles.fieldLabel}>Đơn giá bán</Text>
@@ -517,7 +540,12 @@ export default function StockFormScreen({ navigation, route }) {
                         style={[styles.priceWrap, !!rowErr?.unitPrice && styles.inputError]}
                         inputStyle={styles.priceInput}
                       />
-                      {!!rowErr?.unitPrice && <Text style={styles.inlineError}>⚠️ {rowErr.unitPrice}</Text>}
+                      {!!rowErr?.unitPrice && (
+                        <View style={ICON_ROW}>
+                          <Icon name="alert" size={13} color={C.danger} />
+                          <Text style={styles.inlineError}>{rowErr.unitPrice}</Text>
+                        </View>
+                      )}
                       {!!product && Number(it.unitPrice) !== Number(product.price) && (
                         <TouchableOpacity
                           onPress={() => updateItem(it.key, { unitPrice: product.price ?? 0 })}
@@ -536,7 +564,8 @@ export default function StockFormScreen({ navigation, route }) {
                         <Text style={styles.itemFooterValue}>{formatVnd(lineTotal)}đ</Text>
                       </View>
                       <TouchableOpacity style={styles.removeBtn} onPress={() => removeRow(it.key)} activeOpacity={0.7}>
-                        <Text style={styles.removeBtnText}>🗑  Bỏ mặt hàng này</Text>
+                        <Icon name="trash" size={15} color={C.danger} />
+                        <Text style={styles.removeBtnText}>Bỏ mặt hàng này</Text>
                       </TouchableOpacity>
                     </View>
                   )
@@ -559,7 +588,7 @@ export default function StockFormScreen({ navigation, route }) {
                 </View>
                 <Text style={styles.reviewValue}>{selectedCustomer?.fullName || customerName}</Text>
                 {!!selectedCustomer?.phoneNumber && (
-                  <Text style={styles.reviewSub}>📞 {selectedCustomer.phoneNumber}</Text>
+                  <Text style={styles.reviewSub}>{selectedCustomer.phoneNumber}</Text>
                 )}
                 <View style={styles.reviewDivider} />
                 <View style={styles.reviewHead}>
@@ -760,7 +789,6 @@ const styles = StyleSheet.create({
     backgroundColor: C.dangerSoft, borderWidth: 2, borderColor: '#FCA5A5',
     borderRadius: 12, padding: 12,
   },
-  errorBannerIcon: { fontSize: 18 },
   errorBannerText: { flex: 1, fontFamily: fonts.adminBodyBold, fontSize: 15, color: '#991B1B', lineHeight: 20 },
 
   // ── Ô chọn lớn (khách hàng) ──
@@ -773,7 +801,6 @@ const styles = StyleSheet.create({
   pickBoxFilled: { borderStyle: 'solid', borderColor: C.primary, backgroundColor: C.primarySoft },
   pickBoxError: { borderColor: C.danger, backgroundColor: '#FEF2F2', borderStyle: 'solid' },
   pickBoxLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  pickBoxIcon: { fontSize: 24 },
   pickBoxTextWrap: { flex: 1, gap: 2 },
   pickBoxPlaceholder: { fontFamily: fonts.adminBodyMedium, fontSize: 16, color: C.textMuted },
   pickBoxValue: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text, lineHeight: 24 },
@@ -814,7 +841,6 @@ const styles = StyleSheet.create({
     alignItems: 'center', gap: 8, paddingVertical: 28, paddingHorizontal: 18,
     backgroundColor: C.card, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0', borderStyle: 'dashed',
   },
-  emptyIcon: { fontSize: 36 },
   emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text },
   emptyHint: { fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted, textAlign: 'center', lineHeight: 19 },
 

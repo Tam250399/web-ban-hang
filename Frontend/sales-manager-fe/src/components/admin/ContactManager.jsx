@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { contactService } from '../../services/contactService'
 import ConfirmModal from '../common/ConfirmModal'
+import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { address: '', phone: '', email: '', workingHours: '', isActive: false }
 
@@ -35,7 +36,7 @@ function ContactFormModal({ item, onClose, onSaved }) {
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
-          <h3>{isEdit ? '✏️ Chỉnh sửa thông tin liên hệ' : '➕ Thêm thông tin liên hệ'}</h3>
+          <h3>{isEdit ? <><Icon name="edit" /> Chỉnh sửa thông tin liên hệ</> : <><Icon name="plus" /> Thêm thông tin liên hệ</>}</h3>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="add-product-form">
@@ -160,9 +161,9 @@ function ContactManager() {
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}><Icon name="edit" /> Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
-                      {deleting === item.id ? '...' : '🗑️ Xóa'}
+                      {deleting === item.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>

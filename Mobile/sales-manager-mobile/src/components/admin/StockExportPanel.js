@@ -10,6 +10,7 @@ import { useDebouncedValue } from '../../hooks/useDebouncedValue'
 import { warningFeedback } from '../../services/haptics'
 import { fonts } from '../../theme/fonts'
 import { formatVnd, formatDDMMYYYY, startOfDay, WEEKDAYS } from '../../utils/format'
+import { Icon } from '../ui/Icon'
 
 const PAGE_SIZE = 10
 
@@ -156,7 +157,7 @@ export default function StockExportPanel() {
     <View style={styles.listHeader}>
       {/* ── Ô tìm kiếm ── */}
       <View style={styles.searchWrap}>
-        <Text style={styles.searchIcon}>🔍</Text>
+        <Icon name="search" size={16} color={C.textMuted} />
         <TextInput
           style={styles.searchInput}
           placeholder="Tìm theo tên khách hàng..."
@@ -166,7 +167,13 @@ export default function StockExportPanel() {
           clearButtonMode="while-editing"
         />
         {!!search && (
-          <TouchableOpacity style={styles.clearBtn} onPress={() => setSearch('')} activeOpacity={0.7}>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={() => setSearch('')}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Xoá từ khoá tìm kiếm"
+          >
             <Text style={styles.clearBtnText}>✕</Text>
           </TouchableOpacity>
         )}
@@ -256,7 +263,11 @@ export default function StockExportPanel() {
           }
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyIcon}>{invoices.length === 0 ? '🧾' : '🔎'}</Text>
+              <Icon
+                name={invoices.length === 0 ? 'receipt' : 'search'}
+                size={40}
+                color={C.textMuted}
+              />
               <Text style={styles.emptyTitle}>
                 {invoices.length === 0 ? 'Chưa có phiếu bán hàng nào' : 'Không tìm thấy phiếu nào'}
               </Text>
@@ -297,7 +308,6 @@ const styles = StyleSheet.create({
     height: 46, paddingHorizontal: 12,
     borderWidth: 2, borderColor: C.border, borderRadius: 12, backgroundColor: C.card,
   },
-  searchIcon: { fontSize: 16 },
   searchInput: {
     flex: 1, fontSize: 15, color: C.text, fontFamily: fonts.adminBodyMedium, paddingVertical: 0,
   },
@@ -342,7 +352,6 @@ const styles = StyleSheet.create({
   footerLoaderText: { fontFamily: fonts.adminBodyMedium, fontSize: 13.5, color: C.textMuted },
 
   emptyWrap: { alignItems: 'center', gap: 8, paddingTop: 34, paddingHorizontal: 18 },
-  emptyIcon: { fontSize: 40 },
   emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 18, color: C.text, textAlign: 'center' },
   emptyHint: {
     fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted,

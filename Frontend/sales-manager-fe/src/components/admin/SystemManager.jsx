@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { userService } from '../../services/userService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
+import { Icon } from '../common/Icon'
 
 // ---- Phân quyền: danh sách user + đổi vai trò ----
 function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) {
@@ -103,7 +104,7 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
                         onClick={() => setConfirmId(u.id)}
                         title={isSelf ? 'Không thể tự xóa chính mình' : ''}
                       >
-                        {deleting === u.id ? '...' : '🗑️ Xóa'}
+                        {deleting === u.id ? '...' : <><Icon name="trash" /> Xóa</>}
                       </button>
                     </div>
                   </td>
@@ -191,7 +192,7 @@ function UserFormModal({ user, roles, onSave, onClose }) {
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
         <div className="modal-header">
-          <h3>{isEdit ? '✏️ Chỉnh sửa người dùng' : '➕ Đăng ký người dùng mới'}</h3>
+          <h3>{isEdit ? <><Icon name="edit" /> Chỉnh sửa người dùng</> : <><Icon name="plus" /> Đăng ký người dùng mới</>}</h3>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
@@ -374,14 +375,14 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
                   <td>{u.roleName || '-'}</td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn-edit-sm" onClick={() => openEdit(u)}>✏️ Sửa</button>
+                      <button className="btn-edit-sm" onClick={() => openEdit(u)}><Icon name="edit" /> Sửa</button>
                       <button
                         className="btn-danger-sm"
                         disabled={deleting === u.id || isSelf}
                         onClick={() => setConfirmId(u.id)}
                         title={isSelf ? 'Không thể tự xóa chính mình' : ''}
                       >
-                        {deleting === u.id ? '...' : '🗑️ Xóa'}
+                        {deleting === u.id ? '...' : <><Icon name="trash" /> Xóa</>}
                       </button>
                     </div>
                   </td>
@@ -423,8 +424,8 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
 
 // ---- Main SystemManager ----
 const SUB_TABS = [
-  { key: 'permissions', label: '🔑 Phân quyền' },
-  { key: 'register',    label: '➕ Đăng ký user' },
+  { key: 'permissions', label: <><Icon name="key" /> Phân quyền</> },
+  { key: 'register',    label: <><Icon name="plus" /> Đăng ký user</> },
 ]
 
 function SystemManager({ currentUser }) {

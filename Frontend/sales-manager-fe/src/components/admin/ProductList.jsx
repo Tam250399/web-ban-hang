@@ -8,6 +8,7 @@ import MoneyInput from '../common/MoneyInput'
 import OverflowMenu from '../common/OverflowMenu'
 import AddProduct from './AddProduct'
 import { resolveMediaUrl } from '../../services/config'
+import { Icon } from '../common/Icon'
 
 const IMPORT_STATUS_LABEL = { New: 'Mới', Duplicate: 'Trùng mã', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { New: 'new', Duplicate: 'duplicate', Invalid: 'invalid' }
@@ -216,7 +217,7 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
                     style={{ display: 'none' }}
                     disabled={uploading}
                   />
-                  <span className="image-upload-icon">🖼️</span>
+                  <span className="image-upload-icon"><Icon name="image" size={30} /></span>
                   <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP · Tối đa 5MB</span>
                 </label>
@@ -357,9 +358,9 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
           <OverflowMenu
             label="Thao tác Excel"
             items={[
-              { label: '📥 Tải file mẫu', onClick: handleDownloadTemplate },
-              { label: '📤 Xuất Excel', onClick: handleExport },
-              { label: uploading ? 'Đang đọc...' : '📄 Nhập Excel', onClick: () => fileInputRef.current?.click(), disabled: uploading },
+              { label: <><Icon name="importBox" /> Tải file mẫu</>, onClick: handleDownloadTemplate },
+              { label: <><Icon name="exportBox" /> Xuất Excel</>, onClick: handleExport },
+              { label: uploading ? 'Đang đọc...' : <><Icon name="file" /> Nhập Excel</>, onClick: () => fileInputRef.current?.click(), disabled: uploading },
             ]}
           />
         </div>
@@ -415,7 +416,7 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
                       decoding="async"
                     />
                   ) : (
-                    <div className="product-thumb-placeholder">🧱</div>
+                    <div className="product-thumb-placeholder"><Icon name="brick" size={22} /></div>
                   )}
                 </td>
                 <td><code>{p.productCode}</code></td>
@@ -424,17 +425,17 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
                 <td>{p.unitTypeName || p.unit}</td>
                 <td className="price-cell">{p.price?.toLocaleString('vi-VN')}đ</td>
                 <td className={p.stockQuantity < 50 ? 'warn-cell' : ''}>
-                  {p.stockQuantity} {p.stockQuantity < 50 ? '⚠️' : ''}
+                  {p.stockQuantity} {p.stockQuantity < 50 && <Icon name="alert" title="Sắp hết hàng" size={15} />}
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => setEditing(p)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => setEditing(p)}><Icon name="edit" /> Sửa</button>
                     <button
                       className="btn-danger-sm"
                       onClick={() => setConfirmId(p.id)}
                       disabled={deleting === p.id}
                     >
-                      {deleting === p.id ? '...' : '🗑️ Xóa'}
+                      {deleting === p.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>

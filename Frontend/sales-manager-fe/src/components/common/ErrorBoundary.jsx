@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { Icon } from './Icon'
 
 // Không có ranh giới lỗi thì một exception khi render ở bất kỳ đâu cũng làm
 // trắng trang và người dùng chỉ còn cách F5. Ở đây bắt lại, hiện thông báo
@@ -27,7 +28,7 @@ class ErrorBoundary extends Component {
     return (
       <div className="error-boundary">
         <div className="error-boundary-card">
-          <span className="error-boundary-icon">⚠️</span>
+          <span className="error-boundary-icon"><Icon name="alert" size={34} /></span>
           <h1>Trang gặp sự cố</h1>
           <p>
             Đã có lỗi ngoài dự kiến. Bạn có thể thử lại — dữ liệu đã lưu trên máy chủ không bị ảnh hưởng.

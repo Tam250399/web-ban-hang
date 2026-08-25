@@ -110,6 +110,19 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
     </View>
   ), [handleAddToCart, isAdmin])
 
+  // Trả về PHẦN TỬ, và bên dưới truyền `renderHeader()` chứ không phải
+  // `renderHeader`. VirtualizedList xử lý ListHeaderComponent thế này:
+  //
+  //     React.isValidElement(C) ? C : React.createElement(C)
+  //
+  // Truyền hàm thì rơi vào nhánh sau, với C đóng vai KIỂU component. Hàm này
+  // được tạo mới ở mỗi lần render nên React thấy kiểu khác nhau, gỡ bỏ cả cây
+  // header rồi dựng lại từ đầu — TextInput bị huỷ và tạo lại, mất focus, bàn
+  // phím đóng ngay sau ký tự đầu tiên.
+  //
+  // useCallback không cứu được: hàm đọc `search`, mà `search` đổi sau mỗi ký tự
+  // nên tham chiếu vẫn phải đổi theo. Truyền phần tử thì React đối chiếu như
+  // cây JSX bình thường và TextInput giữ nguyên danh tính.
   const renderHeader = () => (
     <>
       {ListHeaderComponent}
@@ -206,8 +219,8 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
         numColumns={2}
         columnWrapperStyle={styles.row}
         renderItem={renderItem}
-        ListHeaderComponent={renderHeader}
-        ListFooterComponent={renderFooter}
+        ListHeaderComponent={renderHeader()}
+        ListFooterComponent={renderFooter()}
         ListEmptyComponent={loading ? renderSkeletonGrid() : renderEmpty()}
         refreshControl={
           onRefresh ? (
@@ -215,6 +228,10 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
           ) : undefined
         }
         onEndReachedThreshold={0.4}
+        // Mặc định của FlatList là 'never': cú chạm đầu tiên sau khi gõ chỉ để
+        // đóng bàn phím và bị nuốt mất, người dùng phải chạm hai lần mới bấm
+        // được vào chip danh mục hay thẻ sản phẩm ngay bên dưới ô tìm kiếm.
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
         initialNumToRender={6}
         maxToRenderPerBatch={6}

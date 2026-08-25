@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { chatService } from '../../services/chatService'
 import { uploadImage } from '../../services/uploadService'
 import { resolveMediaUrl } from '../../services/config'
+import { Icon } from '../common/Icon'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
@@ -218,7 +219,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
                 </span>
               </div>
               <div className="chat-panel-body" ref={bodyRef}>
-                {dragOver && <div className="chat-drop-hint">📷 Thả ảnh để gửi</div>}
+                {dragOver && <div className="chat-drop-hint"><Icon name="camera" /> Thả ảnh để gửi</div>}
                 {loadingMsgs && <p className="chat-empty">Đang tải...</p>}
                 {!loadingMsgs && messages.map(m => (
                   <div key={m.id} className={`chat-bubble-row ${m.fromAdmin ? 'from-me' : 'from-admin'}`}>
@@ -255,7 +256,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
                   onClick={() => fileInputRef.current?.click()}
                   title="Gửi ảnh"
                 >
-                  📎
+                  <Icon name="paperclip" />
                 </button>
                 <input
                   ref={inputRef}

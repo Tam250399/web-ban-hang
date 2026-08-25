@@ -17,6 +17,7 @@ import { resolveMediaUrl } from '../services/config'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { formatTime, formatDay, isSameDay } from '../utils/format'
+import { Icon } from '../components/ui/Icon'
 
 const BUBBLE_MAX_W = 280
 
@@ -192,7 +193,7 @@ export default function CustomerChatScreen() {
       <SafeAreaView style={s.root} edges={['top']}>
         <LinearGradient colors={['#C1440E', '#9B360B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
           <View style={s.headerAvatar}>
-            <Text style={s.headerAvatarText}>🏪</Text>
+            <Icon name="store" size={20} color={brand.white} />
           </View>
           <View style={s.headerInfo}>
             <Text style={s.headerTitle}>Hỗ trợ trực tuyến</Text>
@@ -200,7 +201,9 @@ export default function CustomerChatScreen() {
           </View>
         </LinearGradient>
         <View style={s.guestWrap}>
-          <Text style={s.guestIcon}>💬</Text>
+          <View style={s.guestIcon}>
+            <Icon name="chat" size={54} color={brand.textMuted} />
+          </View>
           <Text style={s.guestTitle}>Đăng nhập để Chat</Text>
           <Text style={s.guestSub}>
             Vui lòng đăng nhập tài khoản khách hàng để nhắn tin và nhận tư vấn trực tiếp từ cửa hàng.
@@ -266,7 +269,7 @@ export default function CustomerChatScreen() {
       {/* ── Header ── */}
       <LinearGradient colors={['#C1440E', '#9B360B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <View style={s.headerAvatar}>
-          <Text style={s.headerAvatarText}>🏪</Text>
+          <Icon name="store" size={20} color={brand.white} />
         </View>
         <View style={s.headerInfo}>
           <Text style={s.headerTitle}>Hỗ trợ trực tuyến</Text>
@@ -303,7 +306,9 @@ export default function CustomerChatScreen() {
             renderItem={renderMessage}
             ListEmptyComponent={
               <View style={s.emptyWrap}>
-                <Text style={s.emptyIcon}>👋</Text>
+                <View style={s.emptyIcon}>
+                  <Icon name="chat" size={44} color={brand.textMuted} />
+                </View>
                 <Text style={s.emptyTitle}>Xin chào!</Text>
                 <Text style={s.emptyText}>
                   Hãy gửi câu hỏi hoặc nhu cầu mua vật liệu của bạn, cửa hàng sẽ phản hồi ngay!
@@ -319,7 +324,7 @@ export default function CustomerChatScreen() {
         {/* ── Input row ── */}
         <View style={s.inputRow}>
           <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.7} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
-            <Text style={s.attachIcon}>📎</Text>
+            <Icon name="paperclip" size={18} color={brand.textMuted} />
           </TouchableOpacity>
           <TextInput
             style={s.input}
@@ -366,7 +371,6 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center', justifyContent: 'center',
   },
-  headerAvatarText: { fontSize: 20 },
   headerInfo: { flex: 1 },
   headerTitle: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 17 },
   headerSub: { color: 'rgba(255,255,255,0.8)', fontFamily: fonts.body, fontSize: 13, marginTop: 1 },
@@ -375,7 +379,7 @@ const s = StyleSheet.create({
 
   // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
-  guestIcon: { fontSize: 54, marginBottom: 14 },
+  guestIcon: { marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
   guestSub: { fontFamily: fonts.body, fontSize: 15, color: brand.textMuted, textAlign: 'center', lineHeight: 22, marginBottom: 24 },
   loginBtn: { backgroundColor: brand.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 12 },
@@ -410,7 +414,7 @@ const s = StyleSheet.create({
 
   // ── Empty state ──
   emptyWrap: { alignItems: 'center', marginTop: 80, paddingHorizontal: 40 },
-  emptyIcon: { fontSize: 44, marginBottom: 12 },
+  emptyIcon: { marginBottom: 12 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 20, color: brand.text, marginBottom: 6 },
   emptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
 
@@ -440,7 +444,6 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: brand.card, alignItems: 'center', justifyContent: 'center',
   },
-  attachIcon: { fontSize: 18 },
   input: {
     flex: 1, maxHeight: 100, paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 22, backgroundColor: brand.bg,

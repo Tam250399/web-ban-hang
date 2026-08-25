@@ -5,17 +5,18 @@ import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
 import { formatVnd } from '../../utils/format'
+import { Icon, ICON_ROW } from '../ui/Icon'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
 const CATEGORY_ICONS = {
-  'Xi măng': '🏗️',
-  'Gạch': '🧱',
-  'Cát - Đá': '⛏️',
-  'Thép': '🔩',
-  'Tôn - Mái': '🏠',
-  'Cửa - Khung': '🚪',
-  'Sơn': '🎨',
+  'Xi măng': 'cement',
+  'Gạch': 'brick',
+  'Cát - Đá': 'pickaxe',
+  'Thép': 'bolt',
+  'Tôn - Mái': 'roof',
+  'Cửa - Khung': 'door',
+  'Sơn': 'palette',
 }
 
 // Tương đương ProductDetailModal trong TrangChu.jsx bên web.
@@ -24,7 +25,7 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
 
   const catName = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
-  const icon = CATEGORY_ICONS[catName] || '📦'
+  const icon = CATEGORY_ICONS[catName] || 'box'
   const lowStock = product.stockQuantity < 50
   const outOfStock = product.stockQuantity <= 0
 
@@ -81,8 +82,14 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
               <View style={styles.metaRow}>
                 <Text style={styles.metaLabel}>Tồn kho</Text>
                 <Text style={[styles.metaValue, lowStock ? styles.warnText : styles.okText]}>
-                  {product.stockQuantity} {unitName} {lowStock ? '⚠️' : '✅'}
+                  {product.stockQuantity} {unitName}
                 </Text>
+                <Icon
+                  name={lowStock ? 'alert' : 'checkRing'}
+                  size={15}
+                  color={lowStock ? brand.danger : brand.success}
+                  label={lowStock ? 'Sắp hết hàng' : 'Còn hàng'}
+                />
               </View>
               {!!product.description && (
                 <View style={styles.descBlock}>
@@ -103,7 +110,10 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
                 onPress={() => onAddToCart(product)}
                 disabled={outOfStock}
               >
-                <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}</Text>
+                <View style={ICON_ROW}>
+                  {!outOfStock && <Icon name="cart" size={16} color={brand.white} />}
+                  <Text style={styles.addBtnText}>{outOfStock ? 'Hết hàng' : 'Thêm vào giỏ'}</Text>
+                </View>
               </TouchableOpacity>
             )}
             {/* Còn một mình thì "Đóng" thành nút chính, không để một nút viền

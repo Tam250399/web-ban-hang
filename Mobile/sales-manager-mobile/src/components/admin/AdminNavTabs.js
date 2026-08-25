@@ -2,13 +2,14 @@ import { useEffect, useRef } from 'react'
 import { ScrollView, StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon } from '../ui/Icon'
 
 export const NAV_ITEMS = [
-  { id: 'products', label: 'Sản phẩm', icon: '📋' },
-  { id: 'orders', label: 'Đơn hàng', icon: '🛒' },
-  { id: 'stock', label: 'Kho', icon: '📦' },
-  { id: 'customers', label: 'Khách hàng', icon: '👥' },
-  { id: 'stats', label: 'Thống kê', icon: '📊' },
+  { id: 'products', label: 'Sản phẩm', icon: 'clipboard' },
+  { id: 'orders', label: 'Đơn hàng', icon: 'cart' },
+  { id: 'stock', label: 'Kho', icon: 'box' },
+  { id: 'customers', label: 'Khách hàng', icon: 'users' },
+  { id: 'stats', label: 'Thống kê', icon: 'chart' },
 ]
 
 export default function AdminNavTabs({ active, onChange }) {
@@ -45,8 +46,9 @@ export default function AdminNavTabs({ active, onChange }) {
             }}
             activeOpacity={0.7}
           >
+            <Icon name={item.icon} size={15} color={isActive ? '#FFFFFF' : '#D8D3C7'} />
             <Text style={[styles.pillText, isActive && styles.pillTextActive]}>
-              {item.icon} {item.label}
+              {item.label}
             </Text>
           </TouchableOpacity>
         )
@@ -63,6 +65,7 @@ const styles = StyleSheet.create({
   pill: {
     paddingHorizontal: 13, paddingVertical: 8, borderRadius: 9,
     backgroundColor: admin.navBtnBg, alignItems: 'center', justifyContent: 'center',
+    flexDirection: 'row', gap: 6,
   },
   pillActive: { backgroundColor: admin.primary },
   pillText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: '#D8D3C7' },

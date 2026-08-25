@@ -5,15 +5,16 @@ import { productService } from '../../services/productService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { formatVnd } from '../../utils/format'
+import { Icon } from '../ui/Icon'
 
 const formatMoney = (value) => `${formatVnd(value)}đ`
 
 const STAT_CARDS = [
-  { key: 'totalProducts', icon: '📦', label: 'Tổng sản phẩm', color: '#C1440E', format: (v) => v ?? 0 },
-  { key: 'totalStockValue', icon: '💰', label: 'Giá trị tồn kho', color: '#4A5560', format: formatMoney },
-  { key: 'totalImported', icon: '📥', label: 'Tổng nhập kho', color: '#22c55e', format: formatMoney },
-  { key: 'totalExported', icon: '📤', label: 'Tổng bán ra', color: '#F2B705', format: formatMoney },
-  { key: 'lowStockCount', icon: '⚠️', label: 'Sản phẩm sắp hết', color: '#C1440E', format: (v) => v ?? 0 },
+  { key: 'totalProducts', icon: 'box', label: 'Tổng sản phẩm', color: '#C1440E', format: (v) => v ?? 0 },
+  { key: 'totalStockValue', icon: 'money', label: 'Giá trị tồn kho', color: '#4A5560', format: formatMoney },
+  { key: 'totalImported', icon: 'importBox', label: 'Tổng nhập kho', color: '#22c55e', format: formatMoney },
+  { key: 'totalExported', icon: 'exportBox', label: 'Tổng bán ra', color: '#F2B705', format: formatMoney },
+  { key: 'lowStockCount', icon: 'alert', label: 'Sản phẩm sắp hết', color: '#C1440E', format: (v) => v ?? 0 },
 ]
 
 export default function StatisticsPanel() {
@@ -46,7 +47,7 @@ export default function StatisticsPanel() {
       <View style={styles.statsGrid}>
         {STAT_CARDS.map((card) => (
           <View key={card.key} style={[styles.statCard, { borderTopColor: card.color }]}>
-            <Text style={styles.statIcon}>{card.icon}</Text>
+            <Icon name={card.icon} size={18} color={card.color} />
             <Text style={styles.statLabel}>{card.label}</Text>
             <Text style={styles.statValue}>{card.format(stats?.[card.key])}</Text>
           </View>
@@ -74,7 +75,12 @@ export default function StatisticsPanel() {
           stats.recentTransactions.map((t) => (
             <View key={t.id} style={styles.row}>
               <View style={styles.rowTitleWrap}>
-                <Text style={styles.typeBadge}>{t.type === 'Import' ? '📥' : '📤'}</Text>
+                <Icon
+                  name={t.type === 'Import' ? 'importBox' : 'exportBox'}
+                  size={14}
+                  color={admin.textMuted}
+                  label={t.type === 'Import' ? 'Nhập kho' : 'Xuất kho'}
+                />
                 <Text style={styles.rowTitle} numberOfLines={1}>{t.productName}</Text>
               </View>
               <Text style={styles.rowMeta}>SL {t.quantity}</Text>
@@ -99,7 +105,6 @@ const styles = StyleSheet.create({
     width: '47%', backgroundColor: admin.card, borderWidth: 1, borderColor: admin.border,
     borderTopWidth: 4, borderRadius: 10, padding: 12, gap: 4,
   },
-  statIcon: { fontSize: 18 },
   statLabel: { fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted },
   statValue: { fontFamily: fonts.adminDisplayBold, fontSize: 16, color: admin.text },
   section: { gap: 8 },
@@ -110,7 +115,6 @@ const styles = StyleSheet.create({
   },
   rowTitleWrap: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, minWidth: 0 },
   rowTitle: { flex: 1, fontFamily: fonts.adminBodySemiBold, fontSize: 13.5, color: admin.text },
-  typeBadge: { fontSize: 14 },
   rowMeta: { fontFamily: fonts.adminBody, fontSize: 13, color: admin.textMuted },
   rowValue: { fontFamily: fonts.adminDisplayBold, fontSize: 13.5, color: admin.text },
   empty: { textAlign: 'center', color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 14, paddingVertical: 16 },

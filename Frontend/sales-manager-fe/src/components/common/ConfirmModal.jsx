@@ -1,4 +1,5 @@
 import { useModalA11y } from '../../hooks/useModalA11y'
+import { Icon } from './Icon'
 
 /**
  * Hộp thoại xác nhận dùng chung.
@@ -14,7 +15,7 @@ function ConfirmModal({
   title = 'Xác nhận xóa',
   confirmLabel = 'Xóa',
   cancelLabel = 'Hủy',
-  icon = '🗑️',
+  icon = <Icon name="trash" size={30} />,
   warning = 'Hành động này không thể hoàn tác.',
 }) {
   const dialogRef = useModalA11y({ onClose: onCancel })

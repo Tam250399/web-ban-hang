@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import { customerService } from '../../services/customerService'
 import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
+import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { fullName: '', phoneNumber: '', address: '', isBusiness: false }
 
@@ -154,9 +155,9 @@ function CustomerManager() {
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(c)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(c)}><Icon name="edit" /> Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(c.id)} disabled={deleting === c.id}>
-                      {deleting === c.id ? '...' : '🗑️ Xóa'}
+                      {deleting === c.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>

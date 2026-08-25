@@ -7,11 +7,12 @@
   --accent: #F2B705;
   --success: #22c55e;
   --danger: #DC2626;
+  --success-text: #146C34;
   --slate: #4A5560;
   --ink: #1F1D1A;
   --text-h: var(--ink);
   --text: #5C5648;
-  --text-light: #8A8272;
+  --text-light: #6F6857;
   --hero-muted: #B9B2A0;
   --border: #1F1D1A;
   --divider: #D8D3C7;
@@ -196,14 +197,14 @@ button { font-family: inherit; cursor: pointer; }
 .role-badge {
   display: inline-block; padding: 2px 8px;
   background: var(--accent);
-  color: var(--ink); border-radius: 10px; font-size: 0.7rem; font-weight: 700;
+  color: var(--ink); border-radius: 10px; font-size: 0.75rem; font-weight: 700;
   font-family: var(--font-mono); letter-spacing: 0.04em;
 }
 
 /* ====== BRAND ====== */
 .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .brand strong { display: block; font-size: 1.05rem; color: #F5F2EA; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.01em; }
-.brand span { display: block; font-size: 0.72rem; color: var(--accent); font-family: var(--font-mono); }
+.brand span { display: block; font-size: 0.75rem; color: var(--accent); font-family: var(--font-mono); }
 .brand-icon {
   width: 44px; height: 44px;
   display: grid; place-items: center;
@@ -237,7 +238,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .stat-card:last-child { border-right: none; margin-right: 0; }
 .stat-num { display: block; font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--accent); }
-.stat-label { font-size: 0.8rem; color: var(--text-light); }
+.stat-label { font-size: 0.8rem; color: var(--hero-muted); }
 
 /* ====== PRODUCTS SECTION ====== */
 .products-section { max-width: 1280px; margin: 0 auto; padding: clamp(36px, 5vw, 64px) clamp(16px, 2.5vw, 24px) 0; }
@@ -292,23 +293,29 @@ button { font-family: inherit; cursor: pointer; }
   display: flex; align-items: center; justify-content: center;
   position: relative;
 }
-.product-icon { font-size: 3rem; }
+.product-icon {
+  /* Hộp span cao theo line-height của cỡ chữ 3rem (~58px) trong khi icon chỉ
+     44px, nên icon bị lệch khỏi tâm ô ảnh. Cho span co đúng bằng icon. */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 .product-code-chip {
   position: absolute; top: 10px; left: 10px;
 }
 .low-stock-badge {
   position: absolute; top: 10px; right: 10px;
   background: var(--primary); color: white;
-  padding: 3px 9px; border-radius: 10px; font-size: 0.65rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;
   font-family: var(--font-mono);
 }
 .product-info { padding: 16px; }
-.product-category { font-size: 0.68rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); }
+.product-category { font-size: 0.75rem; color: var(--primary); font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; font-family: var(--font-mono); }
 .product-name { font-size: 1rem; font-weight: 700; margin: 6px 0 6px; color: var(--ink); line-height: 1.3; }
 .product-desc { font-size: 0.83rem; color: var(--text); margin-bottom: 12px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .product-footer { display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px dashed var(--hero-muted); padding-top: 10px; }
 .product-price { font-family: var(--font-mono); letter-spacing: 0.02em; font-size: 1.1rem; font-weight: 700; color: var(--ink); }
-.product-unit { font-family: var(--font-mono); font-size: 0.72rem; color: var(--text); }
+.product-unit { font-family: var(--font-mono); font-size: 0.75rem; color: var(--text); }
 .product-stock { font-size: 0.75rem; color: var(--text); }
 
 .loading-state, .empty-state { text-align: center; padding: 60px; color: var(--text); }
@@ -365,7 +372,7 @@ button { font-family: inherit; cursor: pointer; }
 /* ====== FOOTER ====== */
 .site-footer {
   background: var(--ink);
-  color: var(--text-light);
+  color: var(--hero-muted);
   padding: clamp(32px, 4vw, 56px) clamp(16px, 2.5vw, 24px) 24px;
   margin-top: auto;
   display: flex;
@@ -375,11 +382,11 @@ button { font-family: inherit; cursor: pointer; }
 .footer-inner { max-width: 1280px; margin: 0 auto; width: 100%; }
 .footer-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; margin-top: 24px; }
 .footer-brand strong { color: #F5F2EA; font-family: var(--font-display); font-weight: 800; }
-.footer-brand span { color: var(--text-light); font-size: 0.82rem; }
+.footer-brand span { color: var(--hero-muted); font-size: 0.82rem; }
 .footer-links { display: flex; flex-wrap: wrap; gap: clamp(20px, 3.5vw, 48px); margin-bottom: 32px; }
 .footer-links > div { display: flex; flex-direction: column; gap: 8px; }
 .footer-links h4 { color: #F5F2EA; font-family: var(--font-display); font-size: 0.9rem; margin-bottom: 4px; }
-.footer-links a { font-size: 0.88rem; color: var(--text-light); transition: color 0.15s; }
+.footer-links a { font-size: 0.88rem; color: var(--hero-muted); transition: color 0.15s; }
 .footer-links a:hover { color: var(--accent); }
 .footer-copy { font-size: 0.82rem; border-top: 1px solid var(--divider-dark); padding-top: 20px; }
 
@@ -455,7 +462,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .admin-header-left { display: flex; align-items: center; gap: 12px; }
 .admin-header-left strong { display: block; font-size: 1.05rem; color: #F5F2EA; font-family: var(--font-display); font-weight: 800; }
-.admin-header-left span { display: block; font-size: 0.72rem; color: var(--accent); font-family: var(--font-mono); }
+.admin-header-left span { display: block; font-size: 0.75rem; color: var(--accent); font-family: var(--font-mono); }
 .admin-header-right { display: flex; align-items: center; gap: 12px; }
 .admin-header-right .user-greeting { color: #D8D3C7; }
 .admin-header-right .user-greeting strong { color: #F5F2EA; }
@@ -469,7 +476,7 @@ button { font-family: inherit; cursor: pointer; }
 .notif-bell:hover { background: var(--bg); }
 .notif-bell-badge {
   position: absolute; top: -4px; right: -4px;
-  background: var(--danger); color: white; font-size: 0.68rem; font-weight: 700;
+  background: var(--danger); color: white; font-size: 0.75rem; font-weight: 700;
   min-width: 18px; height: 18px; border-radius: 999px; padding: 0 4px;
   display: flex; align-items: center; justify-content: center;
   border: 2px solid white;
@@ -509,7 +516,7 @@ button { font-family: inherit; cursor: pointer; }
   padding: 24px 16px;
   display: flex; flex-direction: column;
 }
-.sidebar-label { font-size: 0.68rem; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+.sidebar-label { font-size: 0.75rem; font-weight: 700; color: var(--white); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
 .sidebar-btn {
   display: block; width: 100%;
   padding: 12px 14px; margin-bottom: 2px;
@@ -523,7 +530,7 @@ button { font-family: inherit; cursor: pointer; }
 
 /* ---- Menu cha/con trong sidebar ---- */
 .sidebar-group-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.sidebar-group-arrow { font-size: 0.7rem; opacity: 0.7; transition: transform 0.15s; }
+.sidebar-group-arrow { font-size: 0.75rem; opacity: 0.7; transition: transform 0.15s; }
 .sidebar-group-toggle.open .sidebar-group-arrow { transform: rotate(180deg); }
 .sidebar-group-body {
   display: flex; flex-direction: column;
@@ -556,9 +563,9 @@ button { font-family: inherit; cursor: pointer; }
 .low-stock-row { background: rgba(193,68,14,0.08) !important; }
 .warn-cell { color: var(--primary); font-weight: 700; }
 .price-cell { font-weight: 700; color: var(--primary); font-family: var(--font-mono); }
-.cat-tag { display: inline-block; padding: 3px 9px; background: var(--ink); color: var(--accent); border-radius: 10px; font-size: 0.68rem; font-weight: 600; font-family: var(--font-mono); }
-.badge-import { display: inline-block; padding: 3px 9px; background: var(--ink); color: var(--accent); border-radius: 10px; font-size: 0.68rem; font-weight: 600; }
-.badge-export { display: inline-block; padding: 3px 9px; background: var(--primary); color: white; border-radius: 10px; font-size: 0.68rem; font-weight: 600; }
+.cat-tag { display: inline-block; padding: 3px 9px; background: var(--ink); color: var(--accent); border-radius: 10px; font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); }
+.badge-import { display: inline-block; padding: 3px 9px; background: var(--ink); color: var(--accent); border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
+.badge-export { display: inline-block; padding: 3px 9px; background: var(--primary); color: white; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
 
 /* ====== ADMIN FORMS ====== */
 .form-card { background: var(--surface); border: 1.5px solid var(--ink); border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 4px 18px rgba(31,29,26,0.07); }
@@ -849,7 +856,7 @@ button { font-family: inherit; cursor: pointer; }
   margin-right: 12px;
 }
 .warn-text { color: var(--primary); font-weight: 700; }
-.ok-text   { color: var(--success); font-weight: 700; }
+.ok-text   { color: var(--success-text); font-weight: 700; }
 .product-detail-cta { width: 100%; text-align: center; margin-top: auto; }
 
 @media (max-width: 600px) {
@@ -1022,7 +1029,7 @@ button { font-family: inherit; cursor: pointer; }
 .count-badge {
   display: inline-block; padding: 2px 10px;
   background: var(--ink); color: var(--accent);
-  border-radius: 10px; font-size: 0.7rem; font-weight: 700;
+  border-radius: 10px; font-size: 0.75rem; font-weight: 700;
   font-family: var(--font-mono);
   margin-left: 8px;
 }
@@ -1069,7 +1076,7 @@ button { font-family: inherit; cursor: pointer; }
 .invoice-modal-body { padding: 24px 28px; flex: 1; overflow-y: auto; min-height: 0; }
 .invoice-items-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .invoice-items-table th {
-  text-align: left; padding: 8px 10px; font-family: var(--font-mono); font-size: 0.68rem;
+  text-align: left; padding: 8px 10px; font-family: var(--font-mono); font-size: 0.75rem;
   color: var(--text-light); border-bottom: 1.5px solid var(--ink); font-weight: 600;
 }
 .invoice-items-table td { padding: 10px; border-bottom: 1px dashed var(--divider); vertical-align: middle; }
@@ -1242,7 +1249,7 @@ button { font-family: inherit; cursor: pointer; }
   .admin-header-left span { display: none; }
   .header-inner { gap: 12px; }
   .header-nav a { padding: 8px 12px; }
-  .brand span { font-size: 0.68rem; }
+  .brand span { font-size: 0.75rem; }
 }
 
 /* ====== RESPONSIVE — Tablet (≤1024px) ====== */
@@ -1299,7 +1306,7 @@ button { font-family: inherit; cursor: pointer; }
   /* Admin */
   .admin-header { padding: 10px 14px; flex-wrap: wrap; gap: 8px; }
   .admin-header-left strong { font-size: 0.9rem; }
-  .admin-header-left span { font-size: 0.72rem; }
+  .admin-header-left span { font-size: 0.75rem; }
   .admin-header-right .user-greeting { display: none; }
   .admin-body { flex-direction: column; }
   .admin-sidebar {
@@ -1476,7 +1483,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .chat-fab-badge {
   position: absolute; top: -4px; right: -4px;
-  background: var(--danger); color: white; font-size: 0.7rem; font-weight: 700;
+  background: var(--danger); color: white; font-size: 0.75rem; font-weight: 700;
   min-width: 20px; height: 20px; border-radius: 999px;
   display: flex; align-items: center; justify-content: center; padding: 0 5px;
   border: 2px solid white;
@@ -1516,7 +1523,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .chat-bubble-row.from-me .chat-bubble { background: var(--primary); color: white; border-bottom-right-radius: 4px; }
 .chat-bubble-row.from-admin .chat-bubble { background: white; border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-.chat-bubble-time { font-size: 0.68rem; opacity: 0.7; align-self: flex-end; }
+.chat-bubble-time { font-size: 0.75rem; opacity: 0.7; align-self: flex-end; }
 .chat-bubble-image {
   max-width: 100%; max-height: 220px; border-radius: 10px; display: block; cursor: pointer;
 }
@@ -1589,7 +1596,7 @@ button { font-family: inherit; cursor: pointer; }
 .chat-conv-bottom { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 2px; }
 .chat-conv-preview { color: var(--text); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .chat-unread-badge {
-  background: var(--danger); color: white; font-size: 0.7rem; font-weight: 700;
+  background: var(--danger); color: white; font-size: 0.75rem; font-weight: 700;
   min-width: 18px; height: 18px; border-radius: 999px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
 }
 .chat-conv-panel { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
@@ -1619,7 +1626,7 @@ button { font-family: inherit; cursor: pointer; }
 .cart-icon-badge {
   position: absolute; top: -6px; right: -6px;
   background: var(--primary); color: white;
-  font-family: var(--font-mono); font-size: 0.65rem; font-weight: 700;
+  font-family: var(--font-mono); font-size: 0.75rem; font-weight: 700;
   min-width: 18px; height: 18px; border-radius: 9px;
   display: grid; place-items: center; padding: 0 4px;
 }
@@ -1670,7 +1677,7 @@ button { font-family: inherit; cursor: pointer; }
 .cart-item-qty-input::-webkit-outer-spin-button,
 .cart-item-qty-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .cart-item-qty-input:focus { outline: none; border-color: var(--primary); }
-.cart-item-max-note { font-size: 0.7rem; color: var(--text-light); margin-top: 2px; display: block; }
+.cart-item-max-note { font-size: 0.75rem; color: var(--text-light); margin-top: 2px; display: block; }
 .cart-item-remove { background: none; border: none; cursor: pointer; font-size: 0.95rem; opacity: 0.7; }
 .cart-item-remove:hover { opacity: 1; }
 
@@ -1698,7 +1705,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .order-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; color: var(--text); }
 .order-status-badge {
-  padding: 3px 10px; border-radius: 10px; font-size: 0.72rem; font-weight: 700;
+  padding: 3px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: 700;
   font-family: var(--font-mono); text-transform: uppercase;
 }
 .order-status-badge.pending { background: #FCEEE8; color: var(--primary-dark); }
@@ -1707,7 +1714,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .order-source-badge {
   display: inline-block; padding: 3px 9px; border-radius: 8px;
-  font-size: 0.74rem; font-weight: 600; white-space: nowrap;
+  font-size: 0.75rem; font-weight: 600; white-space: nowrap;
 }
 .order-source-badge.online { background: #E7F0FC; color: #2B5EA8; }
 .order-source-badge.manual { background: var(--bg); color: var(--text-light); }
@@ -1717,7 +1724,7 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 0.85rem; color: var(--text);
   padding-bottom: 12px; margin-bottom: 12px; border-bottom: 1px dashed var(--divider);
 }
-.order-card-delivery-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-light); }
+.order-card-delivery-label { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-light); }
 .order-card-address { font-size: 0.82rem; color: var(--text-light); }
 
 .order-card-items {
@@ -1757,11 +1764,13 @@ body.admin-theme {
   --primary-dark: oklch(0.48 0.17 262);
   --accent: oklch(0.55 0.17 262);
   --success: oklch(0.6 0.13 152);
+  /* Bản đậm hơn dành riêng cho chữ: 0.6 chỉ đạt 3.41:1 trên nền admin. */
+  --success-text: oklch(0.5 0.13 152);
   --danger: oklch(0.55 0.19 24);
   --ink: oklch(0.22 0.015 255);
   --text-h: var(--ink);
   --text: oklch(0.5 0.012 255);
-  --text-light: oklch(0.55 0.012 255);
+  --text-light: oklch(0.54 0.012 255);
   --border: oklch(0.885 0.008 250);
   --divider: oklch(0.92 0.006 250);
   --divider-dark: oklch(0.34 0.02 258);
@@ -1926,7 +1935,7 @@ body.admin-theme .toggle-label { font-size: 0.9rem; font-weight: 600; color: var
 /* ---- Customer type badge ---- */
 body.admin-theme .customer-badge {
   display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-body); font-weight: 600;
-  padding: 3px 9px; border-radius: 10px; font-size: 0.68rem;
+  padding: 3px 9px; border-radius: 10px; font-size: 0.75rem;
 }
 body.admin-theme .customer-badge::before { content: ''; width: 5px; height: 5px; border-radius: 999px; display: inline-block; }
 body.admin-theme .customer-badge.personal { background: oklch(0.94 0.006 250); color: var(--text); }
@@ -1964,7 +1973,7 @@ body.admin-theme .import-preview-modal { max-width: 960px; width: 100%; }
 body.admin-theme .import-summary { display: flex; gap: 14px; align-items: center; font-size: 0.85rem; color: var(--text); flex-wrap: wrap; }
 body.admin-theme .import-status-badge {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px; border-radius: 10px;
-  font-size: 0.72rem; font-weight: 600; font-family: var(--font-body); white-space: nowrap;
+  font-size: 0.75rem; font-weight: 600; font-family: var(--font-body); white-space: nowrap;
 }
 body.admin-theme .import-status-badge.new { background: oklch(0.94 0.045 152); color: oklch(0.38 0.12 152); }
 body.admin-theme .import-status-badge.duplicate { background: oklch(0.95 0.05 80); color: oklch(0.45 0.12 70); }
@@ -2064,7 +2073,7 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
   border: 1.5px solid rgba(255, 255, 255, 0.7);
   background: rgba(15, 23, 42, 0.55);
   color: #fff;
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   line-height: 1;
   cursor: pointer;
   display: flex;
@@ -2165,4 +2174,113 @@ a.product-card {
   justify-content: center;
   gap: 12px;
   color: #64748b;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Vòng focus cho bàn phím.
+
+   Nhiều ô nhập trong App.css đặt `outline: none` để tự vẽ viền khi focus. Cách
+   đó đẹp với chuột nhưng người dùng bàn phím (và cả người dùng máy đọc màn
+   hình) mất dấu vị trí đang đứng ở những thành phần chưa kịp có style riêng.
+   `:focus-visible` chỉ hiện khi thao tác bằng bàn phím nên không làm phiền
+   người bấm chuột — đặt ở đây một lần cho toàn bộ ứng dụng.
+   ───────────────────────────────────────────────────────────────────────── */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Tôn trọng "giảm chuyển động" của hệ điều hành.
+
+   Người bị rối loạn tiền đình có thể chóng mặt vì hiệu ứng trượt/phóng. Khi họ
+   bật tuỳ chọn này trong Windows/iOS/Android, mọi animation rút còn gần như
+   tức thời thay vì biến mất hẳn — giữ lại 0.01ms để các đoạn code chờ sự kiện
+   `transitionend`/`animationend` vẫn chạy tiếp, không bị treo giữa chừng.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Icon SVG (src/components/common/Icon.jsx).
+
+   `vertical-align` kéo icon xuống cho tâm của nó trùng tâm chữ thường bên
+   cạnh — mặc định `baseline` sẽ đặt đáy icon ngang đáy chữ, trông như icon
+   đang trôi lên trên. `flex-shrink: 0` giữ icon không bị bóp méo khi nhãn dài
+   trong nút flex.
+   ───────────────────────────────────────────────────────────────────────── */
+.icon {
+  flex-shrink: 0;
+  vertical-align: -0.18em;
+}
+
+/* Icon đứng một mình (ô ảnh trống, nút chỉ có icon, ô đặc trưng ở trang chủ)
+   thì không có chữ nào để căn theo. Giữ nguyên -0.18em ở cỡ 48px sẽ đẩy icon
+   lệch xuống ~4px so với tâm ô; `middle` canh đúng giữa. */
+.icon:only-child {
+  vertical-align: middle;
+}
+
+/* Nhãn nút sidebar: icon và chữ nằm trên một hàng, còn badge số đơn chờ vẫn
+   được đẩy sang phải nhờ `justify-content: space-between` sẵn có của .sidebar-btn. */
+.sidebar-btn-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 0;
+}
+
+/* Nút có cả icon lẫn chữ: dùng flex để khoảng cách đều nhau thay vì phụ thuộc
+   vào dấu cách trong JSX. */
+.btn-icon-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ─────────────────────────────────────────────────────────────────────────
+   Vùng chạm tối thiểu trên thiết bị cảm ứng.
+
+   `pointer: coarse` chỉ đúng với ngón tay — chuột trên máy bàn vẫn giữ nguyên
+   mật độ cũ, nên không phải đánh đổi giao diện desktop để lấy cái này.
+
+   Ba nút dưới đây là đường đi chính của khách mua hàng (mở menu, lọc danh mục,
+   thêm vào giỏ) mà đo được chỉ 32-40px chiều cao. Khách của cửa hàng VLXD hay
+   thao tác ngoài công trường, tay bụi và màn hình nghiêng — hụt vài pixel là
+   bấm trượt sang thẻ sản phẩm bên cạnh.
+   ───────────────────────────────────────────────────────────────────────── */
+@media (pointer: coarse) {
+  .hamburger {
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .cat-tab,
+  .btn-add-cart {
+    min-height: 44px;
+  }
+
+  /* Link chân trang xếp dọc, cao 23px và cách nhau 8px — đủ gần để bấm nhầm
+     sang link bên dưới. Cho mỗi link chiếm trọn 44px thay vì nới khoảng cách,
+     vì nới ra thì chân trang dài thêm mà vẫn còn kẽ hở chết giữa hai link. */
+  .footer-links a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .footer-links > div {
+    gap: 0;
+  }
 }

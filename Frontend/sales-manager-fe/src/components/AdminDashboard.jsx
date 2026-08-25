@@ -17,6 +17,7 @@ import ChatManager from './admin/ChatManager'
 import CustomerManager from './admin/CustomerManager'
 import OrderManager from './admin/OrderManager'
 import PageMeta from './common/PageMeta'
+import { Icon } from './common/Icon'
 import { useAuth } from '../context/auth-context'
 import { ADMIN_TABS, DEFAULT_ADMIN_TAB, PATHS, SIDEBAR_GROUPS, adminTabBySlug } from '../routes/paths'
 
@@ -100,7 +101,7 @@ function AdminDashboard() {
     }
     const handleNewOrder = (order) => {
       loadPendingOrders()
-      toast.success(`🛒 Đơn hàng mới #${order.id} từ ${order.recipientName}`)
+      toast.success(`Đơn hàng mới #${order.id} từ ${order.recipientName}`)
     }
     chatService.on('ConversationUpdated', handleUpdated)
     chatService.on('CustomerPresenceChanged', handlePresence)
@@ -146,7 +147,7 @@ function AdminDashboard() {
 
   return (
     <div className="admin-shell">
-      <PageMeta title={`Quản trị · ${(activeTab ?? DEFAULT_ADMIN_TAB).label.replace(/^\S+\s/, '')}`} noIndex />
+      <PageMeta title={`Quản trị · ${(activeTab ?? DEFAULT_ADMIN_TAB).label}`} noIndex />
 
       {/* Header */}
       <header className="admin-header">
@@ -164,7 +165,7 @@ function AdminDashboard() {
               onClick={() => setNotifOpen(o => !o)}
               title="Thông báo"
             >
-              🔔
+              <Icon name="bell" size={20} />
               {(pendingOrdersCount + unreadTotal) > 0 && (
                 <span className="notif-bell-badge">{(pendingOrdersCount + unreadTotal) > 99 ? '99+' : pendingOrdersCount + unreadTotal}</span>
               )}
@@ -177,7 +178,7 @@ function AdminDashboard() {
                 )}
                 {pendingOrdersCount > 0 && (
                   <div className="notif-section">
-                    <p className="notif-section-title">🛒 Đơn hàng mới ({pendingOrdersCount})</p>
+                    <p className="notif-section-title"><Icon name="cart" size={15} /> Đơn hàng mới ({pendingOrdersCount})</p>
                     {pendingOrders.slice(0, 5).map(o => (
                       <button
                         key={o.id}
@@ -192,7 +193,7 @@ function AdminDashboard() {
                 )}
                 {unreadTotal > 0 && (
                   <div className="notif-section">
-                    <p className="notif-section-title">💬 Tin nhắn mới ({unreadTotal})</p>
+                    <p className="notif-section-title"><Icon name="chat" size={15} /> Tin nhắn mới ({unreadTotal})</p>
                     {conversations.filter(c => c.unreadCount > 0).slice(0, 5).map(c => (
                       <button
                         key={c.id}
@@ -239,7 +240,10 @@ function AdminDashboard() {
                   aria-expanded={isOpen}
                   aria-controls={`sidebar-group-${group.key}`}
                 >
-                  <span>{group.label}</span>
+                  <span className="sidebar-btn-label">
+                    <Icon name={group.icon} />
+                    {group.label}
+                  </span>
                   <span className="sidebar-group-arrow">▾</span>
                 </button>
                 {isOpen && (
@@ -250,7 +254,10 @@ function AdminDashboard() {
                         className={`sidebar-btn sidebar-subbtn ${tab === t.key ? 'active' : ''}`}
                         onClick={() => switchTab(t.key)}
                       >
-                        {t.label}
+                        <span className="sidebar-btn-label">
+                          <Icon name={t.icon} />
+                          {t.label}
+                        </span>
                         {t.key === 'orders' && pendingOrdersCount > 0 && (
                           <span className="count-badge" style={{ marginLeft: 6 }}>{pendingOrdersCount}</span>
                         )}
@@ -267,7 +274,10 @@ function AdminDashboard() {
               className={`sidebar-btn ${tab === t.key ? 'active' : ''}`}
               onClick={() => switchTab(t.key)}
             >
-              {t.label}
+              <span className="sidebar-btn-label">
+                <Icon name={t.icon} />
+                {t.label}
+              </span>
               {t.key === 'orders' && pendingOrdersCount > 0 && (
                 <span className="count-badge" style={{ marginLeft: 6 }}>{pendingOrdersCount}</span>
               )}

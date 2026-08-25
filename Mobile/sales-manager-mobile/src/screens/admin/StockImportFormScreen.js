@@ -9,6 +9,7 @@ import DropdownSelect from '../../components/ui/DropdownSelect'
 import MoneyField from '../../components/ui/MoneyField'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon, ICON_ROW } from '../../components/ui/Icon'
 
 export default function StockImportFormScreen({ navigation, route }) {
   const transactionId = route.params?.transactionId
@@ -186,7 +187,12 @@ export default function StockImportFormScreen({ navigation, route }) {
                 }
               }}
             />
-            {!!errors.quantity && <Text style={styles.inlineError}>⚠️ {errors.quantity}</Text>}
+            {!!errors.quantity && (
+              <View style={ICON_ROW}>
+                <Icon name="alert" size={13} color={admin.dangerText} />
+                <Text style={styles.inlineError}>{errors.quantity}</Text>
+              </View>
+            )}
           </View>
           <View style={styles.field}>
             <Text style={styles.fieldLabel}>Đơn giá</Text>
@@ -205,7 +211,12 @@ export default function StockImportFormScreen({ navigation, route }) {
               }}
               style={errors.unitPrice && styles.inputError}
             />
-            {!!errors.unitPrice && <Text style={styles.inlineError}>⚠️ {errors.unitPrice}</Text>}
+            {!!errors.unitPrice && (
+              <View style={ICON_ROW}>
+                <Icon name="alert" size={13} color={admin.dangerText} />
+                <Text style={styles.inlineError}>{errors.unitPrice}</Text>
+              </View>
+            )}
           </View>
         </View>
 

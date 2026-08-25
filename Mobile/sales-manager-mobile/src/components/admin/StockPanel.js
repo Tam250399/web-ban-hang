@@ -4,10 +4,11 @@ import StockImportPanel from './StockImportPanel'
 import StockExportPanel from './StockExportPanel'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { ICON_ROW, Icon } from '../ui/Icon'
 
 const STOCK_SUB_TABS = [
-  { id: 'import', label: '📥 Nhập kho' },
-  { id: 'export', label: '📤 Xuất kho' },
+  { id: 'import', icon: 'importBox', label: 'Nhập kho' },
+  { id: 'export', icon: 'exportBox', label: 'Xuất kho' },
 ]
 
 export default function StockPanel() {
@@ -22,7 +23,14 @@ export default function StockPanel() {
           const active = tab.id === stockSub
           return (
             <TouchableOpacity key={tab.id} style={styles.subTab} onPress={() => setStockSub(tab.id)}>
-              <Text style={[styles.subTabText, active && styles.subTabTextActive]}>{tab.label}</Text>
+              <View style={ICON_ROW}>
+                <Icon
+                  name={tab.icon}
+                  size={15}
+                  color={active ? admin.primary : admin.textMuted}
+                />
+                <Text style={[styles.subTabText, active && styles.subTabTextActive]}>{tab.label}</Text>
+              </View>
               {active && <View style={styles.subTabUnderline} />}
             </TouchableOpacity>
           )

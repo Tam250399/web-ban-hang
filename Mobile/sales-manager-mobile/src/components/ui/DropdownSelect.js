@@ -6,6 +6,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon, ICON_ROW } from './Icon'
 
 export default function DropdownSelect({
   value,
@@ -78,7 +79,10 @@ export default function DropdownSelect({
 
       {/* Thông báo lỗi bên dưới field */}
       {!!errorText && (
-        <Text style={styles.fieldErrorText}>⚠️ {errorText}</Text>
+        <View style={ICON_ROW}>
+          <Icon name="alert" size={13} color="#EF4444" />
+          <Text style={styles.fieldErrorText}>{errorText}</Text>
+        </View>
       )}
 
       {/* ── Dropdown Modal (Bottom Sheet Menu) ── */}
@@ -99,7 +103,13 @@ export default function DropdownSelect({
                 <View style={styles.headerIndicator} />
                 <View style={styles.headerTitleRow}>
                   <Text style={styles.dropdownTitle}>{title}</Text>
-                  <TouchableOpacity onPress={handleClose} style={styles.closeBtn} activeOpacity={0.7}>
+                  <TouchableOpacity
+                    onPress={handleClose}
+                    style={styles.closeBtn}
+                    activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Đóng"
+                  >
                     <Text style={styles.closeBtnText}>✕</Text>
                   </TouchableOpacity>
                 </View>
@@ -108,7 +118,7 @@ export default function DropdownSelect({
               {/* Ô tìm kiếm */}
               {options.length > 5 && (
                 <View style={styles.searchWrap}>
-                  <Text style={styles.searchIcon}>🔍</Text>
+                  <Icon name="search" size={14} color={admin.textMuted} />
                   <TextInput
                     style={styles.searchInput}
                     placeholder={searchPlaceholder}
@@ -293,9 +303,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: admin.bg,
     gap: 8,
-  },
-  searchIcon: {
-    fontSize: 14,
   },
   searchInput: {
     flex: 1,

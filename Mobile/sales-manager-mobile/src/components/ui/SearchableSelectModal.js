@@ -36,7 +36,12 @@ export default function SearchableSelectModal({
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
-          <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.closeBtn}
+            accessibilityRole="button"
+            accessibilityLabel="Đóng"
+          >
             <Text style={styles.closeBtnText}>✕</Text>
           </TouchableOpacity>
         </View>

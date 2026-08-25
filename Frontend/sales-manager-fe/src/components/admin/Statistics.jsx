@@ -1,3 +1,5 @@
+import { Icon } from '../common/Icon'
+
 function StatCard({ icon, label, value, color }) {
   return (
     <div className="stat-box" style={{ borderTop: `4px solid ${color}` }}>
@@ -25,11 +27,11 @@ function Statistics({ stats }) {
       <h3 className="tab-title">Thống kê tổng quan</h3>
 
       <div className="stats-grid">
-        <StatCard icon="📦" label="Tổng sản phẩm"        value={stats.totalProducts}                                      color="#C1440E" />
-        <StatCard icon="💰" label="Giá trị tồn kho"       value={`${stats.totalStockValue?.toLocaleString('vi-VN')}đ`}    color="#4A5560" />
-        <StatCard icon="📥" label="Tổng nhập kho"         value={`${stats.totalImported?.toLocaleString('vi-VN')}đ`}      color="#22c55e" />
-        <StatCard icon="📤" label="Tổng bán ra"           value={`${stats.totalExported?.toLocaleString('vi-VN')}đ`}      color="#F2B705" />
-        <StatCard icon="⚠️" label="Sản phẩm sắp hết"     value={stats.lowStockCount}                                     color="#C1440E" />
+        <StatCard icon={<Icon name="box" size={26} />} label="Tổng sản phẩm"        value={stats.totalProducts}                                      color="#C1440E" />
+        <StatCard icon={<Icon name="money" size={26} />} label="Giá trị tồn kho"       value={`${stats.totalStockValue?.toLocaleString('vi-VN')}đ`}    color="#4A5560" />
+        <StatCard icon={<Icon name="importBox" size={26} />} label="Tổng nhập kho"         value={`${stats.totalImported?.toLocaleString('vi-VN')}đ`}      color="#22c55e" />
+        <StatCard icon={<Icon name="exportBox" size={26} />} label="Tổng bán ra"           value={`${stats.totalExported?.toLocaleString('vi-VN')}đ`}      color="#F2B705" />
+        <StatCard icon={<Icon name="alert" size={26} />} label="Sản phẩm sắp hết"     value={stats.lowStockCount}                                     color="#C1440E" />
       </div>
 
       <div className="stats-detail-grid">
@@ -72,7 +74,7 @@ function Statistics({ stats }) {
                     <td>{t.productName}</td>
                     <td>
                       <span className={t.type === 'Import' ? 'badge-import' : 'badge-export'}>
-                        {t.type === 'Import' ? '📥 Nhập' : '📤 Xuất'}
+                        {t.type === 'Import' ? <><Icon name="importBox" size={15} /> Nhập</> : <><Icon name="exportBox" size={15} /> Xuất</>}
                       </span>
                     </td>
                     <td>{t.quantity}</td>

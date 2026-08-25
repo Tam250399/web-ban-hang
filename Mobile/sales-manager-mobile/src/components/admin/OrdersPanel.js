@@ -8,6 +8,7 @@ import { successFeedback } from '../../services/haptics'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { formatVnd } from '../../utils/format'
+import { Icon, ICON_ROW } from '../ui/Icon'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_COLOR = {
@@ -182,7 +183,10 @@ export default function OrdersPanel() {
 
               {detailOrder.status === 'Pending' && (
                 <TouchableOpacity style={styles.confirmBtn} onPress={handleConfirm} disabled={confirming}>
-                  <Text style={styles.confirmBtnText}>{confirming ? 'Đang xác nhận...' : '✅ Xác nhận đơn hàng'}</Text>
+                  <View style={ICON_ROW}>
+                    {!confirming && <Icon name="check" size={16} color={admin.white} />}
+                    <Text style={styles.confirmBtnText}>{confirming ? 'Đang xác nhận...' : 'Xác nhận đơn hàng'}</Text>
+                  </View>
                 </TouchableOpacity>
               )}
             </ScrollView>

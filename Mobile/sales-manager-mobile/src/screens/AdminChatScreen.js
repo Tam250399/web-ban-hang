@@ -17,6 +17,7 @@ import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { admin } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { formatTime, formatDay, isSameDay } from '../utils/format'
+import { Icon } from '../components/ui/Icon'
 
 const { width: SCREEN_W } = Dimensions.get('window')
 const AVATAR_COLORS = ['#366bd3', '#0f9d58', '#db4437', '#f4b400', '#ab47bc', '#00acc1', '#ff7043']
@@ -403,7 +404,9 @@ export default function AdminChatScreen({ route }) {
               renderItem={renderMessage}
               ListEmptyComponent={
                 <View style={s.emptyMsgWrap}>
-                  <Text style={s.emptyMsgIcon}>💬</Text>
+                  <View style={s.emptyMsgIcon}>
+                    <Icon name="chat" size={36} color={admin.textMuted} />
+                  </View>
                   <Text style={s.emptyMsgText}>Chưa có tin nhắn nào</Text>
                 </View>
               }
@@ -416,7 +419,7 @@ export default function AdminChatScreen({ route }) {
           {/* ── Input bar ── */}
           <View style={s.inputRow}>
             <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.6} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
-              <Text style={s.attachIcon}>📎</Text>
+              <Icon name="paperclip" size={18} color={admin.textMuted} />
             </TouchableOpacity>
             <TextInput
               style={s.input}
@@ -458,7 +461,7 @@ export default function AdminChatScreen({ route }) {
     <SafeAreaView style={s.root} edges={['top']}>
       {/* ── Page header ── */}
       <View style={s.listHeader}>
-        <Text style={s.heading}>💬 Chat</Text>
+        <Text style={s.heading}>Chat</Text>
         <Text style={s.headingSub}>Hỗ trợ khách hàng</Text>
       </View>
 
@@ -471,7 +474,9 @@ export default function AdminChatScreen({ route }) {
 
       {/* ── Search bar ── */}
       <View style={s.searchWrap}>
-        <Text style={s.searchIcon}>🔍</Text>
+        <View style={s.searchIcon}>
+          <Icon name="search" size={15} color={admin.textMuted} />
+        </View>
         <TextInput
           style={s.search}
           placeholder="Tìm theo tên khách hàng..."
@@ -520,7 +525,9 @@ export default function AdminChatScreen({ route }) {
           )}
           ListEmptyComponent={
             <View style={s.emptyWrap}>
-              <Text style={s.emptyIcon}>📭</Text>
+              <View style={s.emptyIcon}>
+                <Icon name="inbox" size={40} color={admin.textMuted} />
+              </View>
               <Text style={s.emptyText}>Chưa có hội thoại nào</Text>
             </View>
           }
@@ -565,7 +572,7 @@ const s = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.06, shadowRadius: 4,
     elevation: 2,
   },
-  searchIcon: { fontSize: 15, marginRight: 8 },
+  searchIcon: { marginRight: 8 },
   search: {
     flex: 1, fontSize: 14.5, color: admin.text, fontFamily: fonts.adminBody,
     paddingVertical: Platform.OS === 'ios' ? 0 : 9,
@@ -595,7 +602,7 @@ const s = StyleSheet.create({
 
   // ── EMPTY LIST ──
   emptyWrap: { alignItems: 'center', marginTop: 60 },
-  emptyIcon: { fontSize: 40, marginBottom: 12 },
+  emptyIcon: { marginBottom: 12 },
   emptyText: { fontFamily: fonts.adminBody, fontSize: 15, color: admin.textMuted },
 
   // ── AVATAR ──
@@ -659,7 +666,7 @@ const s = StyleSheet.create({
 
   // ── Empty messages ──
   emptyMsgWrap: { alignItems: 'center', marginTop: 60 },
-  emptyMsgIcon: { fontSize: 36, marginBottom: 10 },
+  emptyMsgIcon: { marginBottom: 10 },
   emptyMsgText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
 
   // ── Loading ──
@@ -692,7 +699,6 @@ const s = StyleSheet.create({
     width: 40, height: 40, borderRadius: 20,
     backgroundColor: '#f0f2f5', alignItems: 'center', justifyContent: 'center',
   },
-  attachIcon: { fontSize: 18 },
   input: {
     flex: 1, maxHeight: 100, paddingHorizontal: 16, paddingVertical: 10,
     borderRadius: 22, backgroundColor: '#f0f2f5',

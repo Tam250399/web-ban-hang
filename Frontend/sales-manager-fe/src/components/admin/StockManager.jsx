@@ -9,6 +9,7 @@ import MultiSearchableSelect from '../common/MultiSearchableSelect'
 import ConfirmModal from '../common/ConfirmModal'
 import MoneyInput from '../common/MoneyInput'
 import OverflowMenu from '../common/OverflowMenu'
+import { Icon } from '../common/Icon'
 
 const IMPORT_STATUS_LABEL = { Valid: 'Hợp lệ', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { Valid: 'new', Invalid: 'invalid' }
@@ -302,8 +303,8 @@ function ImportPanel({ products, transactions, reload }) {
           <OverflowMenu
             label="Thao tác Excel"
             items={[
-              { label: '📥 Tải file mẫu', onClick: handleDownloadTemplate },
-              { label: uploading ? 'Đang đọc...' : '📄 Nhập Excel', onClick: () => fileInputRef.current?.click(), disabled: uploading },
+              { label: <><Icon name="importBox" /> Tải file mẫu</>, onClick: handleDownloadTemplate },
+              { label: uploading ? 'Đang đọc...' : <><Icon name="file" /> Nhập Excel</>, onClick: () => fileInputRef.current?.click(), disabled: uploading },
             ]}
           />
         </div>
@@ -359,9 +360,9 @@ function ImportPanel({ products, transactions, reload }) {
                   <td>{t.note || '-'}</td>
                   <td>
                     <div className="action-btns">
-                      <button className="btn-edit-sm" onClick={() => openEdit(t)}>✏️ Sửa</button>
+                      <button className="btn-edit-sm" onClick={() => openEdit(t)}><Icon name="edit" /> Sửa</button>
                       <button className="btn-danger-sm" onClick={() => setConfirmDeleteId(t.id)} disabled={deleting}>
-                        🗑️ Xóa
+                        <Icon name="trash" /> Xóa
                       </button>
                     </div>
                   </td>
@@ -732,7 +733,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
             style={{ minWidth: 140, maxWidth: 180 }}
           >
             <option value="">-- Tất cả nguồn --</option>
-            <option value="online">🛒 Online</option>
+            <option value="online">Online</option>
             <option value="manual">Thủ công</option>
           </select>
           <label className="admin-filter-date">
@@ -770,7 +771,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
                 <td><strong>{inv.customerName}</strong></td>
                 <td>
                   {inv.fromOrderId
-                    ? <span className="order-source-badge online">🛒 Đơn #{inv.fromOrderId}</span>
+                    ? <span className="order-source-badge online"><Icon name="cart" size={14} /> Đơn #{inv.fromOrderId}</span>
                     : <span className="order-source-badge manual">Thủ công</span>}
                 </td>
                 <td>{new Date(inv.invoiceDate).toLocaleDateString('vi-VN')}</td>
@@ -839,8 +840,8 @@ function StockManager({ products }) {
   const importTransactions = transactions.filter(t => t.type === 'Import')
 
   const subTabs = [
-    { key: 'import', label: '📥 Nhập kho', count: importTransactions.length },
-    { key: 'export', label: '📤 Xuất kho', count: invoices.length },
+    { key: 'import', label: <><Icon name="importBox" /> Nhập kho</>, count: importTransactions.length },
+    { key: 'export', label: <><Icon name="exportBox" /> Xuất kho</>, count: invoices.length },
   ]
 
   return (

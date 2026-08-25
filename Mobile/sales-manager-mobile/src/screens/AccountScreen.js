@@ -8,6 +8,7 @@ import { useCachedResource } from '../hooks/useCachedResource'
 import { CACHE_KEYS } from '../services/cache'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { Icon } from '../components/ui/Icon'
 
 // Thông tin liên hệ do admin quản lý bên web (khu quản trị > Liên hệ), luôn
 // chỉ 1 bản ghi đang bật — giống hệt cách trang chủ web hiển thị.
@@ -27,19 +28,19 @@ function ContactModal({ visible, contact, onClose }) {
 
             <View style={styles.contactBody}>
               <View style={styles.contactRow}>
-                <Text style={styles.rowIcon}>📍</Text>
+                <Icon name="pin" size={18} color={brand.textMuted} />
                 <Text style={styles.contactText}>{contact.address}</Text>
               </View>
               <TouchableOpacity style={styles.contactRow} onPress={() => Linking.openURL(`tel:${contact.phone.replace(/\s/g, '')}`)} activeOpacity={0.7}>
-                <Text style={styles.rowIcon}>📞</Text>
+                <Icon name="phone" size={18} color={brand.textMuted} />
                 <Text style={[styles.contactText, styles.contactLink]}>{contact.phone}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.contactRow} onPress={() => Linking.openURL(`mailto:${contact.email}`)} activeOpacity={0.7}>
-                <Text style={styles.rowIcon}>✉️</Text>
+                <Icon name="mail" size={18} color={brand.textMuted} />
                 <Text style={[styles.contactText, styles.contactLink]}>{contact.email}</Text>
               </TouchableOpacity>
               <View style={styles.contactRow}>
-                <Text style={styles.rowIcon}>🕐</Text>
+                <Icon name="clock" size={18} color={brand.textMuted} />
                 <Text style={styles.contactText}>{contact.workingHours}</Text>
               </View>
             </View>
@@ -69,7 +70,9 @@ export default function AccountScreen({ navigation }) {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <View style={styles.guestCard}>
-          <Text style={styles.guestIcon}>👤</Text>
+          <View style={styles.guestIcon}>
+            <Icon name="user" size={48} color={brand.textMuted} />
+          </View>
           <Text style={styles.guestTitle}>Tài khoản</Text>
           <Text style={styles.hint}>Vui lòng đăng nhập để xem thông tin và quản lý tài khoản của bạn.</Text>
           <TouchableOpacity style={styles.loginBtn} onPress={() => navigation.navigate('Login')} activeOpacity={0.85}>
@@ -78,7 +81,7 @@ export default function AccountScreen({ navigation }) {
         </View>
         {contact && (
           <TouchableOpacity style={styles.row} onPress={() => setShowContact(true)} activeOpacity={0.7}>
-            <Text style={styles.rowIcon}>📞</Text>
+            <Icon name="phone" size={18} color={brand.textMuted} />
             <Text style={styles.rowText}>Liên hệ</Text>
             <Text style={styles.rowChevron}>›</Text>
           </TouchableOpacity>
@@ -106,21 +109,21 @@ export default function AccountScreen({ navigation }) {
       <View style={styles.menuSection}>
         {user.role !== 'Admin' && (
           <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Orders')} activeOpacity={0.7}>
-            <Text style={styles.rowIcon}>📋</Text>
+            <Icon name="clipboard" size={18} color={brand.textMuted} />
             <Text style={styles.rowText}>Đơn hàng của tôi</Text>
             <Text style={styles.rowChevron}>›</Text>
           </TouchableOpacity>
         )}
         {user.role === 'Admin' && (
           <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('Admin')} activeOpacity={0.7}>
-            <Text style={styles.rowIcon}>⚙️</Text>
+            <Icon name="settings" size={18} color={brand.textMuted} />
             <Text style={styles.rowText}>Quản trị hệ thống</Text>
             <Text style={styles.rowChevron}>›</Text>
           </TouchableOpacity>
         )}
         {biometricSupported && (
           <View style={styles.row}>
-            <Text style={styles.rowIcon}>{biometricLabel === 'Face ID' ? '🙂' : '👆'}</Text>
+            <Icon name="key" size={18} color={brand.textMuted} />
             <View style={styles.rowTextWrap}>
               <Text style={styles.rowText}>Khoá ứng dụng bằng {biometricLabel}</Text>
               <Text style={styles.rowHint}>
@@ -136,13 +139,13 @@ export default function AccountScreen({ navigation }) {
         )}
         {contact && (
           <TouchableOpacity style={styles.row} onPress={() => setShowContact(true)} activeOpacity={0.7}>
-            <Text style={styles.rowIcon}>📞</Text>
+            <Icon name="phone" size={18} color={brand.textMuted} />
             <Text style={styles.rowText}>Liên hệ</Text>
             <Text style={styles.rowChevron}>›</Text>
           </TouchableOpacity>
         )}
         <TouchableOpacity style={[styles.row, styles.logoutRow]} onPress={logout} activeOpacity={0.7}>
-          <Text style={styles.rowIcon}>🚪</Text>
+          <Icon name="logout" size={18} color={brand.danger} />
           <Text style={[styles.rowText, styles.logoutText]}>Đăng xuất</Text>
           <Text style={styles.rowChevron}>›</Text>
         </TouchableOpacity>
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: '#E2E8F0', marginTop: 40,
     shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.05, shadowRadius: 8, elevation: 2,
   },
-  guestIcon: { fontSize: 48, marginBottom: 12 },
+  guestIcon: { marginBottom: 12 },
   guestTitle: { fontFamily: fonts.displayExtraBold, fontSize: 20, color: '#0F172A', marginBottom: 6 },
   hint: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 14.5, marginBottom: 20, textAlign: 'center', lineHeight: 20 },
   loginBtn: { backgroundColor: brand.primary, borderRadius: 12, paddingVertical: 13, paddingHorizontal: 32, alignItems: 'center' },
@@ -186,7 +189,6 @@ const styles = StyleSheet.create({
     shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 4, elevation: 1,
   },
   logoutRow: { backgroundColor: '#FEF2F2', borderColor: '#FECACA' },
-  rowIcon: { fontSize: 18 },
   rowTextWrap: { flex: 1, gap: 2 },
   rowText: { fontFamily: fonts.bodyBold, fontSize: 15.5, color: '#0F172A' },
   rowHint: { fontFamily: fonts.body, fontSize: 13, lineHeight: 18, color: '#64748B' },

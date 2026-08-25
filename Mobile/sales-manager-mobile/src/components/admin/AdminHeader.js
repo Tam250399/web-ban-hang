@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon } from '../ui/Icon'
 
 export default function AdminHeader() {
   return (
@@ -14,7 +15,7 @@ export default function AdminHeader() {
           <Text style={styles.title} numberOfLines={1}>Admin Dashboard</Text>
           <Text style={styles.subtitle} numberOfLines={1}>Vật Liệu Xây Dựng</Text>
         </View>
-        <Text style={styles.bell}>🔔</Text>
+        <Icon name="bell" size={20} color={admin.white} />
       </View>
     </SafeAreaView>
   )
@@ -35,5 +36,5 @@ const styles = StyleSheet.create({
   titles: { flex: 1, minWidth: 0 },
   title: { color: '#F5F2EA', fontFamily: fonts.adminDisplayBold, fontSize: 14.5 },
   subtitle: { color: admin.primary, fontFamily: fonts.adminDisplay, fontSize: 12, marginTop: 1 },
-  bell: { fontSize: 18 },
+
 })

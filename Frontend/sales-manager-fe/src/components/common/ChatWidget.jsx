@@ -4,6 +4,7 @@ import { chatService } from '../../services/chatService'
 import { uploadImage } from '../../services/uploadService'
 import { useRequireOnline } from '../../hooks/useRequireOnline'
 import { resolveMediaUrl } from '../../services/config'
+import { Icon } from './Icon'
 
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
@@ -145,11 +146,11 @@ function ChatWidget({ user }) {
           onDrop={handleDrop}
         >
           <div className="chat-panel-header">
-            <span>💬 Hỗ trợ trực tuyến</span>
+            <span><Icon name="chat" /> Hỗ trợ trực tuyến</span>
             <button className="chat-panel-close" onClick={toggleOpen} aria-label="Đóng">✕</button>
           </div>
           <div className="chat-panel-body" ref={bodyRef}>
-            {dragOver && <div className="chat-drop-hint">📷 Thả ảnh để gửi</div>}
+            {dragOver && <div className="chat-drop-hint"><Icon name="camera" /> Thả ảnh để gửi</div>}
             {messages.length === 0 && (
               <p className="chat-empty">Gửi tin nhắn cho shop, chúng tôi sẽ phản hồi sớm nhất!</p>
             )}
@@ -188,7 +189,7 @@ function ChatWidget({ user }) {
               onClick={() => fileInputRef.current?.click()}
               title="Gửi ảnh"
             >
-              📎
+              <Icon name="paperclip" />
             </button>
             <input
               ref={inputRef}
@@ -204,7 +205,7 @@ function ChatWidget({ user }) {
       )}
       {!open && (
         <button className="chat-fab" onClick={toggleOpen}>
-          💬
+          <Icon name="chat" size={24} />
           {unread > 0 && <span className="chat-fab-badge">{unread}</span>}
         </button>
       )}

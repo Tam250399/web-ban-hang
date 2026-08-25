@@ -4,6 +4,7 @@ import { bannerService } from '../../services/bannerService'
 import { uploadImage } from '../../services/uploadService'
 import ConfirmModal from '../common/ConfirmModal'
 import { resolveMediaUrl } from '../../services/config'
+import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { title: '', description: '', imageUrl: '', displayOrder: 0, isActive: true }
 
@@ -115,7 +116,7 @@ function BannerModal({ banner, onClose, onSaved }) {
                   style={{ display: 'none' }}
                   disabled={uploading}
                 />
-                <span className="image-upload-icon">🖼️</span>
+                <span className="image-upload-icon"><Icon name="image" size={30} /></span>
                 <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
                 <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
               </label>
@@ -205,9 +206,9 @@ function BannerManager() {
                 <td>{b.isActive ? <span style={{ color: 'var(--success)' }}>Hiển thị</span> : <span style={{ color: 'var(--text)' }}>Ẩn</span>}</td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(b)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(b)}><Icon name="edit" /> Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(b.id)} disabled={deleting === b.id}>
-                      {deleting === b.id ? '...' : '🗑️ Xóa'}
+                      {deleting === b.id ? '...' : <><Icon name="trash" /> Xóa</>}
                     </button>
                   </div>
                 </td>

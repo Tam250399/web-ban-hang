@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message'
 import { customerService } from '../../services/customerService'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon, ICON_ROW } from '../ui/Icon'
 
 const EMPTY_FORM = { fullName: '', phoneNumber: '', address: '', isBusiness: false }
 
@@ -89,7 +90,12 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
                 placeholderTextColor={admin.textMuted}
                 autoFocus
               />
-              {!!errors.fullName && <Text style={styles.errorText}>⚠️ {errors.fullName}</Text>}
+              {!!errors.fullName && (
+                <View style={ICON_ROW}>
+                  <Icon name="alert" size={13} color={admin.dangerText} />
+                  <Text style={styles.errorText}>{errors.fullName}</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.field}>
@@ -102,7 +108,12 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
                 placeholderTextColor={admin.textMuted}
                 keyboardType="phone-pad"
               />
-              {!!errors.phoneNumber && <Text style={styles.errorText}>⚠️ {errors.phoneNumber}</Text>}
+              {!!errors.phoneNumber && (
+                <View style={ICON_ROW}>
+                  <Icon name="alert" size={13} color={admin.dangerText} />
+                  <Text style={styles.errorText}>{errors.phoneNumber}</Text>
+                </View>
+              )}
             </View>
 
             <View style={styles.field}>

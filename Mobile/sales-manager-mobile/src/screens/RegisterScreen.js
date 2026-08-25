@@ -12,6 +12,7 @@ import {
 } from '../utils/validation'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { Icon } from '../components/ui/Icon'
 
 const EMPTY_FORM = {
   username: '', password: '', confirmPassword: '',
@@ -113,7 +114,7 @@ export default function RegisterScreen({ navigation }) {
       <View style={styles.card}>
         <View style={styles.headerBlock}>
           <LinearGradient colors={['#EA580C', '#F97316']} style={styles.logoBadge}>
-            <Text style={styles.logoIcon}>🏪</Text>
+            <Icon name="store" size={24} color={brand.white} />
           </LinearGradient>
           <Text style={styles.title}>Đăng ký tài khoản</Text>
           <Text style={styles.subtitle}>VLXD Lý Sáu • Tạo tài khoản mua hàng</Text>
@@ -249,7 +250,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 8,
   },
-  logoIcon: { fontSize: 24 },
   title: {
     fontFamily: fonts.displayExtraBold,
     fontSize: 24,

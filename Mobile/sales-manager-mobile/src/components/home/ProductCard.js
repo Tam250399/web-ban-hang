@@ -5,6 +5,7 @@ import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { resolveMediaUrl } from '../../services/config'
 import { formatVnd } from '../../utils/format'
+import { Icon } from '../ui/Icon'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
@@ -40,7 +41,8 @@ function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
         </View>
         {!hideAddToCart && (
           <TouchableOpacity style={styles.addBtn} onPress={() => onAddToCart(product)} activeOpacity={0.85}>
-            <Text style={styles.addBtnText}>🛒 Thêm vào giỏ</Text>
+            <Icon name="cart" size={15} color={brand.white} />
+            <Text style={styles.addBtnText}>Thêm vào giỏ</Text>
           </TouchableOpacity>
         )}
       </View>

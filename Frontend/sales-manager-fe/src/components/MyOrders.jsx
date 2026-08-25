@@ -10,6 +10,7 @@ import PageMeta from './common/PageMeta'
 import ConfirmModal from './common/ConfirmModal'
 import LogoBadge from './LogoBadge'
 import { PATHS } from '../routes/paths'
+import { Icon } from './common/Icon'
 
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_CLASS = { Pending: 'pending', Confirmed: 'confirmed', Cancelled: 'cancelled' }
@@ -157,7 +158,7 @@ function MyOrders() {
                       onClick={() => handleReorder(o.id)}
                       disabled={reorderingId === o.id}
                     >
-                      {reorderingId === o.id ? 'Đang xử lý...' : '🔁 Đặt lại đơn'}
+                      {reorderingId === o.id ? 'Đang xử lý...' : <><Icon name="refresh" /> Đặt lại đơn</>}
                     </button>
                   </div>
                 )}
@@ -169,7 +170,7 @@ function MyOrders() {
 
       {confirmCancelOrder && (
         <ConfirmModal
-          icon="⚠️"
+          icon={<Icon name="alert" size={30} />}
           title="Huỷ đơn hàng?"
           message={`Đơn #${confirmCancelOrder.id} trị giá ${confirmCancelOrder.total?.toLocaleString('vi-VN')}đ sẽ được huỷ.`}
           warning="Bạn vẫn có thể đặt lại đơn này sau."

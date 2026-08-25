@@ -10,6 +10,7 @@ import FormField from '../components/ui/FormField'
 import { EyeIcon, EyeOffIcon } from '../components/ui/icons'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
+import { Icon } from '../components/ui/Icon'
 
 export default function LoginScreen({ navigation }) {
   const {
@@ -87,7 +88,7 @@ export default function LoginScreen({ navigation }) {
         {/* ── Giao diện tinh gọn, không rườm rà ── */}
         <View style={styles.headerBlock}>
           <LinearGradient colors={['#EA580C', '#F97316']} style={styles.logoBadge}>
-            <Text style={styles.logoIcon}>🏪</Text>
+            <Icon name="store" size={24} color={brand.white} />
           </LinearGradient>
           <Text style={styles.title}>Đăng nhập</Text>
           <Text style={styles.subtitle}>VLXD Lý Sáu • Hệ thống quản lý & mua hàng</Text>
@@ -101,7 +102,7 @@ export default function LoginScreen({ navigation }) {
               disabled={bioSubmitting}
               activeOpacity={0.85}
             >
-              <Text style={styles.bioBtnIcon}>{biometricLabel === 'Face ID' ? '🙂' : '👆'}</Text>
+              <Icon name="key" size={18} color={brand.ink} />
               <Text style={styles.bioBtnText}>
                 {bioSubmitting ? 'Đang xác thực...' : `Đăng nhập bằng ${biometricLabel}`}
               </Text>
@@ -206,7 +207,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 10,
   },
-  logoIcon: { fontSize: 24 },
   title: {
     fontFamily: fonts.displayExtraBold,
     fontSize: 24,
@@ -224,7 +224,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     borderWidth: 1.5, borderColor: brand.primary, borderRadius: 12, paddingVertical: 13,
   },
-  bioBtnIcon: { fontSize: 18 },
   bioBtnText: { color: brand.primary, fontFamily: fonts.bodyBold, fontSize: 15.5 },
   dividerRow: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 14 },
   dividerLine: { flex: 1, height: 1, backgroundColor: '#E2E8F0' },

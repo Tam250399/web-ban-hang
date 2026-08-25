@@ -5,6 +5,7 @@ import { useAuth } from '../../context/auth-context'
 import { authenticateBiometric } from '../../services/biometricAuth'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
+import { Icon } from './Icon'
 
 // ────────────────────────────────────────────────────────────────────────────
 // Khoá ứng dụng bằng sinh trắc học.
@@ -132,7 +133,7 @@ export default function AppLockGate() {
       {locked && (
         <View style={styles.content}>
           <LinearGradient colors={['#EA580C', '#F97316']} style={styles.logo}>
-            <Text style={styles.logoIcon}>🔒</Text>
+            <Icon name="lock" size={30} color={brand.white} />
           </LinearGradient>
 
           <Text style={styles.title}>Đã khoá</Text>
@@ -175,7 +176,6 @@ const styles = StyleSheet.create({
     width: 64, height: 64, borderRadius: 20,
     alignItems: 'center', justifyContent: 'center', marginBottom: 6,
   },
-  logoIcon: { fontSize: 30 },
   title: { fontFamily: fonts.displayExtraBold, fontSize: 28, color: '#FFFFFF' },
   subtitle: {
     fontFamily: fonts.body, fontSize: 15, lineHeight: 22,

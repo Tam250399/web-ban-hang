@@ -1,6 +1,7 @@
-import { CATEGORY_ICONS } from './categoryIcons'
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from './categoryIcons'
 import { resolveMediaUrl } from '../services/config'
 import { useModalA11y } from '../hooks/useModalA11y'
+import { Icon } from './common/Icon'
 
 // Modal chi tiet san pham. Duoc mo boi route /san-pham/:id nen link chia se
 // duoc, va dong lai la quay ve trang chu qua nut Back cua trinh duyet.
@@ -11,7 +12,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
 
   const catName  = product.categoryName  || product.category  || 'Khác'
   const unitName = product.unitTypeName  || product.unit      || ''
-  const icon     = CATEGORY_ICONS[catName] || '📦'
+  const icon     = CATEGORY_ICONS[catName] || DEFAULT_CATEGORY_ICON
   const inStock  = product.stockQuantity >= 50
   const outOfStock = product.stockQuantity <= 0
 
@@ -33,7 +34,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
             {product.imageUrl ? (
               <img src={resolveMediaUrl(product.imageUrl)} alt={product.productName} decoding="async" />
             ) : (
-              <div className="product-detail-image-placeholder">{icon}</div>
+              <div className="product-detail-image-placeholder"><Icon name={icon} size={72} /></div>
             )}
             {!inStock && <span className="low-stock-badge" style={{ position: 'absolute', top: 12, left: 12 }}>Sắp hết hàng</span>}
           </div>
@@ -57,7 +58,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
               <div className="product-detail-row">
                 <span className="product-detail-label">Tồn kho</span>
                 <span className={product.stockQuantity < 50 ? 'warn-text' : 'ok-text'}>
-                  {product.stockQuantity} {unitName} {product.stockQuantity < 50 ? '⚠️' : '✅'}
+                  {product.stockQuantity} {unitName} <Icon name={product.stockQuantity < 50 ? 'alert' : 'checkRing'} title={product.stockQuantity < 50 ? 'Sắp hết hàng' : 'Còn hàng'} />
                 </span>
               </div>
               {product.description && (
@@ -76,7 +77,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
                   onClick={() => onAddToCart(product)}
                   disabled={outOfStock}
                 >
-                  {outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}
+                  {outOfStock ? 'Hết hàng' : <><Icon name="cart" /> Thêm vào giỏ</>}
                 </button>
               )}
               <button

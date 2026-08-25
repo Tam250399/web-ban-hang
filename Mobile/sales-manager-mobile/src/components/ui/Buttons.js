@@ -46,6 +46,9 @@ const styles = StyleSheet.create({
     borderColor: brand.ink,
     borderRadius: 9,
     paddingVertical: 11,
+    // Chữ 14px + padding 11 chỉ cho ra vùng chạm ~39px, dưới mức 44px tối thiểu.
+    // Ngón tay dính bụi xi măng còn khó bấm trúng hơn con số lý thuyết.
+    minHeight: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -13,7 +13,8 @@ import { useCachedResource } from '../hooks/useCachedResource'
 import { CACHE_KEYS, formatCacheAge } from '../services/cache'
 import CartDrawer from './common/CartDrawer'
 import LogoBadge from './LogoBadge'
-import { CATEGORY_ICONS } from './categoryIcons'
+import { Icon } from './common/Icon'
+import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from './categoryIcons'
 import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { PATHS } from '../routes/paths'
@@ -30,7 +31,7 @@ const PAGE_SIZE = 12
 const ProductCard = memo(function ProductCard({ product, onClick, onAddToCart, hideAddToCart }) {
   const catName  = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
-  const icon = CATEGORY_ICONS[catName] || '📦'
+  const icon = CATEGORY_ICONS[catName] || DEFAULT_CATEGORY_ICON
   const outOfStock = product.stockQuantity <= 0
   return (
     // Link thay cho div onClick: khách bấm chuột giữa/Ctrl+click mở tab mới
@@ -50,7 +51,7 @@ const ProductCard = memo(function ProductCard({ product, onClick, onAddToCart, h
             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
           />
         ) : (
-          <span className="product-icon">{icon}</span>
+          <span className="product-icon"><Icon name={icon} size={44} /></span>
         )}
         <span className="tag chip-rotate product-code-chip">{product.productCode}</span>
         {product.stockQuantity < 50 && (
@@ -76,7 +77,7 @@ const ProductCard = memo(function ProductCard({ product, onClick, onAddToCart, h
             onClick={e => { e.preventDefault(); e.stopPropagation(); onAddToCart(product) }}
             disabled={outOfStock}
           >
-            {outOfStock ? 'Hết hàng' : '🛒 Thêm vào giỏ'}
+            {outOfStock ? 'Hết hàng' : <><Icon name="cart" /> Thêm vào giỏ</>}
           </button>
         )}
       </div>
@@ -183,7 +184,7 @@ function TrangChu() {
           <div className="header-actions">
             {canBuy && (
               <button className="cart-icon-btn" onClick={() => setCartOpen(true)} aria-label="Giỏ hàng">
-                🛒
+                <Icon name="cart" size={20} />
                 {totalCount > 0 && <span className="cart-icon-badge">{totalCount}</span>}
               </button>
             )}
@@ -194,10 +195,10 @@ function TrangChu() {
                   {isAdmin && <span className="role-badge">Admin</span>}
                 </span>
                 {!isAdmin && (
-                  <Link className="btn-ghost" to={PATHS.myOrders}>📦 Đơn hàng</Link>
+                  <Link className="btn-ghost btn-icon-text" to={PATHS.myOrders}><Icon name="box" /> Đơn hàng</Link>
                 )}
                 {isAdmin && (
-                  <Link className="btn-admin" to={PATHS.admin}>⚙️ Quản trị</Link>
+                  <Link className="btn-admin btn-icon-text" to={PATHS.admin}><Icon name="settings" /> Quản trị</Link>
                 )}
                 <button className="btn-ghost" onClick={logout}>Đăng xuất</button>
               </>
@@ -217,13 +218,13 @@ function TrangChu() {
 
         {/* Mobile menu */}
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
-          <a href="#products" onClick={() => setMenuOpen(false)}>🏗️ Sản phẩm</a>
-          <a href="#about" onClick={() => setMenuOpen(false)}>ℹ️ Về chúng tôi</a>
-          {contact && <a href="#contact" onClick={() => setMenuOpen(false)}>📞 Liên hệ</a>}
+          <a href="#products" onClick={() => setMenuOpen(false)}><Icon name="cement" /> Sản phẩm</a>
+          <a href="#about" onClick={() => setMenuOpen(false)}><Icon name="info" /> Về chúng tôi</a>
+          {contact && <a href="#contact" onClick={() => setMenuOpen(false)}><Icon name="phone" /> Liên hệ</a>}
           <div className="mobile-divider" />
           {canBuy && (
             <button onClick={() => { setMenuOpen(false); setCartOpen(true) }}>
-              🛒 Giỏ hàng {totalCount > 0 && `(${totalCount})`}
+              <Icon name="cart" /> Giỏ hàng {totalCount > 0 && `(${totalCount})`}
             </button>
           )}
           {isLoggedIn ? (
@@ -233,17 +234,17 @@ function TrangChu() {
                 {isAdmin && <span className="role-badge" style={{ marginLeft: 6 }}>Admin</span>}
               </span>
               {!isAdmin && (
-                <Link to={PATHS.myOrders} onClick={() => setMenuOpen(false)}>📦 Đơn hàng của tôi</Link>
+                <Link to={PATHS.myOrders} onClick={() => setMenuOpen(false)}><Icon name="box" /> Đơn hàng của tôi</Link>
               )}
               {isAdmin && (
-                <Link to={PATHS.admin} onClick={() => setMenuOpen(false)}>⚙️ Quản trị Admin</Link>
+                <Link to={PATHS.admin} onClick={() => setMenuOpen(false)}><Icon name="settings" /> Quản trị Admin</Link>
               )}
-              <button onClick={() => { setMenuOpen(false); logout() }}>🚪 Đăng xuất</button>
+              <button onClick={() => { setMenuOpen(false); logout() }}><Icon name="logout" /> Đăng xuất</button>
             </>
           ) : (
             <>
-              <Link to={PATHS.login} onClick={() => setMenuOpen(false)}>🔐 Đăng nhập</Link>
-              <Link to={PATHS.register} onClick={() => setMenuOpen(false)}>📝 Đăng ký</Link>
+              <Link to={PATHS.login} onClick={() => setMenuOpen(false)}><Icon name="lock" /> Đăng nhập</Link>
+              <Link to={PATHS.register} onClick={() => setMenuOpen(false)}><Icon name="note" /> Đăng ký</Link>
             </>
           )}
         </div>
@@ -310,7 +311,8 @@ function TrangChu() {
                 className={`cat-tab ${activeCategory === cat ? 'active' : ''}`}
                 onClick={() => setActiveCategory(cat)}
               >
-                {CATEGORY_ICONS[cat] || ''} {cat}
+                <Icon name={CATEGORY_ICONS[cat] || DEFAULT_CATEGORY_ICON} />
+                {cat}
               </button>
             ))}
           </div>
@@ -380,22 +382,22 @@ function TrangChu() {
           <h2>Tại sao chọn chúng tôi?</h2>
           <div className="feature-cards">
             <div className="feature-card">
-              <span className="feature-icon">🏆</span>
+              <span className="feature-icon"><Icon name="trophy" size={30} /></span>
               <h3>Chất lượng đảm bảo</h3>
               <p>Tất cả sản phẩm đều có chứng nhận chất lượng, xuất xứ rõ ràng</p>
             </div>
             <div className="feature-card">
-              <span className="feature-icon">🚚</span>
+              <span className="feature-icon"><Icon name="truck" size={30} /></span>
               <h3>Giao hàng nhanh</h3>
               <p>Giao hàng tận công trình trong vòng 24h tại khu vực nội thành</p>
             </div>
             <div className="feature-card">
-              <span className="feature-icon">💰</span>
+              <span className="feature-icon"><Icon name="money" size={30} /></span>
               <h3>Giá cạnh tranh</h3>
               <p>Cam kết giá tốt nhất thị trường, chiết khấu đặc biệt cho đơn lớn</p>
             </div>
             <div className="feature-card">
-              <span className="feature-icon">📞</span>
+              <span className="feature-icon"><Icon name="phone" size={30} /></span>
               <h3>Hỗ trợ 24/7</h3>
               <p>Đội ngũ tư vấn chuyên nghiệp luôn sẵn sàng hỗ trợ bạn</p>
             </div>
@@ -409,10 +411,10 @@ function TrangChu() {
           <h2>Liên hệ với chúng tôi</h2>
           <div className="contact-grid">
             <div className="contact-info">
-              <p>📍 {contact.address}</p>
-              <p>📞 {contact.phone}</p>
-              <p>✉️ {contact.email}</p>
-              <p>🕐 {contact.workingHours}</p>
+              <p><Icon name="pin" /> {contact.address}</p>
+              <p><Icon name="phone" /> {contact.phone}</p>
+              <p><Icon name="mail" /> {contact.email}</p>
+              <p><Icon name="clock" /> {contact.workingHours}</p>
             </div>
           </div>
         </section>

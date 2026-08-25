@@ -4,6 +4,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts } from '../../theme/fonts'
+import { Icon } from './Icon'
 
 // Bộ chọn toàn màn hình, chữ to - nút to, dành cho người lớn tuổi.
 // Mỗi dòng cao tối thiểu 72px, tên hiển thị 18px, thông tin phụ 14px.
@@ -58,7 +59,7 @@ export default function BigPickerModal({
 
         {/* ── Ô tìm kiếm ── */}
         <View style={styles.searchWrap}>
-          <Text style={styles.searchIcon}>🔍</Text>
+          <Icon name="search" size={18} color="#64748B" />
           <TextInput
             style={styles.searchInput}
             placeholder={searchPlaceholder}
@@ -69,7 +70,13 @@ export default function BigPickerModal({
             autoCorrect={false}
           />
           {!!query && (
-            <TouchableOpacity onPress={() => setQuery('')} style={styles.clearBtn} activeOpacity={0.7}>
+            <TouchableOpacity
+              onPress={() => setQuery('')}
+              style={styles.clearBtn}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Xoá từ khoá tìm kiếm"
+            >
               <Text style={styles.clearBtnText}>✕</Text>
             </TouchableOpacity>
           )}
@@ -100,7 +107,7 @@ export default function BigPickerModal({
           )}
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
-              <Text style={styles.emptyIcon}>🔎</Text>
+              <Icon name="search" size={40} color="#64748B" />
               <Text style={styles.emptyText}>{emptyText}</Text>
             </View>
           }
@@ -148,7 +155,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: '#F8FAFC',
   },
-  searchIcon: { fontSize: 18 },
   searchInput: {
     flex: 1,
     fontSize: 18,
@@ -186,6 +192,5 @@ const styles = StyleSheet.create({
   pickedBadgeText: { fontFamily: fonts.adminBodyBold, fontSize: 15, color: '#15803D' },
 
   emptyWrap: { alignItems: 'center', paddingTop: 60, gap: 10 },
-  emptyIcon: { fontSize: 40 },
   emptyText: { fontFamily: fonts.adminBodyMedium, fontSize: 18, color: '#64748B', textAlign: 'center' },
 })

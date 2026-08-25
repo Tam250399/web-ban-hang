@@ -5,6 +5,7 @@ import { categoryService } from '../../services/categoryService'
 import { uploadImage } from '../../services/uploadService'
 import SearchableSelect from '../common/SearchableSelect'
 import MoneyInput from '../common/MoneyInput'
+import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = {
   productCode: '', productName: '', categoryId: '', unitTypeId: '',
@@ -117,7 +118,7 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
                     style={{ display: 'none' }}
                     disabled={uploading}
                   />
-                  <span className="image-upload-icon">🖼️</span>
+                  <span className="image-upload-icon"><Icon name="image" size={30} /></span>
                   <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
                   <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
                 </label>
