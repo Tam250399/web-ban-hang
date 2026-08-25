@@ -25,7 +25,7 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
         aria-modal="true"
         aria-labelledby="product-detail-title"
       >
-        <button className="modal-close product-detail-close" onClick={onClose}>✕</button>
+        <button className="modal-close product-detail-close" onClick={onClose} aria-label="Đóng">✕</button>
 
         <div className="product-detail-body">
           {/* Ảnh */}

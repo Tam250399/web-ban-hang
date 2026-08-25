@@ -1315,8 +1315,12 @@ button { font-family: inherit; cursor: pointer; }
   .sidebar-btn.active { border-left: none; border-bottom: 3px solid var(--primary); }
   /* Hàng ngang cuộn được thì nhóm cha/con cũng nằm ngang luôn cho đồng bộ,
      thay vì xổ dọc như trên desktop. */
-  .sidebar-group { display: flex; flex-direction: row; align-items: center; gap: 6px; }
-  .sidebar-group-body { flex-direction: row; flex-wrap: nowrap; margin: 0; padding-left: 6px; border-left: 1px solid var(--divider-dark); }
+  .sidebar-group { display: flex; flex-direction: row; align-items: center; gap: 6px; max-width: 100%; }
+  .sidebar-group-body {
+    flex-direction: row; flex-wrap: nowrap; margin: 0; padding-left: 6px;
+    border-left: 1px solid var(--divider-dark);
+    overflow-x: auto; max-width: 60vw;
+  }
   .admin-main { padding: 14px; }
   .tab-title { font-size: 1.15rem; margin-bottom: 14px; }
   .form-row { grid-template-columns: 1fr; }

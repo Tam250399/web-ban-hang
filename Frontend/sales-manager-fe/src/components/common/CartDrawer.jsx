@@ -88,7 +88,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
       >
         <div className="modal-header">
           <h3 id="cart-drawer-title">🛒 Giỏ hàng</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         {items.length === 0 ? (

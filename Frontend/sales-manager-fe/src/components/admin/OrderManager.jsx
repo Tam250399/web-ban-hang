@@ -30,7 +30,7 @@ function CancelReasonModal({ onClose, onConfirm }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Huỷ đơn hàng</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="add-product-form">
           <label className="form-field">
@@ -55,7 +55,7 @@ function OrderDetailModal({ order, onClose }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Đơn hàng #{order.id}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <div style={{ padding: '4px 24px 20px' }}>
           <p><strong>Người nhận:</strong> {order.recipientName} · {order.phoneNumber}</p>

@@ -90,7 +90,7 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
       <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Thêm sản phẩm mới</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -104,7 +104,7 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
                   <img src={imagePreview} alt="preview" />
                   {uploading && <div className="image-upload-overlay">Đang tải...</div>}
                   {!uploading && (
-                    <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                    <button type="button" className="image-remove-btn" onClick={removeImage} aria-label="Xoá ảnh">✕</button>
                   )}
                 </div>
               ) : (

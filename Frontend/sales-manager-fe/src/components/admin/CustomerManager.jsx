@@ -38,7 +38,7 @@ function CustomerModal({ customer, onClose, onSaved }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{isEdit ? 'Chỉnh sửa khách hàng' : 'Thêm khách hàng mới'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="add-product-form">

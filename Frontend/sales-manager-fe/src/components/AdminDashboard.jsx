@@ -236,12 +236,14 @@ function AdminDashboard() {
                   type="button"
                   className={`sidebar-btn sidebar-group-toggle ${isOpen ? 'open' : ''}`}
                   onClick={() => toggleGroup(group.key)}
+                  aria-expanded={isOpen}
+                  aria-controls={`sidebar-group-${group.key}`}
                 >
                   <span>{group.label}</span>
                   <span className="sidebar-group-arrow">▾</span>
                 </button>
                 {isOpen && (
-                  <div className="sidebar-group-body">
+                  <div className="sidebar-group-body" id={`sidebar-group-${group.key}`}>
                     {childTabs.map(t => (
                       <button
                         key={t.key}

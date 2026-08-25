@@ -58,7 +58,7 @@ function ImportPreviewModal({ result, onClose, onImported }) {
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Xem trước dữ liệu nhập</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <div style={{ padding: '14px 24px 0' }}>
@@ -189,7 +189,7 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
       <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Chỉnh sửa sản phẩm</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit}>
@@ -203,7 +203,7 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
                   <img src={imagePreview} alt="preview" />
                   {uploading && <div className="image-upload-overlay">Đang tải...</div>}
                   {!uploading && (
-                    <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                    <button type="button" className="image-remove-btn" onClick={removeImage} aria-label="Xoá ảnh">✕</button>
                   )}
                 </div>
               ) : (

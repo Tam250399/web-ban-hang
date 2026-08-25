@@ -192,7 +192,7 @@ function UserFormModal({ user, roles, onSave, onClose }) {
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
         <div className="modal-header">
           <h3>{isEdit ? '✏️ Chỉnh sửa người dùng' : '➕ Đăng ký người dùng mới'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit}>

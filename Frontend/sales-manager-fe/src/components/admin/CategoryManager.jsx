@@ -30,7 +30,7 @@ function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <h3>{isEdit ? `✏️ Chỉnh sửa ${title}` : `➕ Thêm ${title}`}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="add-product-form" style={{ padding: '20px 24px' }}>
@@ -101,7 +101,7 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <h3>{isEdit ? '✏️ Chỉnh sửa tên sản phẩm' : '➕ Thêm tên sản phẩm'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit}>
           <div className="add-product-form" style={{ padding: '20px 24px' }}>
@@ -136,7 +136,7 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
 }
 
 // ---- CRUD table chung (danh mục, đơn vị tính) ----
-function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, withHomeToggle }) {
+function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onDelete, withHomeToggle }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -172,7 +172,7 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, wi
   const handleToggleHome = async (item) => {
     setToggling(item.id)
     try {
-      await onEdit(item.id, { name: item.name, description: item.description, showOnHome: !item.showOnHome })
+      await onEdit(item.id, { ...item, showOnHome: !item.showOnHome })
     } catch (err) {
       toast.error(err.message || 'Cập nhật thất bại.')
     }
@@ -210,13 +210,16 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, wi
             <tr><th>#</th><th>Tên</th><th>Mô tả</th>{withHomeToggle && <th>Trang chủ</th>}<th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {loading && (
+              <tr><td colSpan={withHomeToggle ? 5 : 4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Đang tải...</td></tr>
+            )}
+            {!loading && filtered.length === 0 && (
               <tr><td colSpan={withHomeToggle ? 5 : 4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
                 {items.length === 0 ? 'Chưa có dữ liệu' : 'Không tìm thấy kết quả phù hợp'}
               </td></tr>
             )}
-            {paginated.map((item, i) => (
-              <tr key={item.id}>
+            {!loading && paginated.map((item, i) => (
+              <tr key={item.id} style={{ opacity: deleting === item.id ? 0.5 : 1 }}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                 <td><strong>{item.name}</strong></td>
                 <td style={{ color: 'var(--text)', fontSize: '0.88rem' }}>{item.description || '-'}</td>
@@ -230,12 +233,13 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, wi
                         onChange={() => handleToggleHome(item)}
                       />
                       <span className="toggle-track"><span className="toggle-thumb" /></span>
+                      <span className="toggle-label">{item.showOnHome ? 'Hiển thị' : 'Ẩn'}</span>
                     </label>
                   </td>
                 )}
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
                       {deleting === item.id ? '...' : '🗑️ Xóa'}
                     </button>
@@ -278,7 +282,7 @@ function SimpleCrudTable({ title, modalTitle, items, onAdd, onEdit, onDelete, wi
 }
 
 // ---- CRUD table cho Tên sản phẩm mẫu ----
-function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
+function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -341,19 +345,22 @@ function ProductNameCrud({ items, categories, onAdd, onEdit, onDelete }) {
             <tr><th>#</th><th>Tên sản phẩm</th><th>Danh mục</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {filtered.length === 0 && (
+            {loading && (
+              <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Đang tải...</td></tr>
+            )}
+            {!loading && filtered.length === 0 && (
               <tr><td colSpan={4} style={{ textAlign: 'center', color: '#888', padding: 24 }}>
                 {items.length === 0 ? 'Chưa có dữ liệu' : 'Không tìm thấy kết quả phù hợp'}
               </td></tr>
             )}
-            {paginated.map((item, i) => (
-              <tr key={item.id}>
+            {!loading && paginated.map((item, i) => (
+              <tr key={item.id} style={{ opacity: deleting === item.id ? 0.5 : 1 }}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
                 <td><strong>{item.name}</strong></td>
                 <td>{item.categoryName ? <span className="cat-tag">{item.categoryName}</span> : '-'}</td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
                       {deleting === item.id ? '...' : '🗑️ Xóa'}
                     </button>
@@ -406,6 +413,7 @@ function CategoryManager() {
   const [categories, setCategories] = useState([])
   const [names, setNames]         = useState([])
   const [units, setUnits]         = useState([])
+  const [loading, setLoading]     = useState(true)
 
   // useMemo để `reload` giữ nguyên tham chiếu qua các lần render — nhờ vậy mới
   // khai báo được nó trong deps của useEffect mà không tạo vòng lặp tải lại.
@@ -415,7 +423,9 @@ function CategoryManager() {
     units:      () => categoryService.getUnitTypes().then(setUnits).catch(() => {}),
   }), [])
 
-  useEffect(() => { reload.categories(); reload.names(); reload.units() }, [reload])
+  useEffect(() => {
+    Promise.all([reload.categories(), reload.names(), reload.units()]).finally(() => setLoading(false))
+  }, [reload])
 
   const catApi = {
     add:    (body) => categoryService.createCategory(body).then(() => reload.categories()),
@@ -456,6 +466,7 @@ function CategoryManager() {
           <ProductNameCrud
             items={names}
             categories={categories}
+            loading={loading}
             onAdd={nameApi.add}
             onEdit={nameApi.edit}
             onDelete={nameApi.delete}
@@ -466,6 +477,7 @@ function CategoryManager() {
             title="Danh mục sản phẩm"
             modalTitle="danh mục"
             items={categories}
+            loading={loading}
             onAdd={catApi.add}
             onEdit={catApi.edit}
             onDelete={catApi.delete}
@@ -477,6 +489,7 @@ function CategoryManager() {
             title="Danh mục đơn vị tính"
             modalTitle="đơn vị tính"
             items={units}
+            loading={loading}
             onAdd={unitApi.add}
             onEdit={unitApi.edit}
             onDelete={unitApi.delete}

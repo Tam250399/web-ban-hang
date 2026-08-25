@@ -60,7 +60,7 @@ function ImportModal({ products, transaction, onClose, onSaved }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{isEdit ? 'Sửa phiếu nhập kho' : 'Tạo phiếu nhập kho'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="add-product-form">
@@ -144,7 +144,7 @@ function StockImportPreviewModal({ result, onClose, onImported }) {
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>Xem trước dữ liệu nhập kho</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <div style={{ padding: '14px 24px 0' }}>
@@ -485,7 +485,7 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
                 <span className="tag chip-rotate invoice-modal-eyebrow">Lý Sáu</span>
                 <h3 className="invoice-modal-title">{isEdit ? 'Sửa phiếu bán hàng' : 'Phiếu bán hàng'}</h3>
               </div>
-              <button type="button" className="invoice-modal-close" onClick={onClose}>✕</button>
+              <button type="button" className="invoice-modal-close" onClick={onClose} aria-label="Đóng">✕</button>
             </div>
 
             <div className="invoice-modal-fields">

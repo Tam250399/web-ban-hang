@@ -146,7 +146,7 @@ function ChatWidget({ user }) {
         >
           <div className="chat-panel-header">
             <span>💬 Hỗ trợ trực tuyến</span>
-            <button className="chat-panel-close" onClick={toggleOpen}>✕</button>
+            <button className="chat-panel-close" onClick={toggleOpen} aria-label="Đóng">✕</button>
           </div>
           <div className="chat-panel-body" ref={bodyRef}>
             {dragOver && <div className="chat-drop-hint">📷 Thả ảnh để gửi</div>}
@@ -171,7 +171,7 @@ function ChatWidget({ user }) {
             <div className="chat-pending-image">
               <img src={pendingImage.previewUrl} alt="Ảnh sẽ gửi" />
               {pendingImage.uploading && <span className="chat-pending-uploading">Đang tải...</span>}
-              <button type="button" onClick={removePendingImage} title="Bỏ ảnh">✕</button>
+              <button type="button" onClick={removePendingImage} title="Bỏ ảnh" aria-label="Bỏ ảnh">✕</button>
             </div>
           )}
           <form className="chat-panel-input" onSubmit={handleSend}>

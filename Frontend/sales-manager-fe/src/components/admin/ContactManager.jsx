@@ -36,7 +36,7 @@ function ContactFormModal({ item, onClose, onSaved }) {
       <div className="modal-box" onClick={e => e.stopPropagation()} style={{ maxWidth: 440 }}>
         <div className="modal-header">
           <h3>{isEdit ? '✏️ Chỉnh sửa thông tin liên hệ' : '➕ Thêm thông tin liên hệ'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="add-product-form">
           <label className="form-field">
@@ -74,13 +74,14 @@ function ContactFormModal({ item, onClose, onSaved }) {
 
 function ContactManager() {
   const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(true)
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
   const [deleting, setDeleting] = useState(null)
   const [toggling, setToggling] = useState(null)
   const [confirmId, setConfirmId] = useState(null)
 
-  const load = () => contactService.getAll().then(setItems).catch(() => {})
+  const load = () => contactService.getAll().then(setItems).catch(() => {}).finally(() => setLoading(false))
   useEffect(() => { load() }, [])
 
   const openAdd = () => { setEditItem(null); setShowModal(true) }
@@ -105,15 +106,11 @@ function ContactManager() {
   // Chỉ 1 bản ghi được hiển thị cùng lúc — bật cái này thì backend tự tắt các
   // bản ghi khác, nên chỉ cần reload lại danh sách sau khi gọi update.
   const handleToggleActive = async (item) => {
+    const turningOn = !item.isActive
     setToggling(item.id)
     try {
-      await contactService.update(item.id, {
-        address: item.address,
-        phone: item.phone,
-        email: item.email,
-        workingHours: item.workingHours,
-        isActive: !item.isActive,
-      })
+      await contactService.update(item.id, { ...item, isActive: turningOn })
+      if (turningOn) toast.success('Đã hiển thị thông tin này trên trang chủ, các thông tin khác tự động ẩn.')
       load()
     } catch (err) {
       toast.error(err.message || 'Cập nhật thất bại.')
@@ -136,11 +133,14 @@ function ContactManager() {
             <tr><th>#</th><th>Địa chỉ</th><th>SĐT</th><th>Email</th><th>Giờ làm việc</th><th>Hiển thị</th><th>Thao tác</th></tr>
           </thead>
           <tbody>
-            {items.length === 0 && (
+            {loading && (
+              <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Đang tải...</td></tr>
+            )}
+            {!loading && items.length === 0 && (
               <tr><td colSpan={7} style={{ textAlign: 'center', color: '#888', padding: 24 }}>Chưa có thông tin liên hệ nào</td></tr>
             )}
-            {items.map((item, i) => (
-              <tr key={item.id}>
+            {!loading && items.map((item, i) => (
+              <tr key={item.id} style={{ opacity: deleting === item.id ? 0.5 : 1 }}>
                 <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
                 <td>{item.address}</td>
                 <td>{item.phone}</td>
@@ -155,11 +155,12 @@ function ContactManager() {
                       onChange={() => handleToggleActive(item)}
                     />
                     <span className="toggle-track"><span className="toggle-thumb" /></span>
+                    <span className="toggle-label">{item.isActive ? 'Đang hiển thị' : 'Đang ẩn'}</span>
                   </label>
                 </td>
                 <td>
                   <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openEdit(item)}>✏️ Sửa</button>
+                    <button className="btn-edit-sm" onClick={() => openEdit(item)} disabled={deleting === item.id}>✏️ Sửa</button>
                     <button className="btn-danger-sm" onClick={() => setConfirmId(item.id)} disabled={deleting === item.id}>
                       {deleting === item.id ? '...' : '🗑️ Xóa'}
                     </button>

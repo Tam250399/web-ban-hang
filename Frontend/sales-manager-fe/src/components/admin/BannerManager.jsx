@@ -67,7 +67,7 @@ function BannerModal({ banner, onClose, onSaved }) {
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <h3>{isEdit ? 'Chỉnh sửa banner' : 'Thêm banner mới'}</h3>
-          <button className="modal-close" onClick={onClose}>✕</button>
+          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit} className="add-product-form">
@@ -102,7 +102,7 @@ function BannerModal({ banner, onClose, onSaved }) {
                 <img src={imagePreview} alt="preview" />
                 {uploading && <div className="image-upload-overlay">Đang tải...</div>}
                 {!uploading && (
-                  <button type="button" className="image-remove-btn" onClick={removeImage}>✕</button>
+                  <button type="button" className="image-remove-btn" onClick={removeImage} aria-label="Xoá ảnh">✕</button>
                 )}
               </div>
             ) : (

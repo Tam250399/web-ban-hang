@@ -177,7 +177,7 @@ function TrangChu() {
           <nav className="header-nav">
             <a href="#products">Sản phẩm</a>
             <a href="#about">Về chúng tôi</a>
-            <a href="#contact">Liên hệ</a>
+            {contact && <a href="#contact">Liên hệ</a>}
           </nav>
 
           <div className="header-actions">
@@ -219,7 +219,7 @@ function TrangChu() {
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
           <a href="#products" onClick={() => setMenuOpen(false)}>🏗️ Sản phẩm</a>
           <a href="#about" onClick={() => setMenuOpen(false)}>ℹ️ Về chúng tôi</a>
-          <a href="#contact" onClick={() => setMenuOpen(false)}>📞 Liên hệ</a>
+          {contact && <a href="#contact" onClick={() => setMenuOpen(false)}>📞 Liên hệ</a>}
           <div className="mobile-divider" />
           {canBuy && (
             <button onClick={() => { setMenuOpen(false); setCartOpen(true) }}>
@@ -454,7 +454,7 @@ function TrangChu() {
             </div>
             <div>
               <h4>Hỗ trợ</h4>
-              <a href="#contact">Liên hệ</a>
+              {contact && <a href="#contact">Liên hệ</a>}
               <a href="#about">Về chúng tôi</a>
             </div>
           </div>

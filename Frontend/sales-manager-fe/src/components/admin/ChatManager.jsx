@@ -238,7 +238,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
                 <div className="chat-pending-image">
                   <img src={pendingImage.previewUrl} alt="Ảnh sẽ gửi" />
                   {pendingImage.uploading && <span className="chat-pending-uploading">Đang tải...</span>}
-                  <button type="button" onClick={removePendingImage} title="Bỏ ảnh">✕</button>
+                  <button type="button" onClick={removePendingImage} title="Bỏ ảnh" aria-label="Bỏ ảnh">✕</button>
                 </div>
               )}
               <form className="chat-panel-input" onSubmit={handleSend}>

@@ -39,7 +39,7 @@ function ProductDetailRoute() {
     return (
       <div className="modal-overlay" onClick={close}>
         <div className="product-detail-modal" onClick={(e) => e.stopPropagation()}>
-          <button className="modal-close product-detail-close" onClick={close}>✕</button>
+          <button className="modal-close product-detail-close" onClick={close} aria-label="Đóng">✕</button>
           <div className="empty-state" style={{ padding: 40 }}>
             <p><strong>Không tìm thấy sản phẩm</strong></p>
             <p>Sản phẩm có thể đã ngừng kinh doanh hoặc đường dẫn không đúng.</p>
