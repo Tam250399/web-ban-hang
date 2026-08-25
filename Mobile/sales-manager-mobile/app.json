@@ -58,9 +58,9 @@
       ]
     ],
     "extra": {
-      // "apiUrl": "https://lysauvlxd.shop",
-      "apiHost": "192.168.10.65",
-      "apiPort": 5000,
+       "apiUrl": "https://lysauvlxd.shop",
+      // "apiHost": "192.168.10.65",
+      // "apiPort": 5000,
       "eas": {
         "projectId": "9a33e4b1-8eec-43e0-a2eb-e1f5e3c8be46"
       }
