@@ -49,6 +49,15 @@ function AdminDashboard() {
   const pendingOrdersCount = pendingOrders.length
   const [notifOpen, setNotifOpen] = useState(false)
   const notifRef = useRef(null)
+  const mobileTabContainerRef = useRef(null)
+
+  useEffect(() => {
+    if (!mobileTabContainerRef.current) return
+    const activeEl = mobileTabContainerRef.current.querySelector('.admin-mobile-tab.active')
+    if (activeEl) {
+      activeEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+    }
+  }, [tab])
 
   // Nhóm cha nào đang xổ ra — hoàn toàn do người dùng tự bấm, không tự ép mở
   // lại theo tab active (làm vậy thì bấm đóng trong lúc tab con vẫn active sẽ
@@ -75,6 +84,13 @@ function AdminDashboard() {
     loadStats()
     loadPendingOrders()
   }, [loadProducts, loadCategories, loadUnitTypes, loadStats, loadPendingOrders])
+
+  useEffect(() => {
+    if (tab === 'list' || tab === 'stock') {
+      loadProducts()
+      loadStats()
+    }
+  }, [tab, loadProducts, loadStats])
 
   // Theme riêng cho khu vực quản trị (bảng màu/typography khác trang bán hàng).
   // Gắn class lên <body> thay vì .admin-shell để các panel render qua Portal
@@ -136,6 +152,7 @@ function AdminDashboard() {
     if (key === 'stats') loadStats()
     if (key === 'orders') loadPendingOrders()
     if (key === 'categories') { loadCategories(); loadUnitTypes() }
+    if (key === 'list' || key === 'stock') { loadProducts(); loadStats() }
     window.scrollTo(0, 0)
   }
 
@@ -223,9 +240,28 @@ function AdminDashboard() {
         </div>
       </header>
 
-      <div className="admin-body">
+      {/* Mobile horizontal tab bar: hiện ngay toàn bộ chức năng trên điện thoại */}
+      <nav className="admin-mobile-tabs" ref={mobileTabContainerRef} aria-label="Chức năng quản lý">
+        {ADMIN_TABS.map(t => {
+          const isActive = tab === t.key
+          const count = t.key === 'orders' ? pendingOrdersCount : (t.key === 'chat' ? unreadTotal : 0)
+          return (
+            <button
+              key={t.key}
+              type="button"
+              className={`admin-mobile-tab ${isActive ? 'active' : ''}`}
+              onClick={() => switchTab(t.key)}
+            >
+              <Icon name={t.icon} size={15} />
+              <span>{t.label}</span>
+              {count > 0 && <span className="count-badge">{count}</span>}
+            </button>
+          )
+        })}
+      </nav>
 
-        {/* Sidebar */}
+      <div className="admin-body">
+        {/* Sidebar (desktop) */}
         <aside className="admin-sidebar">
           <p className="sidebar-label">Quản lý</p>
           {SIDEBAR_GROUPS.map(group => {
@@ -311,7 +347,12 @@ function AdminDashboard() {
           {tab === 'orders' && (
             <OrderManager onChanged={() => { loadProducts(); loadStats(); loadPendingOrders() }} />
           )}
-          {tab === 'stock' && <StockManager products={products} />}
+          {tab === 'stock' && (
+            <StockManager
+              products={products}
+              onChanged={() => { loadProducts(); loadStats() }}
+            />
+          )}
           {tab === 'customers' && <CustomerManager />}
           {tab === 'categories' && <CategoryManager />}
           {tab === 'banners' && <BannerManager />}
@@ -324,7 +365,7 @@ function AdminDashboard() {
               setActiveId={setActiveConversationId}
             />
           )}
-          {tab === 'stats' && <Statistics stats={stats} />}
+          {tab === 'stats' && <Statistics stats={stats} products={products} />}
           {tab === 'system' && <SystemManager currentUser={user} />}
         </main>
 

@@ -50,42 +50,197 @@ function CancelReasonModal({ onClose, onConfirm }) {
   )
 }
 
-function OrderDetailModal({ order, onClose }) {
+function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming }) {
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [onClose])
+
+  const totalQuantity = order.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) || 0
+
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
+      <div className="modal-box modal-box-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }}>
+        
+        {/* Header Modal */}
         <div className="modal-header">
-          <h3>Đơn hàng #{order.id}</h3>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
+            <Icon name="receipt" size={24} />
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Chi tiết đơn hàng #{order.id}</h3>
+                <span className={`order-status-badge ${STATUS_CLASS[order.status]}`}>
+                  {STATUS_LABEL[order.status]}
+                </span>
+              </div>
+              <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: 'var(--text)' }}>
+                Thời gian đặt: {order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'Không rõ'}
+                {order.confirmedAt && ` · Xác nhận lúc: ${new Date(order.confirmedAt).toLocaleString('vi-VN')}`}
+              </p>
+            </div>
+          </div>
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
-        <div style={{ padding: '4px 24px 20px' }}>
-          <p><strong>Người nhận:</strong> {order.recipientName} · {order.phoneNumber}</p>
-          {order.address && <p><strong>Địa chỉ:</strong> {order.address}</p>}
-          {order.note && <p><strong>Ghi chú:</strong> {order.note}</p>}
-          {order.customerUsername && <p><strong>Tài khoản:</strong> {order.customerUsername}</p>}
-          <p><strong>Trạng thái:</strong> <span className={`order-status-badge ${STATUS_CLASS[order.status]}`}>{STATUS_LABEL[order.status]}</span></p>
-          {order.cancelReason && <p><strong>Lý do huỷ:</strong> {order.cancelReason}</p>}
 
-          <div className="admin-table-wrap" style={{ marginTop: 14 }}>
-            <table className="admin-table">
-              <thead><tr><th>Sản phẩm</th><th>SL</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
-              <tbody>
-                {order.items?.map((it, i) => (
-                  <tr key={i}>
-                    <td>{it.productName}</td>
-                    <td>{it.quantity}</td>
-                    <td>{it.unitPrice?.toLocaleString('vi-VN')}đ</td>
-                    <td>{(it.quantity * it.unitPrice).toLocaleString('vi-VN')}đ</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Modal Body */}
+        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 24px' }}>
+          
+          {/* Thông tin khách hàng & Giao hàng (Card) */}
+          <div style={{
+            background: 'oklch(0.975 0.005 255)',
+            border: '1px solid var(--border)',
+            borderRadius: 10,
+            padding: '14px 18px',
+            fontSize: '0.88rem'
+          }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px 20px' }}>
+              <div>
+                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Người nhận hàng:</span>
+                <div style={{ fontWeight: 600, marginTop: 2 }}>
+                  {order.recipientName}
+                </div>
+              </div>
+
+              <div>
+                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Số điện thoại:</span>
+                <div style={{ fontWeight: 600, marginTop: 2 }}>
+                  <a href={`tel:${order.phoneNumber}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
+                    {order.phoneNumber}
+                  </a>
+                </div>
+              </div>
+
+              <div style={{ gridColumn: '1 / -1' }}>
+                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Địa chỉ nhận hàng:</span>
+                <div style={{ fontWeight: 500, marginTop: 2 }}>
+                  {order.address || <em style={{ color: '#888' }}>Nhận tại cửa hàng</em>}
+                </div>
+              </div>
+
+              {order.note && (
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Ghi chú từ khách:</span>
+                  <div style={{ fontStyle: 'italic', marginTop: 2, color: 'var(--ink)' }}>
+                    "{order.note}"
+                  </div>
+                </div>
+              )}
+
+              {order.customerUsername && (
+                <div>
+                  <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Tài khoản đặt hàng:</span>
+                  <div style={{ fontWeight: 500, marginTop: 2 }}>
+                    <code>{order.customerUsername}</code>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {order.cancelReason && (
+              <div style={{
+                marginTop: 12,
+                padding: '8px 12px',
+                borderRadius: 6,
+                background: 'oklch(0.55 0.19 24 / 0.1)',
+                border: '1px solid oklch(0.85 0.08 24)',
+                color: 'oklch(0.45 0.18 24)',
+                fontSize: '0.84rem'
+              }}>
+                <strong>Lý do huỷ đơn:</strong> {order.cancelReason}
+              </div>
+            )}
           </div>
-          <div className="cart-total-row" style={{ padding: '14px 0 0' }}>
-            <span>Tổng cộng</span>
-            <strong>{order.total?.toLocaleString('vi-VN')}đ</strong>
+
+          {/* Danh sách mặt hàng */}
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+              <strong style={{ fontSize: '0.92rem' }}>
+                Danh sách sản phẩm ({order.items?.length || 0})
+              </strong>
+              <span style={{ fontSize: '0.82rem', color: 'var(--text)' }}>
+                Tổng số lượng: <strong>{totalQuantity}</strong>
+              </span>
+            </div>
+
+            <div className="admin-table-wrap" style={{ minWidth: 0 }}>
+              <table className="admin-table" style={{ minWidth: 0, width: '100%' }}>
+                <thead>
+                  <tr>
+                    <th style={{ width: 44 }}>#</th>
+                    <th>Tên sản phẩm</th>
+                    <th className="text-right" style={{ width: 70 }}>SL</th>
+                    <th className="text-right" style={{ width: 130 }}>Đơn giá</th>
+                    <th className="text-right" style={{ width: 150 }}>Thành tiền</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.items?.map((it, i) => {
+                    const amount = (it.quantity || 0) * (it.unitPrice || 0)
+                    return (
+                      <tr key={it.productId || i}>
+                        <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
+                        <td><strong>{it.productName}</strong></td>
+                        <td className="text-right" style={{ fontWeight: 600 }}>{it.quantity}</td>
+                        <td className="text-right">{it.unitPrice?.toLocaleString('vi-VN')}đ</td>
+                        <td className="price-cell text-right">{amount.toLocaleString('vi-VN')}đ</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Dòng tổng tiền */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            padding: '14px 18px',
+            background: 'oklch(0.965 0.008 255)',
+            borderRadius: 10,
+            fontSize: '0.95rem'
+          }}>
+            <span>Tổng cộng thanh toán:</span>
+            <strong className="price-cell" style={{ fontSize: '1.3rem' }}>
+              {order.total?.toLocaleString('vi-VN')}đ
+            </strong>
+          </div>
+
+        </div>
+
+        {/* Modal Footer */}
+        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div>
+            {order.status === 'Pending' && (
+              <button
+                type="button"
+                className="btn-danger-sm"
+                style={{ padding: '8px 16px' }}
+                onClick={() => onCancelClick?.(order.id)}
+              >
+                <Icon name="close" size={15} /> Huỷ đơn hàng
+              </button>
+            )}
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button type="button" className="btn-ghost" onClick={onClose}>Đóng</button>
+            {order.status === 'Pending' && (
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => onConfirm?.(order.id)}
+                disabled={confirming}
+              >
+                {confirming ? 'Đang xác nhận...' : <><Icon name="check" size={16} /> Xác nhận đơn hàng</>}
+              </button>
+            )}
           </div>
         </div>
+
       </div>
     </div>
   )
@@ -266,7 +421,19 @@ function OrderManager({ onChanged }) {
       />
 
       {detailOrder && (
-        <OrderDetailModal order={detailOrder} onClose={() => setDetailOrder(null)} />
+        <OrderDetailModal
+          order={detailOrder}
+          onClose={() => setDetailOrder(null)}
+          onConfirm={async (id) => {
+            await handleConfirm(id)
+            setDetailOrder(null)
+          }}
+          onCancelClick={(id) => {
+            setDetailOrder(null)
+            setCancellingOrderId(id)
+          }}
+          confirming={confirmingId === detailOrder.id}
+        />
       )}
 
       {cancellingOrderId && (

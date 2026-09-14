@@ -206,7 +206,7 @@ function StockImportPreviewModal({ result, onClose, onImported }) {
   )
 }
 
-function ImportPanel({ products, transactions, reload }) {
+function ImportPanel({ products, transactions, reload, onChanged }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
@@ -229,6 +229,7 @@ function ImportPanel({ products, transactions, reload }) {
     closeModal()
     setPage(1)
     reload()
+    onChanged?.()
   }
 
   const handleDelete = async () => {
@@ -239,6 +240,7 @@ function ImportPanel({ products, transactions, reload }) {
       await stockService.remove(id)
       toast.success('Đã xóa giao dịch nhập kho!')
       reload()
+      onChanged?.()
     } catch (err) {
       toast.error(err.message || 'Xóa thất bại.')
     }
@@ -267,6 +269,7 @@ function ImportPanel({ products, transactions, reload }) {
     setImportResult(null)
     setPage(1)
     reload()
+    onChanged?.()
   }
 
   const filtered = transactions.filter(t => {
@@ -509,45 +512,110 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
           </div>
 
           <div className="invoice-modal-body">
-            <table className="invoice-items-table">
-              <thead>
-                <tr>
-                  <th>Sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th style={{ textAlign: 'right' }}>Thành tiền</th><th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it, i) => {
-                  const product = productById(it.productId)
-                  const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
-                  return (
-                    <tr key={i}>
-                      <td style={{ minWidth: 220 }}>
-                        <SearchableSelect
-                          value={it.productId}
-                          onChange={(val) => updateItem(i, 'productId', val)}
-                          options={productOptions}
-                          placeholder="-- Chọn sản phẩm --"
-                          searchPlaceholder="Tìm theo tên hoặc mã..."
-                        />
-                      </td>
-                      <td className="invoice-col-unit">{product?.unitTypeName || product?.unit || '-'}</td>
-                      <td style={{ width: 84 }}>
-                        <input type="number" min="1" value={it.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
-                      </td>
-                      <td style={{ width: 130 }}>
-                        <MoneyInput min="0" value={it.unitPrice} onChange={e => updateItem(i, 'unitPrice', e.target.value)} />
-                      </td>
-                      <td className="invoice-line-total">{lineTotal.toLocaleString('vi-VN')}đ</td>
-                      <td>
-                        <button type="button" className="btn-danger-sm" onClick={() => removeRow(i)} disabled={items.length === 1}>Xóa</button>
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
+            {/* Bảng dạng dòng trên máy tính */}
+            <div className="invoice-desktop-items">
+              <table className="invoice-items-table">
+                <thead>
+                  <tr>
+                    <th>Sản phẩm</th><th>ĐVT</th><th>SL</th><th>Đơn giá</th><th style={{ textAlign: 'right' }}>Thành tiền</th><th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {items.map((it, i) => {
+                    const product = productById(it.productId)
+                    const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
+                    return (
+                      <tr key={i}>
+                        <td style={{ minWidth: 220 }}>
+                          <SearchableSelect
+                            value={it.productId}
+                            onChange={(val) => updateItem(i, 'productId', val)}
+                            options={productOptions}
+                            placeholder="-- Chọn sản phẩm --"
+                            searchPlaceholder="Tìm theo tên hoặc mã..."
+                          />
+                        </td>
+                        <td className="invoice-col-unit">{product?.unitTypeName || product?.unit || '-'}</td>
+                        <td style={{ width: 84 }}>
+                          <input type="number" min="1" value={it.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
+                        </td>
+                        <td style={{ width: 130 }}>
+                          <MoneyInput min="0" value={it.unitPrice} onChange={e => updateItem(i, 'unitPrice', e.target.value)} />
+                        </td>
+                        <td className="invoice-line-total">{lineTotal.toLocaleString('vi-VN')}đ</td>
+                        <td>
+                          <button type="button" className="btn-danger-sm" onClick={() => removeRow(i)} disabled={items.length === 1}>Xóa</button>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
 
-            <button type="button" className="btn-ghost invoice-add-row" onClick={addRow}>+ Thêm dòng</button>
+            {/* Thẻ dạng card trên điện thoại */}
+            <div className="invoice-mobile-items">
+              {items.map((it, i) => {
+                const product = productById(it.productId)
+                const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
+                return (
+                  <div key={i} className="invoice-mobile-card">
+                    <div className="invoice-mobile-card-head">
+                      <span className="invoice-mobile-card-num">Sản phẩm #{i + 1}</span>
+                      <button
+                        type="button"
+                        className="btn-danger-sm"
+                        onClick={() => removeRow(i)}
+                        disabled={items.length === 1}
+                        aria-label="Xóa sản phẩm"
+                      >
+                        <Icon name="trash" size={13} /> Xóa
+                      </button>
+                    </div>
+
+                    <div className="form-field">
+                      <span>Sản phẩm <span className="required">*</span></span>
+                      <SearchableSelect
+                        value={it.productId}
+                        onChange={(val) => updateItem(i, 'productId', val)}
+                        options={productOptions}
+                        placeholder="-- Chọn sản phẩm --"
+                        searchPlaceholder="Tìm theo tên hoặc mã..."
+                      />
+                    </div>
+
+                    <div className="form-row" style={{ marginTop: 10 }}>
+                      <label className="form-field">
+                        <span>Số lượng {product?.unitTypeName || product?.unit ? `(${product.unitTypeName || product.unit})` : ''} <span className="required">*</span></span>
+                        <input
+                          type="number"
+                          min="1"
+                          value={it.quantity}
+                          onChange={e => updateItem(i, 'quantity', e.target.value)}
+                        />
+                      </label>
+                      <label className="form-field">
+                        <span>Đơn giá (VNĐ) <span className="required">*</span></span>
+                        <MoneyInput
+                          min="0"
+                          value={it.unitPrice}
+                          onChange={e => updateItem(i, 'unitPrice', e.target.value)}
+                        />
+                      </label>
+                    </div>
+
+                    <div className="invoice-mobile-card-total">
+                      <span>Thành tiền:</span>
+                      <strong>{lineTotal.toLocaleString('vi-VN')}đ</strong>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            <button type="button" className="btn-ghost invoice-add-row" onClick={addRow}>
+              <Icon name="plus" size={15} /> Thêm dòng sản phẩm
+            </button>
 
             <div className="invoice-total-strip">
               <span className="invoice-total-label">Tổng cộng</span>
@@ -567,7 +635,7 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
   )
 }
 
-function ExportPanel({ products, customers, invoices, reload }) {
+function ExportPanel({ products, customers, invoices, reload, onChanged }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
   const [search, setSearch] = useState('')
@@ -608,6 +676,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
     setModalInvoice(null)
     setPage(1)
     reload()
+    onChanged?.()
   }
 
   const openCreate = () => { setModalInvoice(null); setShowModal(true) }
@@ -633,6 +702,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
       toast.success('Đã xóa phiếu bán hàng!')
       setSelectedIds(list => list.filter(x => x !== id))
       reload()
+      onChanged?.()
     } catch (err) {
       toast.error(err.message || 'Xóa thất bại.')
     }
@@ -826,7 +896,7 @@ function ExportPanel({ products, customers, invoices, reload }) {
   )
 }
 
-function StockManager({ products }) {
+function StockManager({ products, onChanged }) {
   const [sub, setSub] = useState('import')
   const [transactions, setTransactions] = useState([])
   const [invoices, setInvoices] = useState([])
@@ -863,8 +933,8 @@ function StockManager({ products }) {
 
       <div style={{ marginTop: 20 }}>
         {sub === 'import'
-          ? <ImportPanel products={products} transactions={importTransactions} reload={loadTransactions} />
-          : <ExportPanel products={products} customers={customers} invoices={invoices} reload={loadInvoices} />}
+          ? <ImportPanel products={products} transactions={importTransactions} reload={loadTransactions} onChanged={onChanged} />
+          : <ExportPanel products={products} customers={customers} invoices={invoices} reload={loadInvoices} onChanged={onChanged} />}
       </div>
     </div>
   )
