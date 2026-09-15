@@ -1,6 +1,3 @@
-// Bảng màu giao diện mới: Sáng hơn, Hiện đại hơn, Chuẩn UI/UX cao cấp.
-// Tông màu chủ đạo: Nền sáng Slate Light (#F8FAFC), Card Trắng tinh (#FFFFFF),
-// Chữ tối Slate Dark (#0F172A), Màu thương hiệu Cam tươi (#EA580C / #F97316).
 
 export const brand = {
   bg: '#F8FAFC',

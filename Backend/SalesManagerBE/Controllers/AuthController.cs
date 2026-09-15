@@ -48,8 +48,6 @@ namespace SalesManagerBE.Controllers
                 return Unauthorized(new { message = result.Message });
             }
 
-            // Token được lưu trong cookie HttpOnly thay vì trả về body / localStorage
-            // để JavaScript (và do đó XSS) không thể đọc được token.
             Response.Cookies.Append(CookieName, result.Token!, new CookieOptions
             {
                 HttpOnly = true,
@@ -69,8 +67,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã đăng xuất." });
         }
 
-        // Xác nhận phiên đăng nhập hiện tại dựa trên cookie HttpOnly, dùng để khôi phục
-        // trạng thái đăng nhập khi tải lại trang thay vì tin dữ liệu client tự lưu.
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()

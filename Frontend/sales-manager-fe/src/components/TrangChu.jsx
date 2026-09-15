@@ -19,33 +19,20 @@ import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { PATHS } from '../routes/paths'
 
-// Số sản phẩm hiện mỗi lượt. Trước đây trang chủ render TẤT CẢ sản phẩm cùng
-// lúc — khu quản trị thì đã phân trang, riêng trang khách hàng (nơi đông người
-// truy cập nhất) lại không.
 const PAGE_SIZE = 12
 
-
-// memo: mỗi ký tự gõ vào ô tìm kiếm làm TrangChu render lại, trước đây kéo
-// theo toàn bộ thẻ sản phẩm đang hiện dựng lại cùng. Các prop đều là tham chiếu
-// ổn định (onClick/onAddToCart đã bọc useCallback ở dưới) nên so sánh nông là đủ.
 const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToCart }) {
   const catName  = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
   const icon = CATEGORY_ICONS[catName] || DEFAULT_CATEGORY_ICON
   const outOfStock = product.stockQuantity <= 0
   return (
-    // Link thay cho div onClick: khách bấm chuột giữa/Ctrl+click mở tab mới
-    // được, và trình thu thập của Google lần theo được từng sản phẩm. Modal
-    // chi tiết là overlay position:fixed nên không cần cuộn trang nền lên đầu —
-    // giữ nguyên vị trí đang xem, đóng modal là quay lại đúng chỗ cũ.
     <Link className="product-card" to={PATHS.productDetail(product.id)}>
       <div className="product-img-placeholder">
         {product.imageUrl ? (
           <img
             src={resolveMediaUrl(product.imageUrl)}
             alt={product.productName}
-            /* width/height khớp .product-img-placeholder trong App.css: trình
-               duyệt giữ sẵn chỗ nên ảnh về không làm nhảy layout (CLS). */
             width={320}
             height={140}
             loading="lazy"
@@ -71,7 +58,6 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
           </div>
           <span className="product-stock">Còn: {product.stockQuantity} {unitName}</span>
         </div>
-        {/* Admin không mua hàng — xem TrangChu, phần isAdmin. */}
         {!hideAddToCart && (
           <button
             type="button"
@@ -90,9 +76,6 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
 function TrangChu() {
   const navigate = useNavigate()
   const { user, isAdmin, isLoggedIn, logout } = useAuth()
-  // Tài khoản Admin không dùng luồng mua hàng: ẩn giỏ hàng, nút thêm vào giỏ và
-  // form đặt hàng. Họ có khu quản trị riêng để tạo phiếu bán hàng tại quầy.
-  // (App mobile đã làm đúng như vậy từ trước, web thì chưa.)
   const canBuy = !isAdmin
   const [search, setSearch]               = useState('')
   const debouncedSearch = useDebouncedValue(search, 250)
@@ -105,15 +88,11 @@ function TrangChu() {
   const [cartOpen, setCartOpen]           = useState(false)
   const { addItem, totalCount } = useCart()
 
-  // useCallback không phải trang trí ở đây: ProductCard đã memo nên nếu hàm này
-  // tạo mới mỗi lần render thì prop đổi và memo mất tác dụng hoàn toàn.
   const handleAddToCart = useCallback((product) => {
     addItem(product, 1)
     toast.success(`Đã thêm "${product.productName}" vào giỏ hàng.`)
   }, [addItem])
 
-  // Cache-then-network: vào trang là thấy ngay danh sách của lần trước (kể cả
-  // đang mất mạng), request nền chạy song song để cập nhật.
   const {
     data: productData,
     loading,
@@ -130,8 +109,6 @@ function TrangChu() {
     contactService.getActive().then(setContact).catch(() => {})
   }, [])
 
-  // Nút lọc theo danh mục do admin chọn ở "Danh mục sản phẩm" (cờ "hiển thị ở
-  // trang chủ"), không còn tự suy ra từ danh mục có sẵn trên sản phẩm nữa.
   const categories = useMemo(
     () => ['Tất cả', ...homeCategories.map(c => c.name)],
     [homeCategories]
@@ -147,10 +124,6 @@ function TrangChu() {
     })
   }, [products, debouncedSearch, activeCategory])
 
-  // Đổi bộ lọc thì quay lại trang đầu, tránh cảnh lọc xong thấy danh sách rỗng
-  // chỉ vì đang ở "trang" quá xa. Điều chỉnh ngay trong lúc render theo đúng
-  // pattern React khuyến nghị — làm bằng useEffect sẽ tốn thêm một lượt render
-  // hiển thị dữ liệu sai rồi mới sửa lại.
   const filterKey = `${debouncedSearch}|${activeCategory}`
   const [prevFilterKey, setPrevFilterKey] = useState(filterKey)
   if (filterKey !== prevFilterKey) {
@@ -163,7 +136,6 @@ function TrangChu() {
 
   return (
     <div className="site-wrapper">
-      {/* HEADER */}
       <header className="site-header">
         <div className="header-inner">
           <div className="brand">
@@ -209,13 +181,11 @@ function TrangChu() {
             )}
           </div>
 
-          {/* Hamburger — chỉ hiện trên mobile */}
           <button className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
             <span /><span /><span />
           </button>
         </div>
 
-        {/* Mobile menu */}
         <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
           <a href="#products" onClick={() => setMenuOpen(false)}><Icon name="cement" /> Sản phẩm</a>
           <a href="#about" onClick={() => setMenuOpen(false)}><Icon name="info" /> Về chúng tôi</a>
@@ -251,7 +221,6 @@ function TrangChu() {
 
       <div className="hzd" />
 
-      {/* HERO SLIDER — có banner thì chạy carousel, không có thì hiện hero mặc định */}
       <section className="hero-slider-section">
         {banners.length > 0 ? (
           <Carousel slides={banners} />
@@ -288,7 +257,6 @@ function TrangChu() {
 
       <div className="hzd" />
 
-      {/* PRODUCTS SECTION */}
       <section id="products" className="products-section">
         <div className="section-header">
           <h2>Danh mục sản phẩm</h2>
@@ -317,8 +285,6 @@ function TrangChu() {
           </div>
         </div>
 
-        {/* Đang xem bản lưu trên máy: nói rõ cũ cỡ nào thay vì để người dùng
-            tưởng đây là giá và tồn kho mới nhất. */}
         {isStale && !loading && (
           <div className="stale-bar" role="status">
             {isOnline
@@ -334,8 +300,6 @@ function TrangChu() {
           </div>
         ) : filtered.length === 0 ? (
           <div className="empty-state">
-            {/* Mất mạng và chưa từng có cache là chuyện khác hẳn với "không tìm
-                thấy sản phẩm" — đừng để khách tưởng cửa hàng hết hàng. */}
             {!isOnline && products.length === 0 ? (
               <>
                 <p><strong>Chưa có dữ liệu ngoại tuyến</strong></p>
@@ -374,7 +338,6 @@ function TrangChu() {
 
       <div className="hzd" style={{ marginTop: 64 }} />
 
-      {/* ABOUT */}
       <section id="about" className="about-section">
         <div className="about-content">
           <h2>Tại sao chọn chúng tôi?</h2>
@@ -403,7 +366,6 @@ function TrangChu() {
         </div>
       </section>
 
-      {/* CONTACT — admin quản lý ở khu quản trị, luôn chỉ 1 bản ghi đang bật */}
       {contact && (
         <section id="contact" className="contact-section">
           <h2>Liên hệ với chúng tôi</h2>
@@ -418,8 +380,6 @@ function TrangChu() {
         </section>
       )}
 
-      {/* Route con /san-pham/:id render modal chi tiết ở đây. Truyền dữ liệu
-          xuống qua context của Outlet để khỏi tải lại sản phẩm lần nữa. */}
       <Outlet context={{ products, loading, canBuy, onAddToCart: handleAddToCart }} />
 
       {canBuy && (
@@ -433,7 +393,6 @@ function TrangChu() {
         />
       )}
 
-      {/* FOOTER */}
       <footer className="site-footer">
         <div className="hzd" />
         <div className="footer-inner">

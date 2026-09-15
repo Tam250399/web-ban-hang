@@ -4,9 +4,6 @@ import { useNetwork } from '../../context/network-context'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
-// Banner cố định trên cùng toàn app khi mất mạng. Trạng thái lấy từ
-// NetworkProvider thay vì tự lắng nghe NetInfo, để cả app chỉ có một nguồn sự
-// thật về mạng (các màn hình còn dùng nó để chặn thao tác ghi và tự tải lại).
 export default function OfflineBanner() {
   const { isOnline } = useNetwork()
 

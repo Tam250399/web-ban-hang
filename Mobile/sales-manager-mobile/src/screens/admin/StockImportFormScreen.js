@@ -27,9 +27,6 @@ export default function StockImportFormScreen({ navigation, route }) {
   const [note, setNote] = useState('')
   const [errors, setErrors] = useState({})
   const [submitted, setSubmitted] = useState(false)
-  // Màn này mở dạng fullScreenModal, người dùng rất dễ bấm ✕ hoặc "Hủy" theo
-  // quán tính — trước đây thoát là mất trắng những gì vừa nhập, không hỏi han gì
-  // (StockFormScreen đã có cảnh báo này, riêng màn nhập kho thì chưa).
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {

@@ -5,7 +5,6 @@ import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 import { Icon } from '../common/Icon'
 
-// ---- Modal thêm/sửa chung (tên + mô tả, tuỳ chọn cờ hiển thị trang chủ) ----
 function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
   const isEdit = !!item
   const [form, setForm] = useState({
@@ -76,7 +75,6 @@ function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
   )
 }
 
-// ---- Modal thêm/sửa tên sản phẩm (có thêm danh mục) ----
 function ProductNameFormModal({ item, categories, onSave, onClose }) {
   const isEdit = !!item
   const [form, setForm] = useState({
@@ -136,7 +134,6 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
   )
 }
 
-// ---- CRUD table chung (danh mục, đơn vị tính) ----
 function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onDelete, withHomeToggle }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
@@ -282,7 +279,6 @@ function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onD
   )
 }
 
-// ---- CRUD table cho Tên sản phẩm mẫu ----
 function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
@@ -402,7 +398,6 @@ function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }
   )
 }
 
-// ---- Main CategoryManager ----
 const SUB_TABS = [
   { key: 'names',      label: <><Icon name="note" /> Tên sản phẩm</> },
   { key: 'categories', label: <><Icon name="tag" /> Danh mục sản phẩm</> },
@@ -416,8 +411,6 @@ function CategoryManager() {
   const [units, setUnits]         = useState([])
   const [loading, setLoading]     = useState(true)
 
-  // useMemo để `reload` giữ nguyên tham chiếu qua các lần render — nhờ vậy mới
-  // khai báo được nó trong deps của useEffect mà không tạo vòng lặp tải lại.
   const reload = useMemo(() => ({
     categories: () => categoryService.getCategories().then(setCategories).catch(() => {}),
     names:      () => categoryService.getProductNames().then(setNames).catch(() => {}),

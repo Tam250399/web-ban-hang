@@ -9,7 +9,6 @@ const CATEGORY_ICONS = {
   'Sơn': 'palette',
 }
 
-// Danh mục lạ (admin tự thêm) chưa có icon riêng thì dùng thùng hàng chung.
 const DEFAULT_CATEGORY_ICON = 'box'
 
 export { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON }

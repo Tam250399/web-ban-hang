@@ -56,7 +56,6 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
       <SafeAreaProvider>
         <Pressable style={styles.overlay} onPress={onClose}>
           <Pressable style={styles.container} onPress={(e) => e.stopPropagation()}>
-            {/* ── Header ── */}
             <View style={styles.header}>
               <View style={styles.headerLeft}>
                 <Icon name="bell" size={20} color={admin.text} />
@@ -67,7 +66,6 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
               </TouchableOpacity>
             </View>
 
-            {/* ── Body ── */}
             {loading ? (
               <View style={styles.loaderWrap}>
                 <ActivityIndicator size="small" color={admin.primary} />
@@ -84,7 +82,6 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
                   </View>
                 ) : (
                   <>
-                    {/* ── Đơn hàng mới ── */}
                     {pendingOrders.length > 0 && (
                       <View style={styles.section}>
                         <View style={ICON_ROW}>
@@ -120,7 +117,6 @@ export default function AdminNotificationModal({ visible, onClose, navigation })
                       </View>
                     )}
 
-                    {/* ── Tin nhắn mới ── */}
                     {unreadConversations.length > 0 && (
                       <View style={styles.section}>
                         <View style={ICON_ROW}>
@@ -225,11 +221,11 @@ const styles = StyleSheet.create({
     borderColor: '#e2e8f0',
   },
   itemCardUnreadOrder: {
-    backgroundColor: '#fffbeb', // Nhẹ nhõm vàng cam cho đơn hàng chưa xác nhận
+    backgroundColor: '#fffbeb',
     borderColor: '#fde68a',
   },
   itemCardUnreadChat: {
-    backgroundColor: '#eff6ff', // Nhẹ nhõm xanh dương cho tin nhắn mới
+    backgroundColor: '#eff6ff',
     borderColor: '#bfdbfe',
   },
   itemHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 },

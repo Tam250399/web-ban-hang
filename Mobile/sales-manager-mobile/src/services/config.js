@@ -1,63 +1,34 @@
 import Constants from 'expo-constants'
 import { Platform } from 'react-native'
 
-// Backend chạy dev qua `dotnet run` ở http://localhost:5000 (xem
-// Backend/SalesManagerBE/Properties/launchSettings.json). Không có proxy như Vite
-// nên mobile phải tự suy ra IP của máy host thay vì dùng "localhost".
 const DEV_SERVER_PORT = 5000
 
 function resolveDevHost() {
-  // Trên thiết bị thật chạy qua Expo Go, hostUri chứa IP LAN của máy chạy Metro
-  // (vd. "192.168.1.5:8081") -> tái dùng chính IP đó để gọi API, vì "localhost"
-  // trên điện thoại là chính điện thoại, không phải máy dev.
   const hostUri = Constants.expoConfig?.hostUri
   if (hostUri) {
     const host = hostUri.split(':')[0]
     if (host && host !== 'localhost' && host !== '127.0.0.1') return host
   }
-  // Android emulator (AVD) không thấy "localhost" của máy host, phải dùng địa chỉ đặc biệt 10.0.2.2.
   if (Platform.OS === 'android') return '10.0.2.2'
   return 'localhost'
 }
 
 const extra = Constants.expoConfig?.extra ?? {}
 
-// ─────────────────────────────────────────────────────────────────────────
-// Cấu hình cho bản build phát hành, theo thứ tự ưu tiên:
-//
-//   1. extra.apiUrl  — URL đầy đủ, ưu tiên dùng cái này:
-//                      "https://api.lysau.vn"
-//   2. extra.apiHost (+ extra.apiPort tuỳ chọn) — cách cũ, giữ lại để không
-//                      phá cấu hình đang chạy.
-//
-// CẢNH BÁO BẢO MẬT: nếu URL cuối cùng là http:// thì cookie phiên `access_token`
-// đi qua mạng ở dạng không mã hoá, ai bắt được gói tin trong cùng LAN là chiếm
-// được phiên. Nghiêm trọng hơn, backend đặt cookie với `Secure = !IsDevelopment()`
-// (Backend/SalesManagerBE/Controllers/AuthController.cs) — deploy backend với
-// ASPNETCORE_ENVIRONMENT=Production mà client vẫn gọi qua http thì cookie sẽ
-// KHÔNG được lưu và đăng nhập thất bại im lặng, không báo lỗi gì.
-// => Chỉ dùng http cho môi trường thử nội bộ; chạy thật phải có domain + HTTPS.
-// ─────────────────────────────────────────────────────────────────────────
 function resolveProdServerUrl() {
   if (extra.apiUrl) return String(extra.apiUrl).replace(/\/+$/, '')
   const host = extra.apiHost ?? 'localhost'
   return extra.apiPort ? `http://${host}:${extra.apiPort}` : `https://${host}`
 }
 
-// true khi SERVER_URL trỏ tới origin nginx (web) thay vì trỏ thẳng backend
-// .NET — chỉ nginx mới có route /media proxy sang MinIO (xem nginx.conf.template
-// của Frontend), nên resolveMediaUrl bên dưới cần biết để chọn cách viết lại URL.
 const usesNginxOrigin = Boolean(extra.apiUrl)
 
-// extra.apiUrl thắng ở mọi chế độ (kể cả dev) — dùng khi muốn máy dev gọi
-// thẳng backend public thay vì tự dò IP LAN của máy chạy Metro.
 export const SERVER_URL = extra.apiUrl
   ? String(extra.apiUrl).replace(/\/+$/, '')
   : __DEV__
     ? `http://${resolveDevHost()}:${DEV_SERVER_PORT}`
     : resolveProdServerUrl()
 
-// Host dùng để viết lại URL ảnh MinIO (xem resolveMediaUrl bên dưới).
 export const API_HOST = (() => {
   try {
     return new URL(SERVER_URL).hostname
@@ -73,18 +44,6 @@ if (__DEV__ && !SERVER_URL.startsWith('http')) {
   console.warn('[config] SERVER_URL không hợp lệ:', SERVER_URL)
 }
 
-// Backend trả URL ảnh MinIO cứng dạng "http://localhost:9000/..." (cổng nội bộ
-// của MinIO, không lộ ra ngoài qua Cloudflare Tunnel). Hai cách viết lại tuỳ
-// theo SERVER_URL đang trỏ đi đâu:
-//   - Qua nginx (usesNginxOrigin, vd. build production trỏ apiUrl) -> đổi
-//     thành "<SERVER_URL>/media/<bucket>/<object>", đi qua route /media của
-//     nginx (giống Frontend/sales-manager-fe/src/services/config.js) thay vì
-//     gọi thẳng cổng 9000.
-//   - Gọi thẳng backend .NET (dev, tự dò IP LAN) -> không có nginx đứng trước
-//     nên chỉ đổi hostname, giữ nguyên cổng 9000 để gọi thẳng MinIO trên LAN.
-// Hàm này được gọi trong render của từng ProductCard/bong bóng chat, mà `new URL()`
-// (polyfill react-native-url-polyfill) không hề rẻ — cache lại theo URL gốc vì
-// cùng một ảnh xuất hiện lại liên tục khi cuộn danh sách.
 const mediaUrlCache = new Map()
 
 export function resolveMediaUrl(url) {
@@ -104,7 +63,6 @@ export function resolveMediaUrl(url) {
           })()
     }
   } catch {
-    // URL không parse được thì dùng nguyên trạng.
   }
   mediaUrlCache.set(url, resolved)
   return resolved

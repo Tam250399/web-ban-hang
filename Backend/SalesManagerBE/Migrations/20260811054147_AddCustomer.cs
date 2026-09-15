@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,11 +6,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace SalesManagerBE.Migrations
 {
-    /// <inheritdoc />
-    public partial class AddCustomer : Migration
+        public partial class AddCustomer : Migration
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
+                protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
                 name: "Customers",
@@ -35,8 +33,6 @@ namespace SalesManagerBE.Migrations
                 column: "PhoneNumber",
                 unique: true);
 
-            // Thêm cột CustomerId dạng nullable trước, để không phá vỡ các phiếu bán
-            // hàng đã tồn tại (nếu có) — sẽ gán về một khách hàng tạm rồi mới ép NOT NULL.
             migrationBuilder.AddColumn<int>(
                 name: "CustomerId",
                 table: "SalesInvoices",
@@ -77,8 +73,7 @@ namespace SalesManagerBE.Migrations
                 onDelete: ReferentialAction.Restrict);
         }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+                protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_SalesInvoices_Customers_CustomerId",

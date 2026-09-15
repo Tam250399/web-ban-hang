@@ -73,9 +73,6 @@ export const toastConfig = {
 }
 
 const styles = StyleSheet.create({
-  // Bọc riêng phần bóng đổ ra ngoài container bo góc + overflow:hidden bên
-  // trong: gộp chung "elevation/shadow" với "overflow:hidden" trên cùng 1 View
-  // sẽ khiến Android cắt luôn bóng đổ của chính nó.
   toastContainer: {
     width: '90%',
     borderRadius: 16,
@@ -97,10 +94,6 @@ const styles = StyleSheet.create({
     borderColor: '#E2E8F0',
     overflow: 'hidden',
   },
-  // Thanh màu bên trái dựng bằng 1 View tuyệt đối riêng thay vì
-  // borderLeftWidth + borderRadius trên cùng khung — kết hợp đó là lỗi hiển
-  // thị đã biết trên Android (viền cạnh không bo theo góc container, trông
-  // như bị tách rời khỏi khung toast).
   accentBar: {
     position: 'absolute',
     left: 0,

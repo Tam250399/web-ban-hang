@@ -1,12 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, View } from 'react-native'
 
-// Khối xám nhấp nháy thay cho ActivityIndicator giữa màn trắng: người dùng thấy
-// ngay bố cục sắp hiện ra nên cảm giác nhanh hơn, và không bị "nhảy" layout khi
-// dữ liệu về.
-//
-// Dùng useNativeDriver: animation opacity chạy hẳn trên luồng UI, không tranh
-// chấp với JS thread đang bận parse response.
 export function Skeleton({ width, height, radius = 8, style }) {
   const opacity = useRef(new Animated.Value(0.35)).current
 
@@ -32,7 +26,6 @@ export function Skeleton({ width, height, radius = 8, style }) {
   )
 }
 
-/** Khung xương một thẻ sản phẩm — bám sát bố cục thật của ProductCard. */
 export function ProductCardSkeleton() {
   return (
     <View style={styles.card}>
@@ -47,7 +40,6 @@ export function ProductCardSkeleton() {
   )
 }
 
-/** Khung xương một thẻ đơn hàng. */
 export function OrderCardSkeleton() {
   return (
     <View style={styles.orderCard}>

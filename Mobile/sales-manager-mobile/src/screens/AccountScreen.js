@@ -10,8 +10,6 @@ import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { Icon } from '../components/ui/Icon'
 
-// Thông tin liên hệ do admin quản lý bên web (khu quản trị > Liên hệ), luôn
-// chỉ 1 bản ghi đang bật — giống hệt cách trang chủ web hiển thị.
 function ContactModal({ visible, contact, onClose }) {
   if (!contact) return null
   return (
@@ -93,7 +91,6 @@ export default function AccountScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ── User profile card ── */}
       <View style={styles.profileCard}>
         <LinearGradient colors={['#EA580C', '#F97316']} style={styles.avatar}>
           <Text style={styles.avatarText}>

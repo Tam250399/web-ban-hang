@@ -148,8 +148,6 @@ export default function OrdersPanel() {
       )}
 
       <Modal visible={!!detailOrder} animationType="slide" onRequestClose={() => setDetailOrder(null)}>
-        {/* Modal gốc của RN dựng cây view native riêng nên SafeAreaView bên trong
-            không tự lấy được inset đúng — phải bọc thêm SafeAreaProvider mới ở đây. */}
         <SafeAreaProvider>
         <SafeAreaView style={styles.detailRoot} edges={['top', 'bottom']}>
           <View style={styles.detailHeader}>

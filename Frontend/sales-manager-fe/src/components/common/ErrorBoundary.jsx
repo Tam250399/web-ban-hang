@@ -1,9 +1,6 @@
 import { Component } from 'react'
 import { Icon } from './Icon'
 
-// Không có ranh giới lỗi thì một exception khi render ở bất kỳ đâu cũng làm
-// trắng trang và người dùng chỉ còn cách F5. Ở đây bắt lại, hiện thông báo
-// tiếng Việt và cho bấm "Thử lại" để dựng lại cây component.
 class ErrorBoundary extends Component {
   state = { error: null }
 
@@ -12,8 +9,6 @@ class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Chưa gắn dịch vụ báo lỗi từ xa (Sentry...) — tạm ghi console để còn đọc
-    // được khi người dùng báo sự cố.
     console.error('[ErrorBoundary]', error, info?.componentStack)
   }
 

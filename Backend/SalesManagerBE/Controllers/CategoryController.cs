@@ -15,12 +15,10 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         public CategoryController(AppDbContext context) { _context = context; }
 
-        // ===== PRODUCT CATEGORIES =====
         [HttpGet("product-categories")]
         public async Task<IActionResult> GetProductCategories() =>
             Ok(await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync());
 
-        // Dùng cho trang chủ — chỉ lấy danh mục được bật hiển thị
         [HttpGet("product-categories/home")]
         [AllowAnonymous]
         public async Task<IActionResult> GetHomeProductCategories() =>
@@ -62,7 +60,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xóa danh mục." });
         }
 
-        // ===== UNIT TYPES =====
         [HttpGet("unit-types")]
         public async Task<IActionResult> GetUnitTypes() =>
             Ok(await _context.UnitTypes.OrderBy(u => u.Name).ToListAsync());
@@ -99,7 +96,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xóa đơn vị." });
         }
 
-        // ===== PRODUCT NAME TEMPLATES =====
         [HttpGet("product-names")]
         public async Task<IActionResult> GetProductNames() =>
             Ok(await _context.ProductNameTemplates

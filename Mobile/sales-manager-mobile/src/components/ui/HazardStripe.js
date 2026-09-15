@@ -1,8 +1,6 @@
 import Svg, { Defs, Pattern, Rect } from 'react-native-svg'
 import { brand } from '../../theme/colors'
 
-// Sọc chéo vàng/đen thương hiệu — tương đương .hzd bên web
-// (repeating-linear-gradient(135deg, #F2B705 0 14px, #1F1D1A 14px 28px)).
 export default function HazardStripe({ height = 8 }) {
   return (
     <Svg width="100%" height={height}>

@@ -13,15 +13,10 @@ const BIOMETRIC_STORAGE_KEY = 'salesManagerBiometricEnabled'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(GUEST_USER)
-  // Trong lúc chờ xác nhận phiên đăng nhập từ server, coi như khách để màn hình
-  // chính hiện ngay không cần chờ mạng (giống hành vi web).
   const [restoring, setRestoring] = useState(true)
   const [biometricSupported, setBiometricSupported] = useState(false)
   const [biometricLabel, setBiometricLabel] = useState('sinh trắc học')
   const [biometricEnabled, setBiometricEnabled] = useState(false)
-  // AppLockGate cần biết cờ sinh trắc học đã đọc xong từ AsyncStorage chưa: nếu
-  // khoá app dựa trên giá trị mặc định `false` lúc chưa đọc xong thì lần mở app
-  // nào cũng lọt qua màn khoá trong tích tắc.
   const [biometricReady, setBiometricReady] = useState(false)
 
   useEffect(() => {
@@ -38,18 +33,11 @@ export function AuthProvider({ children }) {
       .finally(() => setBiometricReady(true))
   }, [])
 
-  // ── Xử lý 401 tập trung ──
-  // Cookie phiên sống 7 ngày. Khi hết hạn, mọi màn hình đang mở cùng lúc nhận
-  // 401 và trước đây chỉ hiện toast "Lỗi 401" khó hiểu mà vẫn kẹt ở giao diện
-  // đã đăng nhập. Đọc user qua ref để handler đăng ký đúng một lần, không phải
-  // gỡ/gắn lại mỗi khi user đổi.
   const userRef = useRef(user)
   userRef.current = user
 
   useEffect(() => {
     setUnauthorizedHandler(() => {
-      // Khách chưa đăng nhập gọi API cần quyền là chuyện bình thường (vd. mở tab
-      // chat) — không việc gì phải báo "hết hạn".
       if (userRef.current.username === 'guest') return
       setUser(GUEST_USER)
       chatService.disconnect()
@@ -63,8 +51,6 @@ export function AuthProvider({ children }) {
 
   const login = (userData) => setUser(userData)
 
-  // Chỉ bật được sau khi xác thực sinh trắc học thành công một lần, để chắc
-  // chắn thiết bị thực sự đọc được vân tay/khuôn mặt trước khi ghi cờ bật.
   const enableBiometricLogin = async () => {
     const ok = await authenticateBiometric(`Xác nhận để bật đăng nhập bằng ${biometricLabel}`)
     if (!ok) return false
@@ -81,21 +67,12 @@ export function AuthProvider({ children }) {
   const logout = () => {
     authService.logout().catch(() => {})
     chatService.disconnect()
-    // Xoá dữ liệu đã lưu offline: máy dùng chung thì người đăng nhập sau không
-    // được thấy đơn hàng của người trước.
     clearAllCache()
     setUser(GUEST_USER)
-    // Đăng xuất huỷ hẳn cookie phiên trên server, nên "mở khóa bằng sinh trắc
-    // học" không còn gì để mở khóa nữa — tắt luôn cờ để nút này không hiện lại
-    // và báo "hết hạn" gây nhầm lẫn ở lần đăng nhập kế tiếp.
     disableBiometricLogin()
     Toast.show({ type: 'success', text1: 'Đã đăng xuất' })
   }
 
-  // Backend dùng cookie HttpOnly (không có refresh token riêng), nên sinh trắc
-  // học ở đây đóng vai trò "mở khóa" phiên đăng nhập vẫn còn hiệu lực trong
-  // cookie — chứ không tự tạo phiên mới. Nếu cookie đã hết hạn, phải quay lại
-  // đăng nhập bằng mật khẩu như bình thường.
   const loginWithBiometric = async () => {
     const ok = await authenticateBiometric(`Đăng nhập bằng ${biometricLabel}`)
     if (!ok) return false

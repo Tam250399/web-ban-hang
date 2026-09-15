@@ -25,8 +25,6 @@ function CancelReasonModal({ onClose, onConfirm }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: form nhập lý do huỷ đơn rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -65,7 +63,6 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-box-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }}>
         
-        {/* Header Modal */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <Icon name="receipt" size={24} />
@@ -85,10 +82,8 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
           <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
-        {/* Modal Body */}
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 24px' }}>
           
-          {/* Thông tin khách hàng & Giao hàng (Card) */}
           <div style={{
             background: 'oklch(0.975 0.005 255)',
             border: '1px solid var(--border)',
@@ -154,7 +149,6 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
             )}
           </div>
 
-          {/* Danh sách mặt hàng */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
               <strong style={{ fontSize: '0.92rem' }}>
@@ -194,7 +188,6 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
             </div>
           </div>
 
-          {/* Dòng tổng tiền */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -212,7 +205,6 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
 
         </div>
 
-        {/* Modal Footer */}
         <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
             {order.status === 'Pending' && (
@@ -261,7 +253,6 @@ function OrderManager({ onChanged }) {
   const [confirmingId, setConfirmingId] = useState(null)
   const [cancellingOrderId, setCancellingOrderId] = useState(null)
 
-  // Danh sách (GetAll) không kèm chi tiết sản phẩm — phải gọi GetById riêng để lấy đủ items.
   const openDetail = async (id) => {
     setLoadingDetailId(id)
     try {
@@ -285,7 +276,6 @@ function OrderManager({ onChanged }) {
   const handleConfirm = async (id) => {
     setConfirmingId(id)
     try {
-      // preparedByName do backend tự điền từ danh tính đã xác thực.
       await orderService.confirm(id, {})
       toast.success('Đã xác nhận đơn hàng và tạo phiếu bán hàng!')
       load()

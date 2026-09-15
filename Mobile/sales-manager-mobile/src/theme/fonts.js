@@ -1,7 +1,4 @@
 import { useFonts } from 'expo-font'
-// Import trực tiếp file .ttf theo đường dẫn con (thay vì import từ package gốc)
-// để Metro chỉ đóng gói đúng các weight dùng tới, không kéo theo toàn bộ ~18
-// weight/style còn lại của mỗi font family (mỗi package export barrel tất cả).
 import BarlowCondensed_700Bold from '@expo-google-fonts/barlow-condensed/700Bold/BarlowCondensed_700Bold.ttf'
 import BarlowCondensed_800ExtraBold from '@expo-google-fonts/barlow-condensed/800ExtraBold/BarlowCondensed_800ExtraBold.ttf'
 import Inter_400Regular from '@expo-google-fonts/inter/400Regular/Inter_400Regular.ttf'
@@ -19,8 +16,6 @@ import IBMPlexSans_500Medium from '@expo-google-fonts/ibm-plex-sans/500Medium/IB
 import IBMPlexSans_600SemiBold from '@expo-google-fonts/ibm-plex-sans/600SemiBold/IBMPlexSans_600SemiBold.ttf'
 import IBMPlexSans_700Bold from '@expo-google-fonts/ibm-plex-sans/700Bold/IBMPlexSans_700Bold.ttf'
 
-// Alias theo vai trò để các màn hình không phải nhớ tên chính xác của từng
-// weight - khớp với 5 font-family dùng trong thiết kế gốc.
 export const fonts = {
   displayBold: 'BarlowCondensed_700Bold',
   displayExtraBold: 'BarlowCondensed_800ExtraBold',

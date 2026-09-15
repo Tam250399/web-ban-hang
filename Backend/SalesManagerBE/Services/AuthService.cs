@@ -90,7 +90,6 @@ namespace SalesManagerBE.Services
             return tokenHandler.WriteToken(token);
         }
 
-        // Định dạng lưu trữ: {số vòng lặp}.{salt base64}.{hash base64} — PBKDF2/HMAC-SHA256 với salt ngẫu nhiên theo từng user.
         private const int Pbkdf2Iterations = 100_000;
         private const int Pbkdf2SaltSize = 16;
         private const int Pbkdf2HashSize = 32;

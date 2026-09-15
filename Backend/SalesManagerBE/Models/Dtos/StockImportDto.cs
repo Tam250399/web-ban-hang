@@ -9,7 +9,7 @@ namespace SalesManagerBE.Models.Dtos
         public decimal Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public string? Note { get; set; }
-        // "Valid" | "Invalid"
+
         public string Status { get; set; } = "Valid";
         public string? Message { get; set; }
     }

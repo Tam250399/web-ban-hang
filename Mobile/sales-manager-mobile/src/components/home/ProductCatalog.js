@@ -18,9 +18,6 @@ import { fonts } from '../../theme/fonts'
 const ALL_CATEGORY = 'Tất cả'
 const PAGE_SIZE = 8
 
-// Danh sách sản phẩm có tìm kiếm + lọc danh mục + lazy loading + xem chi tiết.
-// Toàn bộ trang (kể cả phần header truyền từ ngoài vào qua ListHeaderComponent)
-// cuộn qua một FlatList ảo hoá duy nhất, tránh render hết toàn bộ sản phẩm cùng lúc.
 export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderComponent, refreshing, onRefresh }) {
   const { addItem } = useCart()
   const { user } = useAuth()
@@ -31,8 +28,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
   const [detailProduct, setDetailProduct] = useState(null)
 
-  // Cache-then-network: mở app là thấy ngay danh sách của lần vào trước (kể cả
-  // đang mất sóng), request nền chạy song song để cập nhật.
   const {
     data,
     loading,
@@ -44,16 +39,12 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
 
   const allProducts = data ?? []
 
-  // Danh mục hiện ở nút lọc do admin chọn (cờ "hiển thị ở trang chủ" bên web),
-  // không còn tự suy ra từ danh mục có trong sản phẩm nữa — giống trang web.
   const { data: homeCategoriesData, reload: reloadHomeCategories } = useCachedResource(
     CACHE_KEYS.homeCategories,
     () => categoryService.getHomeCategories()
   )
   const homeCategories = homeCategoriesData ?? []
 
-  // HomeScreen tăng reloadKey khi người dùng kéo refresh — bỏ qua lần đầu vì
-  // useCachedResource đã tự tải rồi.
   const isFirstReloadKey = useRef(true)
   useEffect(() => {
     if (isFirstReloadKey.current) {
@@ -64,7 +55,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
     reloadHomeCategories()
   }, [reloadKey, reload, reloadHomeCategories])
 
-  // Reset phân trang khi tìm kiếm hoặc đổi danh mục
   useEffect(() => {
     setVisibleCount(PAGE_SIZE)
   }, [debouncedSearch, activeCategory])
@@ -89,15 +79,11 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
 
   const hasMore = displayedProducts.length < products.length
 
-  // Sản phẩm đã có sẵn trong state, chỉ cắt thêm một lát mảng — trước đây bọc
-  // trong setTimeout 250ms nên mỗi lần "Xem thêm" đều có một nhịp khựng vô cớ.
   const handleLoadMore = useCallback(() => {
     if (!hasMore) return
     setVisibleCount((prev) => prev + PAGE_SIZE)
   }, [hasMore])
 
-  // useCallback ở đây không phải trang trí: ProductCard đã memo, nên nếu
-  // handleAddToCart tạo mới mỗi lần render thì props đổi và memo vô tác dụng.
   const handleAddToCart = useCallback((product) => {
     tapFeedback()
     addItem(product, 1)
@@ -110,19 +96,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
     </View>
   ), [handleAddToCart, isAdmin])
 
-  // Trả về PHẦN TỬ, và bên dưới truyền `renderHeader()` chứ không phải
-  // `renderHeader`. VirtualizedList xử lý ListHeaderComponent thế này:
-  //
-  //     React.isValidElement(C) ? C : React.createElement(C)
-  //
-  // Truyền hàm thì rơi vào nhánh sau, với C đóng vai KIỂU component. Hàm này
-  // được tạo mới ở mỗi lần render nên React thấy kiểu khác nhau, gỡ bỏ cả cây
-  // header rồi dựng lại từ đầu — TextInput bị huỷ và tạo lại, mất focus, bàn
-  // phím đóng ngay sau ký tự đầu tiên.
-  //
-  // useCallback không cứu được: hàm đọc `search`, mà `search` đổi sau mỗi ký tự
-  // nên tham chiếu vẫn phải đổi theo. Truyền phần tử thì React đối chiếu như
-  // cây JSX bình thường và TextInput giữ nguyên danh tính.
   const renderHeader = () => (
     <>
       {ListHeaderComponent}
@@ -158,8 +131,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
           })}
         </ScrollView>
 
-        {/* Đang xem bản lưu trên máy: nói rõ cũ cỡ nào thay vì để người dùng
-            tưởng đây là giá và tồn kho mới nhất. */}
         {isStale && !loading && (
           <View style={styles.staleBar}>
             <Text style={styles.staleText}>
@@ -173,7 +144,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
     </>
   )
 
-  // Khung xương lưới sản phẩm trong lúc tải lần đầu (chưa có cache để hiện).
   const renderSkeletonGrid = () => (
     <View style={styles.skeletonGrid}>
       {Array.from({ length: 6 }).map((_, i) => (
@@ -184,8 +154,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
     </View>
   )
 
-  // Rỗng vì mất mạng và chưa từng có cache là chuyện khác hẳn với "không tìm
-  // thấy sản phẩm phù hợp" — đừng để người dùng tưởng cửa hàng hết hàng.
   const renderEmpty = () => {
     if (!isOnline && allProducts.length === 0) {
       return (
@@ -228,9 +196,6 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
           ) : undefined
         }
         onEndReachedThreshold={0.4}
-        // Mặc định của FlatList là 'never': cú chạm đầu tiên sau khi gõ chỉ để
-        // đóng bàn phím và bị nuốt mất, người dùng phải chạm hai lần mới bấm
-        // được vào chip danh mục hay thẻ sản phẩm ngay bên dưới ô tìm kiếm.
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
         initialNumToRender={6}
@@ -276,8 +241,6 @@ const styles = StyleSheet.create({
   },
   staleText: { fontFamily: fonts.bodyMedium, fontSize: 13.5, color: '#92400E', textAlign: 'center' },
   skeletonGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 18 },
-  // Không dùng chung gridItem (flex: 1) vì trong flexWrap mỗi ô sẽ chiếm trọn
-  // một hàng — cần chiều rộng cố định để xếp đúng 2 cột như lưới thật.
   skeletonItem: { width: '47%' },
   emptyWrap: { paddingHorizontal: 18, marginTop: 12, gap: 6 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 17, color: brand.ink, textAlign: 'center' },

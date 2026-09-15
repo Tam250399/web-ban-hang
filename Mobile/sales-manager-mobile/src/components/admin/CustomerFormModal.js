@@ -15,7 +15,6 @@ export default function CustomerFormModal({ visible, customer, onClose, onSaved 
   const [errors, setErrors] = useState({})
   const [saving, setSaving] = useState(false)
 
-  // Nạp lại form mỗi khi modal mở với dữ liệu customer khác (hoặc mở form thêm mới).
   const resetForNext = (nextCustomer) => {
     setForm(nextCustomer ? {
       fullName: nextCustomer.fullName,

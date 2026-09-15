@@ -1,15 +1,10 @@
 import Svg, { Circle, G, Polygon, Rect, Text as SvgText } from 'react-native-svg'
 
-// Huy hiệu logo Lý Sáu — con dấu tròn với biểu tượng mái nhà.
-// `variant="reversed"` dùng trên nền tối để đảo màu.
 const COLORS = {
   normal: { circle: '#072a4a', mark: '#f3f5f8', bar: '#c26030' },
   reversed: { circle: '#f3f5f8', mark: '#072a4a', bar: '#b2511e' },
 }
 
-// Bố cục gốc đặt mái nhà ở nửa trên để chừa chỗ cho chữ "LÝ SÁU" bên dưới. Khi
-// ẩn chữ (cỡ nhỏ) phải phóng to và kéo mái nhà về giữa, nếu không nửa dưới huy
-// hiệu sẽ trống trơn và logo trông như bị mất hình.
 const ICON_ONLY_TRANSFORM = 'translate(100,100) scale(2.1) translate(-100,-64)'
 
 export default function LogoBadge({ size = 44, variant = 'normal', showText = size >= 72 }) {

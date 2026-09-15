@@ -104,8 +104,6 @@ function ContactManager() {
     setDeleting(null)
   }
 
-  // Chỉ 1 bản ghi được hiển thị cùng lúc — bật cái này thì backend tự tắt các
-  // bản ghi khác, nên chỉ cần reload lại danh sách sau khi gọi update.
   const handleToggleActive = async (item) => {
     const turningOn = !item.isActive
     setToggling(item.id)

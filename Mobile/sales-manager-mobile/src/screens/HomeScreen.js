@@ -22,13 +22,10 @@ export default function HomeScreen({ navigation }) {
   const { totalCount } = useCart()
   const isAdmin = user?.role === 'Admin'
 
-  // ── Admin notification counts & modal ──
   const [pendingOrderCount, setPendingOrderCount] = useState(0)
   const [chatUnreadCount, setChatUnreadCount] = useState(0)
   const [notifModalOpen, setNotifModalOpen] = useState(false)
 
-  // ── Banner do Admin quản lý — cùng nguồn dữ liệu với web nên cập nhật
-  // trên web (BannerManager) sẽ tự phản ánh sang mobile ở lần tải lại sau. ──
   const [banners, setBanners] = useState([])
 
   useEffect(() => {
@@ -50,13 +47,10 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     loadAdminCounts()
-    // Refresh khi quay lại tab Home
     const unsubscribe = navigation.addListener('focus', loadAdminCounts)
     return unsubscribe
   }, [loadAdminCounts, navigation])
 
-  // ── Vuốt xuống để tải lại toàn bộ dữ liệu trang chủ: banner + danh sách sản
-  // phẩm (qua reloadKey truyền xuống ProductCatalog) + số thông báo admin. ──
   const [refreshing, setRefreshing] = useState(false)
   const [catalogReloadKey, setCatalogReloadKey] = useState(0)
 
@@ -68,7 +62,6 @@ export default function HomeScreen({ navigation }) {
       const data = await bannerService.getActive()
       setBanners(data)
     } catch {
-      // giữ nguyên banner cũ nếu tải lại lỗi
     }
     setRefreshing(false)
   }, [loadAdminCounts])
@@ -124,9 +117,6 @@ export default function HomeScreen({ navigation }) {
 
       <HazardStripe />
 
-      {/* Toàn trang cuộn qua FlatList ảo hoá của ProductCatalog — banner/hero
-          được truyền vào làm phần đầu danh sách thay vì bọc trong ScrollView
-          riêng, để danh sách sản phẩm không bị render toàn bộ cùng lúc. */}
       <ProductCatalog
         reloadKey={catalogReloadKey}
         refreshing={refreshing}
@@ -173,7 +163,6 @@ const styles = StyleSheet.create({
   storeName: { color: '#0F172A', fontFamily: fonts.displayExtraBold, fontSize: 16 },
   storeSubtitle: { color: brand.primary, fontFamily: fonts.monoBold, fontSize: 12.5, marginTop: 1 },
 
-  // ── Admin notification icons ──
   adminNotifRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   notifBtn: { padding: 4, position: 'relative' },
   notifIcon: { fontSize: 20 },
@@ -185,7 +174,6 @@ const styles = StyleSheet.create({
   chatBadge: { backgroundColor: '#2563EB' },
   notifBadgeText: { color: brand.white, fontSize: 11, fontFamily: fonts.bodyBold },
 
-  // ── Customer cart icon ──
   cartBtn: { padding: 4 },
   cartIcon: { fontSize: 20 },
   cartBadge: {

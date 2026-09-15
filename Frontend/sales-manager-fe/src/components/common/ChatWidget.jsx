@@ -17,7 +17,7 @@ function ChatWidget({ user }) {
   const [input, setInput] = useState('')
   const [unread, setUnread] = useState(0)
   const [sending, setSending] = useState(false)
-  const [pendingImage, setPendingImage] = useState(null) // { previewUrl, url, uploading }
+  const [pendingImage, setPendingImage] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const bodyRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -25,9 +25,6 @@ function ChatWidget({ user }) {
   const openRef = useRef(open)
   useEffect(() => { openRef.current = open }, [open])
 
-  // App.jsx gắn key={user?.id ...} cho component này nên mỗi lần user đổi
-  // (đăng nhập/đăng xuất/đổi tài khoản) React sẽ unmount + mount lại từ đầu,
-  // effect này vì vậy chỉ cần chạy một lần mỗi lần mount với đúng user hiện tại.
   useEffect(() => {
     if (!user || user.role !== 'Customer') return
 
@@ -49,15 +46,12 @@ function ChatWidget({ user }) {
       cancelled = true
       chatService.off('ReceiveMessage', handleReceive)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
   }, [messages, open])
 
-  // Focus lại ô nhập sau khi gửi: gọi .focus() ngay sau setSending(false) không ăn
-  // vì lúc đó React chưa kịp render lại để bỏ thuộc tính disabled trên input.
   useEffect(() => {
     if (!sending) inputRef.current?.focus()
   }, [sending])
@@ -91,8 +85,6 @@ function ChatWidget({ user }) {
     setSending(false)
   }
 
-  // Chọn/dán/kéo-thả ảnh chỉ đính kèm vào ô nhập (upload nền sẵn cho nhanh),
-  // chưa gửi ngay — người dùng phải bấm Gửi mới thực sự đi tới cuộc trò chuyện.
   const stageImageFile = async (file) => {
     if (!file || !file.type?.startsWith('image/')) return
     const previewUrl = URL.createObjectURL(file)

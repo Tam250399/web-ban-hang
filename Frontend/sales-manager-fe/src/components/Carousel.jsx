@@ -1,17 +1,12 @@
 import { useEffect, useState } from 'react'
 import { resolveMediaUrl } from '../services/config'
 
-// Người dùng có thể bật "giảm chuyển động" ở cấp hệ điều hành (Windows, iOS,
-// Android đều có). Banner tự trượt là đúng loại chuyển động mà thiết lập đó
-// muốn tắt — WCAG 2.3.3.
 const prefersReducedMotion = () =>
   typeof window !== 'undefined'
   && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
 function Carousel({ slides, autoPlayMs = 5000 }) {
   const [index, setIndex] = useState(0)
-  // Tự chạy phải TẮT ĐƯỢC (WCAG 2.2.2: nội dung chuyển động quá 5 giây cần có
-  // cách tạm dừng). Mặc định tắt luôn nếu hệ điều hành yêu cầu giảm chuyển động.
   const [paused, setPaused] = useState(() => prefersReducedMotion())
 
   const go = (i) => setIndex((i + slides.length) % slides.length)
@@ -20,8 +15,6 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
 
   useEffect(() => {
     if (paused || slides.length <= 1 || !autoPlayMs) return
-    // Chỉ phụ thuộc số lượng slide, không phụ thuộc `index`: trước đây có
-    // `index` trong deps nên mỗi lần đổi slide là huỷ rồi tạo lại interval.
     const timer = setInterval(() => setIndex(i => (i + 1) % slides.length), autoPlayMs)
     return () => clearInterval(timer)
   }, [slides.length, autoPlayMs, paused])
@@ -33,8 +26,6 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
   return (
     <div
       className="carousel"
-      // Dừng khi rê chuột hoặc khi tiêu điểm bàn phím đang ở trong banner, để
-      // người dùng kịp đọc và bấm.
       onMouseEnter={() => canAutoPlay && setPaused(true)}
       onMouseLeave={() => canAutoPlay && setPaused(prefersReducedMotion())}
       aria-roledescription="carousel"
@@ -46,8 +37,6 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
               src={resolveMediaUrl(slide.imageUrl)}
               alt={slide.title || `slide-${i}`}
               decoding="async"
-              /* Slide đầu là ảnh lớn nhất trong khung nhìn đầu tiên -> tải sớm;
-                 các slide sau chưa hiện nên để lazy. */
               loading={i === 0 ? 'eager' : 'lazy'}
               fetchPriority={i === 0 ? 'high' : 'auto'}
             />

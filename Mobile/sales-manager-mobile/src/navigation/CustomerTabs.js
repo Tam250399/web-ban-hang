@@ -20,8 +20,6 @@ export default function CustomerTabs() {
   const isAdmin = user?.role === 'Admin'
   const insets = useSafeAreaInsets()
 
-  // Icon nhận `color` từ tab bar nên tự sáng lên khi tab được chọn — emoji
-  // trước đây luôn giữ nguyên màu, không phân biệt được tab đang mở.
   const TAB_ICONS = {
     Home: HomeIcon,
     Orders: OrdersIcon,

@@ -5,7 +5,7 @@ namespace SalesManagerBE.Models
         public int Id { get; set; }
         public int ConversationId { get; set; }
         public int SenderId { get; set; }
-        // true = admin gửi, false = khách gửi. Lưu sẵn để không phải join Role khi hiển thị.
+
         public bool FromAdmin { get; set; }
         public string Content { get; set; } = string.Empty;
         public string? ImageUrl { get; set; }

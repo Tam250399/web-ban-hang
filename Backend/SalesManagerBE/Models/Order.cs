@@ -11,7 +11,6 @@ namespace SalesManagerBE.Models
         public string? Address { get; set; }
         public string? Note { get; set; }
 
-        // "Pending" | "Confirmed" | "Cancelled"
         public string Status { get; set; } = "Pending";
         public string? CancelReason { get; set; }
 

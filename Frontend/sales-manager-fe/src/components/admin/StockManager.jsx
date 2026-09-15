@@ -55,8 +55,6 @@ function ImportModal({ products, transaction, onClose, onSaved }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: form phiếu nhập kho rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -139,8 +137,6 @@ function StockImportPreviewModal({ result, onClose, onImported }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: bảng chọn dòng khi nhập kho từ Excel rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -454,8 +450,6 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
 
     setSaving(true)
     try {
-      // Không gửi preparedByName nữa: backend tự lấy tên người lập từ danh tính
-      // đã xác thực (SalesInvoiceController.GetPreparedByNameAsync).
       const payload = {
         customerId: +customerId,
         invoiceDate,
@@ -512,7 +506,6 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
           </div>
 
           <div className="invoice-modal-body">
-            {/* Bảng dạng dòng trên máy tính */}
             <div className="invoice-desktop-items">
               <table className="invoice-items-table">
                 <thead>
@@ -553,7 +546,6 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
               </table>
             </div>
 
-            {/* Thẻ dạng card trên điện thoại */}
             <div className="invoice-mobile-items">
               {items.map((it, i) => {
                 const product = productById(it.productId)
@@ -722,7 +714,6 @@ function ExportPanel({ products, customers, invoices, reload, onChanged }) {
   }
 
   const handleBulkDownload = async () => {
-    // Validate: all selected invoices must have the same customer name
     const selectedInvoices = invoices.filter(inv => selectedIds.includes(inv.id))
     const uniqueCustomerNames = [...new Set(selectedInvoices.map(inv => inv.customerName?.trim()))]
     if (uniqueCustomerNames.length > 1) {

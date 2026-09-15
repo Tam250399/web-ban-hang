@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -6,11 +6,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace SalesManagerBE.Migrations
 {
-    /// <inheritdoc />
-    public partial class AddSalesInvoice : Migration
+        public partial class AddSalesInvoice : Migration
     {
-        /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
+                protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.AddColumn<int>(
                 name: "SalesInvoiceId",
@@ -48,8 +46,7 @@ namespace SalesManagerBE.Migrations
                 onDelete: ReferentialAction.Cascade);
         }
 
-        /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
+                protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropForeignKey(
                 name: "FK_StockTransactions_SalesInvoices_SalesInvoiceId",

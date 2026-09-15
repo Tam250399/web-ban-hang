@@ -1,6 +1,3 @@
-// Input tiền VNĐ: hiển thị số đã format dấu chấm ngăn cách hàng nghìn + hậu tố "đ",
-// nhưng vẫn phát ra onChange với target.value là chuỗi số thô (không dấu chấm) để
-// tương thích với các state form hiện có (set('price') kiểu e => setForm(...)).
 function MoneyInput({ value, onChange, className = '', ...rest }) {
   const display = value === '' || value === null || value === undefined
     ? ''

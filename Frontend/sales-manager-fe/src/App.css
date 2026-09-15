@@ -1,4 +1,4 @@
-/* ====== RESET & BASE ====== */
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -40,12 +40,10 @@ body {
 
 a { text-decoration: none; color: inherit; }
 img, svg, video, canvas { max-width: 100%; }
-/* Tên sản phẩm / email dài không có dấu cách sẽ đẩy rộng cả lưới nếu không
-   cho phép ngắt giữa từ. */
+
 body { overflow-wrap: break-word; }
 button { font-family: inherit; cursor: pointer; }
 
-/* ====== UTILITIES ====== */
 .hzd {
   height: 8px;
   width: 100%;
@@ -66,7 +64,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .chip-rotate-alt { transform: rotate(-3deg); }
 
-/* ====== BUTTONS ====== */
 .btn-primary {
   display: inline-block;
   padding: 12px 24px;
@@ -146,25 +143,16 @@ button { font-family: inherit; cursor: pointer; }
 }
 .btn-danger:hover { background: var(--primary-dark); }
 
-/* ====== MESSAGES ====== */
 .message { padding: 12px 16px; border-radius: 10px; font-size: 0.92rem; }
 .message.success { background: rgba(34,197,94,0.1); color: #15803d; border: 1px solid rgba(34,197,94,0.35); }
 .message.error { background: #FCEEE8; color: var(--primary-dark); border: 1px solid var(--primary); }
 
 .required { color: var(--primary); margin-left: 2px; }
 
-/* ====== SITE LAYOUT ====== */
 .site-wrapper { min-height: 100vh; display: flex; flex-direction: column; }
-/* Con trực tiếp của .site-wrapper là flex item. Các section dùng
-   `max-width: 1280px; margin: 0 auto` để căn giữa trên màn hình rộng, nhưng
-   trong flex column thì margin ngang `auto` biến item thành co-vừa-nội-dung
-   (shrink-to-fit) thay vì giãn hết chiều ngang.
-   Hệ quả thấy rõ ở 1090px: .contact-section chỉ rộng 723px trong khi
-   .about-section rộng 1075px — chữ bị dồn vào cột hẹp và các khối lệch nhau.
-   width: 100% khôi phục hành vi giãn; max-width vẫn giữ vai trò chặn trên. */
+
 .site-wrapper > * { width: 100%; }
 
-/* ====== HEADER ====== */
 .site-header {
   position: sticky; top: 0; z-index: 100;
   background: var(--ink);
@@ -201,7 +189,6 @@ button { font-family: inherit; cursor: pointer; }
   font-family: var(--font-mono); letter-spacing: 0.04em;
 }
 
-/* ====== BRAND ====== */
 .brand { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
 .brand strong { display: block; font-size: 1.05rem; color: #F5F2EA; font-family: var(--font-display); font-weight: 800; letter-spacing: 0.01em; }
 .brand span { display: block; font-size: 0.75rem; color: var(--accent); font-family: var(--font-mono); }
@@ -211,7 +198,6 @@ button { font-family: inherit; cursor: pointer; }
   flex-shrink: 0;
 }
 
-/* ====== HERO ====== */
 .hero-banner {
   background: var(--ink);
   color: white;
@@ -240,7 +226,6 @@ button { font-family: inherit; cursor: pointer; }
 .stat-num { display: block; font-family: var(--font-mono); font-size: 2rem; font-weight: 700; color: var(--accent); }
 .stat-label { font-size: 0.8rem; color: var(--hero-muted); }
 
-/* ====== PRODUCTS SECTION ====== */
 .products-section { max-width: 1280px; margin: 0 auto; padding: clamp(36px, 5vw, 64px) clamp(16px, 2.5vw, 24px) 0; }
 .section-header { text-align: center; margin-bottom: 40px; }
 .section-header h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; margin-bottom: 8px; }
@@ -268,9 +253,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .product-grid {
   display: grid;
-  /* auto-fill + minmax: số cột tự tính theo bề rộng thật của lưới ở MỌI kích
-     thước thay vì nhảy bậc theo breakpoint. min(100%, 300px) để màn hình hẹp
-     hơn 300px thì thẻ co lại chứ không tràn ngang. */
+
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
   gap: clamp(12px, 1.6vw, 20px);
 }
@@ -294,8 +277,7 @@ button { font-family: inherit; cursor: pointer; }
   position: relative;
 }
 .product-icon {
-  /* Hộp span cao theo line-height của cỡ chữ 3rem (~58px) trong khi icon chỉ
-     44px, nên icon bị lệch khỏi tâm ô ảnh. Cho span co đúng bằng icon. */
+
   display: flex;
   align-items: center;
   justify-content: center;
@@ -329,7 +311,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ====== ABOUT ====== */
 .about-section { background: var(--surface); padding: clamp(40px, 6.5vw, 88px) clamp(16px, 2.5vw, 24px); }
 .about-content { max-width: 1280px; margin: 0 auto; }
 .about-content h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.4vw, 2.2rem); font-weight: 800; text-align: center; margin-bottom: clamp(24px, 3vw, 40px); }
@@ -347,7 +328,6 @@ button { font-family: inherit; cursor: pointer; }
 .feature-card h3 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 700; margin-bottom: 8px; }
 .feature-card p { font-size: 0.88rem; color: var(--text); }
 
-/* ====== CONTACT ====== */
 .contact-section { max-width: 1280px; margin: 0 auto; padding: clamp(40px, 6vw, 80px) clamp(16px, 2.5vw, 24px); }
 .contact-section h2 { font-family: var(--font-display); font-size: clamp(1.5rem, 3.2vw, 2.1rem); font-weight: 800; margin-bottom: clamp(20px, 2.6vw, 32px); }
 .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr)); gap: 20px; }
@@ -369,7 +349,6 @@ button { font-family: inherit; cursor: pointer; }
 .contact-cta p { font-size: 0.92rem; color: var(--hero-muted); }
 .contact-cta .btn-primary { align-self: flex-start; }
 
-/* ====== FOOTER ====== */
 .site-footer {
   background: var(--ink);
   color: var(--hero-muted);
@@ -390,7 +369,6 @@ button { font-family: inherit; cursor: pointer; }
 .footer-links a:hover { color: var(--accent); }
 .footer-copy { font-size: 0.82rem; border-top: 1px solid var(--divider-dark); padding-top: 20px; }
 
-/* ====== AUTH PAGES (shared by Login & Register) ====== */
 .auth-shell {
   min-height: 100vh; width: 100%;
   display: flex; flex-direction: column;
@@ -448,10 +426,6 @@ button { font-family: inherit; cursor: pointer; }
 .auth-switch { margin: 6px 0 0; text-align: center; font-size: 13.5px; color: var(--text); }
 .auth-switch-link { background: none; border: none; color: var(--primary); font-weight: 700; cursor: pointer; padding: 0; font-size: inherit; }
 
-/* ====== ADMIN DASHBOARD ====== */
-/* height (không phải min-height) + overflow:hidden: chặn cứng ở viewport để
-   .admin-main tự cuộn nội bộ (overflow-y:auto), thay vì để cả trang bị đẩy dài
-   ra và cuộn theo trình duyệt — cần thiết để khung chat cuộn đúng chỗ. */
 .admin-shell { height: 100vh; display: flex; flex-direction: column; background: var(--bg); overflow: hidden; }
 .admin-header {
   background: var(--admin-dark); border-bottom: 4px solid var(--primary);
@@ -530,7 +504,6 @@ button { font-family: inherit; cursor: pointer; }
 .sidebar-btn:hover { background: rgba(255,255,255,0.06); color: #F5F2EA; }
 .sidebar-btn.active { background: var(--admin-dark-active); color: var(--accent); border-left: 3px solid var(--primary); }
 
-/* ---- Menu cha/con trong sidebar ---- */
 .sidebar-group-toggle { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .sidebar-group-arrow { font-size: 0.75rem; opacity: 0.7; transition: transform 0.15s; }
 .sidebar-group-toggle.open .sidebar-group-arrow { transform: rotate(180deg); }
@@ -549,13 +522,10 @@ button { font-family: inherit; cursor: pointer; }
 .admin-main { flex: 1; padding: clamp(14px, 2.2vw, 32px); overflow-y: auto; display: flex; flex-direction: column; min-height: 0; }
 .tab-title { font-size: 1.4rem; font-weight: 800; margin-bottom: 24px; color: var(--text-h); }
 
-/* ====== ADMIN TABLE ====== */
 .admin-table-wrap { overflow-x: auto; border-radius: 12px; border: 1.5px solid var(--ink); box-shadow: 0 4px 16px rgba(31,29,26,0.06); }
-/* min-width đi cùng overflow-x của .admin-table-wrap: dưới ngưỡng này bảng
-   CUỘN ngang thay vì bóp cột lại làm chữ xuống dòng từng từ một. */
+
 .admin-table { width: 100%; min-width: 820px; border-collapse: collapse; font-size: 0.86rem; }
-/* Bảng khu thống kê và modal chỉ 3-5 cột nên không ép min-width,
-   nếu không sẽ sinh thanh cuộn ngang thừa. */
+
 .stats-detail-grid .admin-table,
 .modal-box .admin-table,
 .modal-table { min-width: 0; }
@@ -573,7 +543,6 @@ button { font-family: inherit; cursor: pointer; }
 .badge-import { display: inline-block; padding: 3px 9px; background: var(--ink); color: var(--accent); border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
 .badge-export { display: inline-block; padding: 3px 9px; background: var(--primary); color: white; border-radius: 10px; font-size: 0.75rem; font-weight: 600; }
 
-/* ====== ADMIN FORMS ====== */
 .form-card { background: var(--surface); border: 1.5px solid var(--ink); border-radius: 16px; padding: 28px; margin-bottom: 24px; box-shadow: 0 4px 18px rgba(31,29,26,0.07); }
 .form-card h4 { font-family: var(--font-display); font-size: 1.1rem; font-weight: 800; margin-bottom: 20px; color: var(--ink); }
 .add-product-form, .stock-form { display: flex; flex-direction: column; gap: 16px; }
@@ -598,7 +567,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .form-field input:focus, .form-field select:focus { border-color: var(--primary); }
 
-/* ====== EMAIL SPLIT INPUT (tên + @gmail.com mờ) ====== */
 .email-split-input {
   display: flex;
   align-items: center;
@@ -625,7 +593,6 @@ button { font-family: inherit; cursor: pointer; }
   user-select: none;
 }
 
-/* ====== MONEY INPUT (VNĐ) ====== */
 .money-input { position: relative; display: flex; align-items: center; width: 100%; }
 .money-input input { padding-right: 32px !important; text-align: right; }
 .money-input-suffix {
@@ -635,7 +602,6 @@ button { font-family: inherit; cursor: pointer; }
 .invoice-items-table .money-input input { padding: 8px 28px 8px 10px; }
 .invoice-items-table .money-input-suffix { right: 8px; font-size: 0.78rem; }
 
-/* ====== SEARCHABLE SELECT ====== */
 .searchable-select { position: relative; }
 .searchable-select-trigger {
   width: 100%; box-sizing: border-box; padding: 11px 14px;
@@ -670,7 +636,6 @@ button { font-family: inherit; cursor: pointer; }
 .searchable-select-option.active { background: rgba(193,68,14,0.1); color: var(--primary); font-weight: 600; }
 .searchable-select-empty { padding: 12px; text-align: center; color: var(--text); font-size: 0.85rem; }
 
-/* ---- Multi-select variant ---- */
 .multi-trigger { flex-wrap: nowrap; min-height: 40px; }
 .multi-select-tags { display: flex; align-items: center; gap: 5px; flex: 1; min-width: 0; overflow: hidden; }
 .multi-select-tag {
@@ -700,7 +665,6 @@ button { font-family: inherit; cursor: pointer; }
 .role-select:focus { border-color: var(--primary); }
 .role-select:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ====== STATS ====== */
 .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 2px; background: var(--ink); border: 1.5px solid var(--ink); margin-bottom: 28px; }
 .stat-box {
   background: var(--surface); border: none; border-top: 4px solid var(--primary);
@@ -726,7 +690,6 @@ button { font-family: inherit; cursor: pointer; }
 .stats-detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: clamp(16px, 2vw, 24px); }
 .stock-layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: clamp(16px, 2vw, 28px); align-items: start; }
 
-/* ====== MODAL ====== */
 .modal-overlay {
   position: fixed; inset: 0; z-index: 200;
   background: rgba(31,29,26,0.6);
@@ -778,10 +741,6 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--surface);
 }
 
-/* ====== PRODUCT DETAIL MODAL ====== */
-/* Overlay riêng của modal chi tiết sản phẩm (khác .modal-overlay dùng chung
-   cho ConfirmModal/edit-product...) để chỉnh hiệu ứng mà không ảnh hưởng các
-   modal khác. */
 @keyframes product-detail-overlay-in {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -916,7 +875,6 @@ button { font-family: inherit; cursor: pointer; }
   .product-detail-price { font-size: 1.4rem; }
 }
 
-/* ====== PRODUCT THUMBNAIL ====== */
 .product-thumb {
   width: 48px;
   height: 48px;
@@ -936,7 +894,6 @@ button { font-family: inherit; cursor: pointer; }
   border: 1.5px solid var(--ink);
 }
 
-/* ====== EDIT PRODUCT MODAL ====== */
 .edit-product-modal { max-width: 780px; }
 .edit-modal-body {
   display: grid;
@@ -952,7 +909,6 @@ button { font-family: inherit; cursor: pointer; }
   .edit-product-modal { max-width: 100%; }
 }
 
-/* ====== IMAGE UPLOAD ====== */
 .image-upload-zone {
   display: flex;
   flex-direction: column;
@@ -1018,7 +974,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .image-remove-btn:hover { background: var(--primary); }
 
-/* ====== CONFIRM MODAL ====== */
 .confirm-modal {
   background: var(--surface);
   border: 1.5px solid var(--ink);
@@ -1071,7 +1026,6 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 0.92rem;
 }
 
-/* ====== PRODUCT LIST EXTRAS ====== */
 .list-header {
   display: flex; justify-content: space-between; align-items: center;
   flex-wrap: wrap; gap: 12px; margin-bottom: 16px;
@@ -1105,7 +1059,6 @@ button { font-family: inherit; cursor: pointer; }
 .btn-edit-sm:hover { background: var(--ink); color: var(--accent); }
 .editing-row { background: rgba(242,183,5,0.15) !important; }
 
-/* ====== INVOICE MODAL (Phiếu bán hàng) ====== */
 .invoice-modal {
   background: var(--surface);
   border: 1.5px solid var(--ink);
@@ -1162,7 +1115,6 @@ button { font-family: inherit; cursor: pointer; }
   flex-shrink: 0;
 }
 
-/* ====== PAGINATION ====== */
 .pagination {
   display: flex; align-items: center; gap: 4px;
   padding: 16px 0; flex-wrap: wrap;
@@ -1193,7 +1145,6 @@ button { font-family: inherit; cursor: pointer; }
 .table-footer-size select:focus { border-color: var(--primary); }
 .table-footer .pagination { padding: 0; }
 
-/* ====== CATEGORY / SYSTEM MANAGER SUB-TABS ====== */
 .sub-tabs {
   display: flex; gap: 2px; flex-wrap: wrap;
   padding: 0; background: var(--ink);
@@ -1212,7 +1163,6 @@ button { font-family: inherit; cursor: pointer; }
 .crud-title { font-family: var(--font-display); font-size: 1.05rem; font-weight: 800; color: var(--ink); margin-bottom: 16px; }
 .crud-layout { display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 20px; align-items: start; }
 
-/* ====== HAMBURGER MENU ====== */
 .hamburger {
   display: none;
   flex-direction: column;
@@ -1261,26 +1211,6 @@ button { font-family: inherit; cursor: pointer; }
 .mobile-menu .mobile-divider { height: 1px; background: var(--divider-dark); margin: 6px 0; }
 .mobile-menu .btn-primary { margin-top: 4px; border-radius: 10px; text-align: center; }
 
-/* ================================================================
-   THANG BREAKPOINT — xếp theo thứ tự GIẢM DẦN. Media query không cộng thêm
-   độ ưu tiên, nên block hẹp hơn phải nằm SAU block rộng hơn thì mới đè được.
-
-     ≥1700  màn hình 2K/4K
-     ≤1280  laptop nhỏ      ← khoảng trống trước đây: 1025-1280px không có
-                              breakpoint nào, khu admin bị bóp nguyên si
-     ≤1120  laptop hẹp
-     ≤1024  tablet ngang
-     ≤ 768  mobile / tablet dọc
-     ≤ 480  điện thoại
-     ≤ 380  điện thoại nhỏ
-
-   Phần lớn lưới (sản phẩm, đơn hàng, thẻ tính năng, thống kê) đã tự đếm số
-   cột bằng auto-fill/auto-fit + minmax nên không còn cần override ở đây.
-   ================================================================ */
-
-/* ====== RESPONSIVE — Màn hình rộng (≥1700px) ====== */
-/* Bố cục khoá ở 1280px nên trên màn 2K/4K hai bên thừa rất nhiều khoảng
-   trắng. Nới trần lên 1500px thay vì dồn nội dung vào một dải hẹp giữa. */
 @media (min-width: 1700px) {
   .header-inner,
   .hero-content,
@@ -1290,10 +1220,6 @@ button { font-family: inherit; cursor: pointer; }
   .footer-inner { max-width: 1500px; }
 }
 
-/* ====== RESPONSIVE — Laptop nhỏ (≤1280px) ====== */
-/* Khu admin = sidebar 220px + .admin-main. Ở 1090px phần nội dung chỉ còn
-   ~820px, bảng 7-9 cột bị bóp lại khiến chữ xuống dòng từng từ một. Thu gọn
-   sidebar và padding ô để trả chỗ lại cho bảng. */
 @media (max-width: 1280px) {
   .admin-sidebar { width: 188px; padding: 20px 12px; }
   .sidebar-btn { padding: 11px 12px; font-size: 0.88rem; }
@@ -1303,7 +1229,6 @@ button { font-family: inherit; cursor: pointer; }
   .header-inner { gap: 16px; }
 }
 
-/* ====== RESPONSIVE — Laptop hẹp (≤1120px) ====== */
 @media (max-width: 1120px) {
   .admin-sidebar { width: 166px; padding: 18px 10px; }
   .sidebar-btn { padding: 10px 10px; font-size: 0.84rem; }
@@ -1315,7 +1240,6 @@ button { font-family: inherit; cursor: pointer; }
   .brand span { font-size: 0.75rem; }
 }
 
-/* ====== RESPONSIVE — Tablet (≤1024px) ====== */
 @media (max-width: 1024px) {
   .stock-layout { grid-template-columns: 1fr; }
   .chat-admin-layout { grid-template-columns: minmax(0, 230px) minmax(0, 1fr); }
@@ -1323,15 +1247,13 @@ button { font-family: inherit; cursor: pointer; }
   .stat-card { padding: 16px 20px 0 0; margin-right: 20px; }
 }
 
-/* ====== RESPONSIVE — Mobile (≤768px) ====== */
 @media (max-width: 768px) {
-  /* Header */
+
   .header-inner { padding: 12px 16px; flex-wrap: nowrap; }
   .header-nav { display: none; }
   .header-actions { display: none; }
   .hamburger { display: flex; margin-left: auto; }
 
-  /* Hero */
   .hero-banner { padding: 40px 16px 32px; }
   .hero-banner h1 { font-size: 1.75rem; }
   .hero-sub { font-size: 0.95rem; }
@@ -1341,7 +1263,6 @@ button { font-family: inherit; cursor: pointer; }
   .stat-card { flex: 1; min-width: 120px; padding: 14px 16px 0 0; border-right: none; border-bottom: 1px solid var(--divider-dark); padding-bottom: 14px; margin-bottom: 6px; }
   .stat-num { font-size: 1.6rem; }
 
-  /* Products */
   .products-section { padding: 40px 16px 0; }
   .section-header h2 { font-size: 1.5rem; }
   .product-controls { gap: 10px; }
@@ -1350,23 +1271,18 @@ button { font-family: inherit; cursor: pointer; }
   .product-name { font-size: 0.9rem; }
   .product-price { font-size: 1rem; }
 
-  /* About */
   .about-section { padding: 40px 16px; }
   .about-content h2 { font-size: 1.5rem; }
   .feature-card { padding: 20px 16px; }
 
-  /* Contact */
   .contact-section { padding: 40px 16px; }
   .contact-section h2 { font-size: 1.5rem; }
 
-  /* Footer */
   .site-footer { padding: 36px 16px 20px; }
   .footer-links { flex-wrap: wrap; gap: 24px; }
 
-  /* Auth */
   .auth-center { padding: 16px; align-items: flex-start; padding-top: 40px; }
 
-  /* Admin Header */
   .admin-header {
     padding: 10px 14px;
     display: flex;
@@ -1417,7 +1333,6 @@ button { font-family: inherit; cursor: pointer; }
     margin-left: auto;
   }
 
-  /* Admin Mobile Horizontal Scroll Tabs */
   .admin-mobile-tabs {
     display: flex;
     align-items: center;
@@ -1478,7 +1393,6 @@ button { font-family: inherit; cursor: pointer; }
     color: var(--primary);
   }
 
-  /* Admin Body */
   .admin-body { flex-direction: column; }
   .admin-sidebar { display: none; }
   .admin-main { padding: 14px 12px; }
@@ -1492,7 +1406,6 @@ button { font-family: inherit; cursor: pointer; }
   .list-header { flex-direction: column; align-items: flex-start; }
   .list-header .search-input { max-width: 100%; }
 
-  /* Invoice Modal on Mobile */
   .invoice-modal {
     max-width: 100%;
     max-height: 96vh;
@@ -1582,40 +1495,32 @@ button { font-family: inherit; cursor: pointer; }
   }
 }
 
-/* ====== RESPONSIVE — Small Mobile (≤480px) ====== */
 @media (max-width: 480px) {
-  /* Header */
+
   .brand strong { font-size: 0.9rem; }
   .brand span { display: none; }
 
-  /* Hero */
   .hero-banner h1 { font-size: 1.5rem; }
   .hero-eyebrow { font-size: 0.78rem; }
   .stat-num { font-size: 1.4rem; }
   .stat-label { font-size: 0.75rem; }
 
-  /* Products */
   .product-grid { grid-template-columns: 1fr; }
   .product-img-placeholder { height: 120px; }
   .product-icon { font-size: 2.5rem; }
   .category-tabs { gap: 6px; }
   .cat-tab { padding: 7px 12px; font-size: 0.82rem; }
 
-  /* Stats */
   .stat-box { padding: 16px; }
 
-  /* Admin table - horizontal scroll hint */
   .admin-table-wrap { -webkit-overflow-scrolling: touch; }
 
-  /* Footer */
   .footer-links { flex-direction: column; gap: 20px; }
   .footer-brand strong { font-size: 0.9rem; }
 
-  /* Carousel */
   .carousel-caption p { font-size: 0.85rem; }
 }
 
-/* ====== RESPONSIVE — Điện thoại nhỏ (≤380px) ====== */
 @media (max-width: 380px) {
   .header-inner { padding: 10px 12px; gap: 8px; }
   .products-section,
@@ -1633,9 +1538,6 @@ button { font-family: inherit; cursor: pointer; }
   .confirm-modal { padding: 24px 18px 18px; }
 }
 
-/* ====== RESPONSIVE — Màn hình thấp (chiều cao ≤760px) ====== */
-/* Laptop 1366x768 hay cửa sổ 1090x738: hero padding 80px cộng carousel đẩy
-   toàn bộ danh sách sản phẩm xuống dưới nếp gấp. */
 @media (min-width: 769px) and (max-height: 760px) {
   .hero-banner { padding: 44px 24px; }
   .hero-btns { margin-bottom: 28px; }
@@ -1644,7 +1546,6 @@ button { font-family: inherit; cursor: pointer; }
   .product-detail-modal { max-height: 94vh; max-height: 94dvh; }
 }
 
-/* ====== HERO CAROUSEL ====== */
 .hero-slider-section { width: 100%; margin: 0; }
 .carousel {
   position: relative;
@@ -1658,8 +1559,7 @@ button { font-family: inherit; cursor: pointer; }
 .carousel-slide {
   position: relative;
   min-width: 100%;
-  /* Cao cố định 450px chiếm gần hết màn hình laptop cao 738px. clamp theo vw
-     giữ tỷ lệ hợp lý từ điện thoại đến màn hình rộng. */
+
   height: clamp(200px, 33vw, 450px);
   background: var(--ink);
 }
@@ -1714,7 +1614,6 @@ button { font-family: inherit; cursor: pointer; }
 }
 .carousel-dot.active { background: white; width: 22px; border-radius: 5px; }
 
-/* ====== CHAT WIDGET (khách hàng) ====== */
 .chat-widget { position: fixed; right: 24px; bottom: 24px; z-index: 1000; }
 .chat-fab {
   width: 58px; height: 58px; border-radius: 50%; border: none;
@@ -1805,7 +1704,6 @@ button { font-family: inherit; cursor: pointer; }
   .chat-bubble { max-width: 85%; }
 }
 
-/* ====== CHAT ADMIN ====== */
 .chat-page { flex: 1; display: flex; flex-direction: column; min-height: 0; }
 .chat-admin-layout {
   display: grid; grid-template-columns: minmax(0, 300px) minmax(0, 1fr);
@@ -1849,15 +1747,12 @@ button { font-family: inherit; cursor: pointer; }
 @media (max-width: 700px) {
   .chat-admin-layout { grid-template-columns: 1fr; border-radius: 12px; }
   .chat-conv-list { max-height: none; border-right: none; }
-  /* Kiểu Messenger: hiện danh sách HOẶC khung chat toàn màn hình, không nhồi chung */
+
   .chat-admin-layout.panel-open .chat-conv-list { display: none; }
   .chat-admin-layout:not(.panel-open) .chat-conv-panel { display: none; }
   .chat-back-btn { display: inline-flex; align-items: center; justify-content: center; }
 }
 
-/* ================================================================
-   CART & ORDERS (storefront)
-   ================================================================ */
 .cart-icon-btn {
   position: relative;
   background: transparent; border: 1.5px solid #4A5560; border-radius: 10px;
@@ -1940,16 +1835,13 @@ button { font-family: inherit; cursor: pointer; }
 
 .cart-checkout-form { padding: 4px 20px 20px; display: flex; flex-direction: column; gap: 10px; }
 
-/* ================================================================
-   MY ORDERS page
-   ================================================================ */
 .my-orders-page { max-width: 1600px; margin: 0 auto; padding: clamp(20px, 2.6vw, 32px) clamp(16px, 2.5vw, 24px) 64px; }
 .my-orders-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: clamp(14px, 1.8vw, 24px); }
 .order-card {
   background: var(--surface); border: 1.5px solid var(--divider); border-radius: var(--radius-lg);
   padding: 18px 20px;
   display: flex; flex-direction: column;
-  height: 100%; /* cùng hàng grid sẽ cao bằng nhau (grid mặc định align-items: stretch) */
+  height: 100%; 
 }
 .order-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; color: var(--text); }
 .order-status-badge {
@@ -1984,7 +1876,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .order-card-total-row {
   display: flex; justify-content: space-between; align-items: center;
-  margin-top: auto; /* dồn Tổng cộng + nút thao tác xuống đáy card, dù danh sách sản phẩm ngắn hay dài */
+  margin-top: auto; 
   padding-top: 10px; border-top: 1px dashed var(--divider);
   font-size: 0.9rem;
 }
@@ -1997,22 +1889,12 @@ button { font-family: inherit; cursor: pointer; }
   .cart-drawer { max-width: 100%; }
 }
 
-/* ================================================================
-   ADMIN THEME — imported from Claude Design "Quản lý xuất nhập kho"
-   Scoped to `body.admin-theme` (toggled on <body> while
-   AdminDashboard is mounted, see AdminDashboard.jsx) instead of
-   .admin-shell so that portal-rendered panels (SearchableSelect's
-   dropdown, appended to document.body) still pick up the theme.
-   The storefront/auth pages never carry this class, so all shared
-   class names (.btn-primary, .search-input, .modal-overlay, ...)
-   keep their original vintage look outside the admin area.
-   ================================================================ */
 body.admin-theme {
   --primary: oklch(0.55 0.17 262);
   --primary-dark: oklch(0.48 0.17 262);
   --accent: oklch(0.55 0.17 262);
   --success: oklch(0.6 0.13 152);
-  /* Bản đậm hơn dành riêng cho chữ: 0.6 chỉ đạt 3.41:1 trên nền admin. */
+
   --success-text: oklch(0.5 0.13 152);
   --danger: oklch(0.55 0.19 24);
   --ink: oklch(0.22 0.015 255);
@@ -2039,7 +1921,6 @@ body.admin-theme {
 body.admin-theme input[type="checkbox"] { accent-color: var(--primary); }
 body.admin-theme .required { color: var(--danger); }
 
-/* ---- Header / sidebar ---- */
 body.admin-theme .admin-header {
   border-bottom: 1px solid oklch(1 0 0 / 0.08);
   box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.1);
@@ -2055,7 +1936,6 @@ body.admin-theme .sidebar-btn.active {
 }
 body.admin-theme .sidebar-group-body { border-left-color: var(--border); }
 
-/* ---- Buttons ---- */
 body.admin-theme .btn-primary,
 body.admin-theme .btn-ghost,
 body.admin-theme .btn-admin,
@@ -2080,7 +1960,6 @@ body.admin-theme .btn-danger-sm {
 body.admin-theme .btn-danger-sm:hover { background: oklch(0.55 0.19 24); color: white; }
 body.admin-theme .btn-danger { font-weight: 600; border-radius: 8px; }
 
-/* ---- Inputs / forms ---- */
 body.admin-theme .form-card { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.05); }
 body.admin-theme .form-field span { font-weight: 500; }
 body.admin-theme .form-field input,
@@ -2106,7 +1985,6 @@ body.admin-theme .multi-select-tag { background: oklch(0.94 0.03 262); color: va
 body.admin-theme .multi-select-tag.more { background: var(--bg); color: var(--text); }
 body.admin-theme .searchable-select-value { color: var(--ink); font-weight: 500; }
 
-/* ---- Tabs ---- */
 body.admin-theme .sub-tabs { background: transparent; border: none; border-bottom: 1px solid var(--border); border-radius: 0; gap: 4px; width: 100%; }
 body.admin-theme .sub-tab-btn {
   background: transparent; color: var(--text); border-radius: 0;
@@ -2121,7 +1999,6 @@ body.admin-theme .sub-tab-count {
 }
 body.admin-theme .sub-tab-btn.active .sub-tab-count { background: oklch(0.94 0.03 262); color: var(--primary); }
 
-/* ---- Tables ---- */
 body.admin-theme .admin-table-wrap { border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 1px 3px oklch(0.22 0.015 255 / 0.05); background: var(--surface); }
 body.admin-theme .admin-table thead { background: oklch(0.965 0.008 255); }
 body.admin-theme .admin-table th {
@@ -2144,7 +2021,6 @@ body.admin-theme .admin-table tbody tr:hover { background: oklch(0.975 0.005 255
 body.admin-theme .low-stock-row { background: oklch(0.55 0.19 24 / 0.07) !important; }
 body.admin-theme .editing-row { background: oklch(0.55 0.17 262 / 0.08) !important; }
 
-/* ---- Badges / pills ---- */
 body.admin-theme .count-badge { background: oklch(0.94 0.03 262); color: var(--primary); font-family: var(--font-body); }
 body.admin-theme .cat-tag { background: oklch(0.94 0.006 250); color: var(--text); font-family: var(--font-body); font-weight: 600; }
 body.admin-theme .badge-import,
@@ -2159,11 +2035,9 @@ body.admin-theme .badge-import::before { background: oklch(0.6 0.13 152); }
 body.admin-theme .badge-export { background: oklch(0.94 0.03 262); color: oklch(0.4 0.16 262); }
 body.admin-theme .badge-export::before { background: oklch(0.55 0.17 262); }
 
-/* ---- Pagination ---- */
 body.admin-theme .page-btn { border-radius: 7px; border-width: 1px; font-family: var(--font-body); }
 body.admin-theme .table-footer-size select { border-radius: 7px; border-width: 1px; font-family: var(--font-body); }
 
-/* ---- Modals ---- */
 body.admin-theme .modal-box,
 body.admin-theme .confirm-modal,
 body.admin-theme .invoice-modal,
@@ -2178,12 +2052,10 @@ body.admin-theme .invoice-modal-header .hzd { background: var(--primary); height
 body.admin-theme .modal-close, body.admin-theme .invoice-modal-close { border-radius: 8px; }
 body.admin-theme .modal-close:hover, body.admin-theme .invoice-modal-close:hover { background: var(--primary); }
 
-/* ---- Stats ---- */
 body.admin-theme .stats-grid { background: var(--border); border: 1px solid var(--border); }
 body.admin-theme .stat-box { border-top: 3px solid var(--primary); }
 body.admin-theme .stat-box.clickable:hover { background: oklch(0.965 0.008 255); box-shadow: inset 0 0 0 1.5px var(--primary); }
 
-/* ---- Toggle switch (cá nhân / doanh nghiệp) ---- */
 body.admin-theme .toggle-switch { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; user-select: none; }
 body.admin-theme .toggle-switch input { position: absolute; opacity: 0; width: 0; height: 0; }
 body.admin-theme .toggle-track { position: relative; width: 42px; height: 24px; border-radius: 999px; background: var(--border); transition: background 0.15s; flex-shrink: 0; }
@@ -2192,7 +2064,6 @@ body.admin-theme .toggle-switch input:checked + .toggle-track { background: var(
 body.admin-theme .toggle-switch input:checked + .toggle-track .toggle-thumb { transform: translateX(18px); }
 body.admin-theme .toggle-label { font-size: 0.9rem; font-weight: 600; color: var(--ink); }
 
-/* ---- Customer type badge ---- */
 body.admin-theme .customer-badge {
   display: inline-flex; align-items: center; gap: 5px; font-family: var(--font-body); font-weight: 600;
   padding: 3px 9px; border-radius: 10px; font-size: 0.75rem;
@@ -2203,7 +2074,6 @@ body.admin-theme .customer-badge.personal::before { background: oklch(0.6 0.01 2
 body.admin-theme .customer-badge.business { background: oklch(0.94 0.03 262); color: var(--primary); }
 body.admin-theme .customer-badge.business::before { background: oklch(0.55 0.17 262); }
 
-/* ---- Overflow (meatball) menu ---- */
 body.admin-theme .overflow-menu { position: relative; display: inline-flex; }
 body.admin-theme .overflow-menu-trigger {
   width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border);
@@ -2228,7 +2098,6 @@ body.admin-theme .overflow-menu-item:hover:not(:disabled) { background: var(--bg
 body.admin-theme .overflow-menu-item:disabled { opacity: 0.5; cursor: not-allowed; }
 body.admin-theme .overflow-menu-item-icon { font-size: 1rem; flex-shrink: 0; }
 
-/* ---- Product import preview ---- */
 body.admin-theme .import-preview-modal { max-width: 960px; width: 100%; }
 body.admin-theme .import-summary { display: flex; gap: 14px; align-items: center; font-size: 0.85rem; color: var(--text); flex-wrap: wrap; }
 body.admin-theme .import-status-badge {
@@ -2239,7 +2108,6 @@ body.admin-theme .import-status-badge.new { background: oklch(0.94 0.045 152); c
 body.admin-theme .import-status-badge.duplicate { background: oklch(0.95 0.05 80); color: oklch(0.45 0.12 70); }
 body.admin-theme .import-status-badge.invalid { background: oklch(0.55 0.19 24 / 0.12); color: oklch(0.5 0.18 24); }
 
-/* ---- Filter bar (search + date range) ---- */
 body.admin-theme .admin-filter-bar {
   display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
   background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
@@ -2254,7 +2122,6 @@ body.admin-theme .admin-filter-date input[type="date"], body.admin-theme .admin-
 }
 body.admin-theme .admin-filter-date input:focus { border-color: var(--primary); }
 
-/* ---- Advanced filter toggle & panel ---- */
 body.admin-theme .btn-advanced-toggle {
   display: inline-flex; align-items: center; gap: 6px;
   height: 38px; padding: 0 14px; border: 1px solid var(--border); border-radius: 8px;
@@ -2297,7 +2164,6 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
   height: 38px; padding: 0 10px; box-sizing: border-box;
 }
 
-/* ── Thanh độ mạnh mật khẩu ở màn đăng ký ────────────────────────────── */
 .pw-strength {
   display: flex;
   align-items: center;
@@ -2321,7 +2187,6 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
   text-align: right;
 }
 
-/* Nút tạm dừng banner — đặt cạnh bộ chấm chỉ số ở góc dưới bên phải. */
 .carousel-pause {
   position: absolute;
   right: 14px;
@@ -2344,7 +2209,6 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
 .carousel-pause:hover { background: rgba(15, 23, 42, 0.8); }
 .carousel-pause:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 
-/* ── Banner mất mạng + dải báo dữ liệu cũ ────────────────────────────── */
 .offline-banner {
   position: sticky;
   top: 0;
@@ -2369,14 +2233,12 @@ body.admin-theme .advanced-filter-panel .admin-filter-date input[type="month"] {
   font-weight: 500;
 }
 
-/* Thẻ sản phẩm giờ là <a>: bỏ gạch chân và màu link mặc định của trình duyệt. */
 a.product-card {
   text-decoration: none;
   color: inherit;
   display: block;
 }
 
-/* ── Nút xem thêm dưới lưới sản phẩm ─────────────────────────────────── */
 .product-load-more {
   display: flex;
   justify-content: center;
@@ -2388,7 +2250,6 @@ a.product-card {
   padding: 12px 24px;
 }
 
-/* ── Ranh giới lỗi & màn chờ khi tải chunk quản trị ───────────────────── */
 .error-boundary {
   min-height: 100vh;
   display: flex;
@@ -2436,29 +2297,12 @@ a.product-card {
   color: #64748b;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Vòng focus cho bàn phím.
-
-   Nhiều ô nhập trong App.css đặt `outline: none` để tự vẽ viền khi focus. Cách
-   đó đẹp với chuột nhưng người dùng bàn phím (và cả người dùng máy đọc màn
-   hình) mất dấu vị trí đang đứng ở những thành phần chưa kịp có style riêng.
-   `:focus-visible` chỉ hiện khi thao tác bằng bàn phím nên không làm phiền
-   người bấm chuột — đặt ở đây một lần cho toàn bộ ứng dụng.
-   ───────────────────────────────────────────────────────────────────────── */
 :where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 4px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Tôn trọng "giảm chuyển động" của hệ điều hành.
-
-   Người bị rối loạn tiền đình có thể chóng mặt vì hiệu ứng trượt/phóng. Khi họ
-   bật tuỳ chọn này trong Windows/iOS/Android, mọi animation rút còn gần như
-   tức thời thay vì biến mất hẳn — giữ lại 0.01ms để các đoạn code chờ sự kiện
-   `transitionend`/`animationend` vẫn chạy tiếp, không bị treo giữa chừng.
-   ───────────────────────────────────────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -2470,28 +2314,15 @@ a.product-card {
   }
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Icon SVG (src/components/common/Icon.jsx).
-
-   `vertical-align` kéo icon xuống cho tâm của nó trùng tâm chữ thường bên
-   cạnh — mặc định `baseline` sẽ đặt đáy icon ngang đáy chữ, trông như icon
-   đang trôi lên trên. `flex-shrink: 0` giữ icon không bị bóp méo khi nhãn dài
-   trong nút flex.
-   ───────────────────────────────────────────────────────────────────────── */
 .icon {
   flex-shrink: 0;
   vertical-align: -0.18em;
 }
 
-/* Icon đứng một mình (ô ảnh trống, nút chỉ có icon, ô đặc trưng ở trang chủ)
-   thì không có chữ nào để căn theo. Giữ nguyên -0.18em ở cỡ 48px sẽ đẩy icon
-   lệch xuống ~4px so với tâm ô; `middle` canh đúng giữa. */
 .icon:only-child {
   vertical-align: middle;
 }
 
-/* Nhãn nút sidebar: icon và chữ nằm trên một hàng, còn badge số đơn chờ vẫn
-   được đẩy sang phải nhờ `justify-content: space-between` sẵn có của .sidebar-btn. */
 .sidebar-btn-label {
   display: inline-flex;
   align-items: center;
@@ -2499,25 +2330,12 @@ a.product-card {
   min-width: 0;
 }
 
-/* Nút có cả icon lẫn chữ: dùng flex để khoảng cách đều nhau thay vì phụ thuộc
-   vào dấu cách trong JSX. */
 .btn-icon-text {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
 
-/* ─────────────────────────────────────────────────────────────────────────
-   Vùng chạm tối thiểu trên thiết bị cảm ứng.
-
-   `pointer: coarse` chỉ đúng với ngón tay — chuột trên máy bàn vẫn giữ nguyên
-   mật độ cũ, nên không phải đánh đổi giao diện desktop để lấy cái này.
-
-   Ba nút dưới đây là đường đi chính của khách mua hàng (mở menu, lọc danh mục,
-   thêm vào giỏ) mà đo được chỉ 32-40px chiều cao. Khách của cửa hàng VLXD hay
-   thao tác ngoài công trường, tay bụi và màn hình nghiêng — hụt vài pixel là
-   bấm trượt sang thẻ sản phẩm bên cạnh.
-   ───────────────────────────────────────────────────────────────────────── */
 @media (pointer: coarse) {
   .hamburger {
     min-width: 44px;
@@ -2531,9 +2349,6 @@ a.product-card {
     min-height: 44px;
   }
 
-  /* Link chân trang xếp dọc, cao 23px và cách nhau 8px — đủ gần để bấm nhầm
-     sang link bên dưới. Cho mỗi link chiếm trọn 44px thay vì nới khoảng cách,
-     vì nới ra thì chân trang dài thêm mà vẫn còn kẽ hở chết giữa hai link. */
   .footer-links a {
     display: flex;
     align-items: center;

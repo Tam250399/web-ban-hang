@@ -10,7 +10,6 @@ import {
   validateEmail, validatePhoneNumber, getPasswordStrength, PASSWORD_MIN_LENGTH,
 } from '../utils/validation'
 
-// ── Thanh độ mạnh mật khẩu ──
 function PasswordStrengthBar({ password }) {
   const strength = getPasswordStrength(password)
   if (!password) return null
@@ -42,8 +41,6 @@ function Register() {
   })
   const [message, setMessage] = useState({ type: '', text: '' })
   const [submitting, setSubmitting] = useState(false)
-  // Chỉ hiện lỗi của ô người dùng đã rời khỏi hoặc sau khi bấm gửi một lần —
-  // bật lỗi ngay từ ký tự đầu tiên thì ô nào cũng đỏ trong lúc còn đang gõ dở.
   const [touched, setTouched] = useState({})
 
   const handleChange = (event) => {
@@ -75,7 +72,6 @@ function Register() {
 
   const handleSubmit = async (event) => {
     event.preventDefault()
-    // Bấm gửi thì hiện hết lỗi đang có, kể cả ô chưa chạm tới.
     setTouched({
       username: true, password: true, confirmPassword: true,
       fullName: true, email: true, phoneNumber: true,
@@ -89,7 +85,6 @@ function Register() {
     setSubmitting(true)
 
     try {
-      // confirmPassword chỉ để đối chiếu ở client, backend không nhận field này.
       const payload = { ...form }
       delete payload.confirmPassword
       const data = await authService.register({

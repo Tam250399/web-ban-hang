@@ -42,10 +42,6 @@ export default function LoginScreen({ navigation }) {
   }
 
   const handleSubmit = async () => {
-    // Màn ĐĂNG NHẬP chỉ kiểm tra ô có trống hay không. Chính sách độ mạnh mật
-    // khẩu nằm ở màn đăng ký (src/utils/validation.js) — áp thêm ràng buộc độ
-    // dài ở đây sẽ khoá luôn những tài khoản tạo từ trước khi có chính sách,
-    // mà chẳng thêm chút an toàn nào vì mật khẩu vẫn do server đối chiếu.
     let uErr = ''
     let pErr = ''
     if (!username.trim()) uErr = 'Vui lòng nhập tên đăng nhập'
@@ -85,7 +81,6 @@ export default function LoginScreen({ navigation }) {
   return (
     <DarkAuthShell>
       <View style={styles.card}>
-        {/* ── Giao diện tinh gọn, không rườm rà ── */}
         <View style={styles.headerBlock}>
           <LinearGradient colors={['#EA580C', '#F97316']} style={styles.logoBadge}>
             <Icon name="store" size={24} color={brand.white} />

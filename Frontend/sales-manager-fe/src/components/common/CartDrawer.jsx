@@ -17,26 +17,14 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
     note: '',
   })
   const [submitting, setSubmitting] = useState(false)
-  // enabled: chỉ khoá cuộn nền và bẫy tiêu điểm khi giỏ hàng thực sự đang mở.
   const dialogRef = useModalA11y({ onClose, enabled: open })
 
-  // Điền sẵn thông tin người nhận mỗi lần MỞ giỏ hàng.
-  //
-  // Trước đây giá trị này nằm ở hàm khởi tạo của useState nên chỉ chạy đúng một
-  // lần lúc component mount — mà lúc đó khách còn chưa đăng nhập (CartDrawer
-  // luôn được render trong TrangChu, chỉ ẩn/hiện bằng prop `open`). Kết quả:
-  // đăng nhập xong mở giỏ hàng vẫn thấy ô tên và số điện thoại trống trơn.
-  //
-  // Điều chỉnh ngay trong lúc render theo đúng pattern React khuyến nghị cho
-  // "state cần đổi khi prop đổi" — làm bằng useEffect sẽ tốn thêm một lượt
-  // render hiển thị form trống rồi mới điền.
   const [prevOpen, setPrevOpen] = useState(open)
   if (open !== prevOpen) {
     setPrevOpen(open)
     if (open) {
       setForm((prev) => ({
         ...prev,
-        // Chỉ điền khi ô đang trống, không đè lên thứ khách vừa tự sửa.
         recipientName: prev.recipientName || user?.fullName || user?.username || '',
         phoneNumber: prev.phoneNumber || user?.phoneNumber || '',
       }))
@@ -52,8 +40,6 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
     if (items.length === 0) { toast.error('Giỏ hàng trống.'); return }
     if (!form.recipientName.trim()) { toast.error('Vui lòng nhập tên người nhận.'); return }
     if (!form.phoneNumber.trim()) { toast.error('Vui lòng nhập số điện thoại.'); return }
-    // Giỏ hàng đã lưu trên máy nên không mất gì — khách đặt lại được ngay khi
-    // có mạng, miễn là biết rõ vì sao chưa gửi được.
     if (!requireOnline('Đặt hàng')) return
 
     setSubmitting(true)
@@ -76,8 +62,6 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: giỏ hàng/form đặt hàng dễ bị tắt nhầm khi
-    // đang nhập liệu, chỉ đóng qua nút ✕ hoặc sau khi đặt hàng thành công.
     <div className="modal-overlay">
       <div
         className="cart-drawer"

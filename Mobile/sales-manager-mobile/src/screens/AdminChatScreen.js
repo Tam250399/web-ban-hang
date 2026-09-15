@@ -28,7 +28,6 @@ function getAvatarColor(name) {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
-// ─── Avatar component ──────────────────────────────────────────────
 function Avatar({ name, size = 40, online = false }) {
   const color = getAvatarColor(name)
   const letter = (name || '?')[0].toUpperCase()
@@ -59,9 +58,6 @@ function shiftColor(hex, amount) {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
-// ─── Message bubble ────────────────────────────────────────────────
-// Tách riêng + memo: mỗi ký tự gõ vào ô nhập tin làm cả màn render lại, trước
-// đây kéo theo toàn bộ bong bóng (kể cả loại có ảnh) dựng lại cùng.
 const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const imgUrl = message.imageUrl ? resolveMediaUrl(message.imageUrl) : null
   return (
@@ -99,7 +95,6 @@ const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }
   )
 })
 
-// ─── Date separator ────────────────────────────────────────────────
 function DateSeparator({ date }) {
   return (
     <View style={s.dateSepRow}>
@@ -112,7 +107,6 @@ function DateSeparator({ date }) {
   )
 }
 
-// ─── Pending image preview ─────────────────────────────────────────
 function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
@@ -130,9 +124,6 @@ function PendingImageBar({ image, onRemove }) {
   )
 }
 
-// ────────────────────────────────────────────────────────────────────
-// Chat với khách hàng dành cho Admin — tương ứng ChatManager.jsx bên web.
-// ────────────────────────────────────────────────────────────────────
 export default function AdminChatScreen({ route }) {
   const [conversations, setConversations] = useState([])
   const [loadingList, setLoadingList] = useState(true)
@@ -142,14 +133,13 @@ export default function AdminChatScreen({ route }) {
   const [messages, setMessages] = useState([])
   const [loadingMsgs, setLoadingMsgs] = useState(false)
   const [input, setInput] = useState('')
-  const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
+  const [pendingImage, setPendingImage] = useState(null)
   const [reconnecting, setReconnecting] = useState(false)
   const requireOnline = useRequireOnline()
   const activeIdRef = useRef(null)
   const flatListRef = useRef(null)
   useEffect(() => { activeIdRef.current = activeId }, [activeId])
 
-  // ── Load conversations ──
   const loadConversations = useCallback(() => {
     chatService.getConversations()
       .then(setConversations)
@@ -165,8 +155,6 @@ export default function AdminChatScreen({ route }) {
       const isActive = msg.conversationId === activeIdRef.current
       if (isActive) {
         setMessages((prev) => {
-          // Tin do chính admin vừa gửi được server phát lại — thay bản tạm bằng
-          // bản thật thay vì hiện thành hai dòng trùng nhau.
           if (msg.fromAdmin) {
             const idx = prev.findIndex(
               (m) => m.pending && m.content === (msg.content ?? null) && m.imageUrl === (msg.imageUrl ?? null)
@@ -180,14 +168,9 @@ export default function AdminChatScreen({ route }) {
           return [...prev, msg]
         })
       }
-      // Trước đây mỗi tin nhắn đến đều gọi lại loadConversations() — một lượt
-      // chat sôi nổi là bằng đó request tải lại toàn bộ danh sách. Bản thân tin
-      // nhắn đã đủ dữ liệu để cập nhật tại chỗ dòng hội thoại tương ứng.
       setConversations((prev) => {
         const index = prev.findIndex((c) => c.id === msg.conversationId)
         if (index === -1) {
-          // Hội thoại chưa có trong danh sách (khách mới nhắn lần đầu) — lúc này
-          // mới cần hỏi lại server để lấy đủ thông tin khách hàng.
           loadConversations()
           return prev
         }
@@ -198,7 +181,6 @@ export default function AdminChatScreen({ route }) {
           lastMessageAt: msg.sentAt,
           unreadCount: isActive || msg.fromAdmin ? current.unreadCount : (current.unreadCount || 0) + 1,
         }
-        // Đưa hội thoại vừa có tin mới lên đầu danh sách.
         return [updated, ...prev.slice(0, index), ...prev.slice(index + 1)]
       })
     }
@@ -207,9 +189,6 @@ export default function AdminChatScreen({ route }) {
     let wasDisconnected = false
     const unsubscribeState = chatService.onConnectionChange((connected) => {
       setReconnecting(!connected)
-      // Trong lúc mất kết nối có thể đã lỡ tin nhắn nên phải đồng bộ lại — nhưng
-      // chỉ khi thực sự vừa rớt rồi nối lại, không phải lần kết nối đầu tiên
-      // (loadConversations() ở trên đã chạy rồi).
       if (connected && wasDisconnected) loadConversations()
       wasDisconnected = !connected
     })
@@ -233,27 +212,22 @@ export default function AdminChatScreen({ route }) {
       setMessages(data)
       await chatService.joinConversation(id)
     } catch {
-      // noop
     }
     setLoadingMsgs(false)
   }
 
-  // ── Auto scroll khi có tin nhắn mới ──
   useEffect(() => {
     if (messages.length > 0 && flatListRef.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd?.({ animated: true }), 100)
     }
   }, [messages])
 
-  // Tự động mở cuộc hội thoại nếu nhận param conversationId từ thông báo
   useEffect(() => {
     if (route?.params?.conversationId) {
       openConversation(route.params.conversationId)
     }
   }, [route?.params?.conversationId])
 
-  // Optimistic: bong bóng hiện ngay khi bấm gửi, không phải chờ trọn một vòng
-  // WebSocket mới thấy tin của chính mình.
   const deliver = useCallback(async (conversationId, tempId, content, imageUrl) => {
     try {
       await chatService.replyToConversation(conversationId, content, imageUrl)
@@ -285,15 +259,12 @@ export default function AdminChatScreen({ route }) {
     setPendingImage(null)
   }, [activeId])
 
-  // ── Cử chỉ vuốt trong màn nhắn tin: vuốt sang phải -> quay lại danh sách, vuốt sang trái -> bị chặn ──
   const threadPanResponder = useRef(
     PanResponder.create({
       onMoveShouldSetPanResponder: (_, gestureState) => {
-        // Chỉ bắt khi vuốt ngang rõ rệt: dx > 15 và lớn hơn chuyển động dọc
         return gestureState.dx > 15 && gestureState.dx > Math.abs(gestureState.dy) * 1.3
       },
       onPanResponderRelease: (_, gestureState) => {
-        // Vuốt sang phải từ 45px trở lên -> đóng hội thoại quay về danh sách
         if (gestureState.dx > 45) {
           closeConversation()
         }
@@ -301,7 +272,6 @@ export default function AdminChatScreen({ route }) {
     })
   ).current
 
-  // ── Gửi tin nhắn ──
   const handleSend = () => {
     const text = input.trim()
     const img = pendingImage
@@ -327,7 +297,6 @@ export default function AdminChatScreen({ route }) {
     deliver(activeId, tempId, content, imageUrl)
   }
 
-  // ── Chọn ảnh ──
   const handlePickImage = async () => {
     if (!activeId) return
     try {
@@ -346,7 +315,6 @@ export default function AdminChatScreen({ route }) {
         setPendingImage((prev) => prev?.uri === asset.uri ? null : prev)
       }
     } catch {
-      // permission denied or other error
     }
   }
 
@@ -355,13 +323,9 @@ export default function AdminChatScreen({ route }) {
   const active = conversations.find((c) => c.id === activeId)
   const filtered = conversations.filter((c) => c.customerName?.toLowerCase().includes(debouncedSearch.trim().toLowerCase()))
 
-  // ════════════════════════════════════════════════════════════════════
-  //  THREAD VIEW (đang mở hội thoại)
-  // ════════════════════════════════════════════════════════════════════
   if (activeId) {
     return (
       <SafeAreaView style={s.root} edges={['top']} {...threadPanResponder.panHandlers}>
-        {/* ── Header ── */}
         <View style={s.threadHeader}>
           <TouchableOpacity onPress={closeConversation} style={s.backBtn} activeOpacity={0.6} hitSlop={8} accessibilityLabel="Quay lại">
             <Text style={s.backIcon}>‹</Text>
@@ -380,10 +344,6 @@ export default function AdminChatScreen({ route }) {
           </View>
         )}
 
-        {/* Màn này nằm trong Tab Navigator dạng PagerView (material-top-tabs) —
-            windowSoftInputMode=adjustResize của Android không tự resize được bên
-            trong PagerView như với màn hình Stack thường, nên phải tự đẩy layout
-            lên bằng behavior="height" thay vì để trống. */}
         <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
           {loadingMsgs ? (
             <View style={s.loaderWrap}>
@@ -413,10 +373,8 @@ export default function AdminChatScreen({ route }) {
             />
           )}
 
-          {/* ── Pending image preview ── */}
           <PendingImageBar image={pendingImage} onRemove={removePendingImage} />
 
-          {/* ── Input bar ── */}
           <View style={s.inputRow}>
             <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.6} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
               <Icon name="paperclip" size={18} color={admin.textMuted} />
@@ -454,12 +412,8 @@ export default function AdminChatScreen({ route }) {
     )
   }
 
-  // ════════════════════════════════════════════════════════════════════
-  //  CONVERSATION LIST VIEW
-  // ════════════════════════════════════════════════════════════════════
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      {/* ── Page header ── */}
       <View style={s.listHeader}>
         <Text style={s.heading}>Chat</Text>
         <Text style={s.headingSub}>Hỗ trợ khách hàng</Text>
@@ -472,7 +426,6 @@ export default function AdminChatScreen({ route }) {
         </View>
       )}
 
-      {/* ── Search bar ── */}
       <View style={s.searchWrap}>
         <View style={s.searchIcon}>
           <Icon name="search" size={15} color={admin.textMuted} />
@@ -537,9 +490,6 @@ export default function AdminChatScreen({ route }) {
   )
 }
 
-// ════════════════════════════════════════════════════════════════════
-//  STYLES
-// ════════════════════════════════════════════════════════════════════
 const BUBBLE_MAX = SCREEN_W * 0.72
 
 const s = StyleSheet.create({
@@ -552,7 +502,6 @@ const s = StyleSheet.create({
   },
   reconnectBannerText: { fontFamily: fonts.adminBodySemiBold, fontSize: 13, color: '#B45309' },
 
-  // ── LIST HEADER ──
   listHeader: {
     paddingHorizontal: 20, paddingTop: 18, paddingBottom: 4,
   },
@@ -563,7 +512,6 @@ const s = StyleSheet.create({
     fontFamily: fonts.adminBody, fontSize: 13.5, color: admin.textMuted, marginTop: 2,
   },
 
-  // ── SEARCH ──
   searchWrap: {
     flexDirection: 'row', alignItems: 'center',
     marginHorizontal: 16, marginTop: 12, marginBottom: 6,
@@ -578,7 +526,6 @@ const s = StyleSheet.create({
     paddingVertical: Platform.OS === 'ios' ? 0 : 9,
   },
 
-  // ── CONVERSATION LIST ──
   list: { paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 },
   convRow: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -600,12 +547,10 @@ const s = StyleSheet.create({
   },
   unreadBadgeText: { color: '#fff', fontFamily: fonts.adminBodyBold, fontSize: 12 },
 
-  // ── EMPTY LIST ──
   emptyWrap: { alignItems: 'center', marginTop: 60 },
   emptyIcon: { marginBottom: 12 },
   emptyText: { fontFamily: fonts.adminBody, fontSize: 15, color: admin.textMuted },
 
-  // ── AVATAR ──
   avatarGradient: { alignItems: 'center', justifyContent: 'center' },
   avatarText: { color: '#fff', fontFamily: fonts.adminDisplayBold },
   onlineDot: {
@@ -613,7 +558,6 @@ const s = StyleSheet.create({
     borderWidth: 2, borderColor: '#fff',
   },
 
-  // ── THREAD HEADER ──
   threadHeader: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 12, paddingVertical: 10,
@@ -627,7 +571,6 @@ const s = StyleSheet.create({
   threadHeaderName: { fontFamily: fonts.adminBodySemiBold, fontSize: 16, color: admin.text },
   onlineLabel: { fontFamily: fonts.adminBody, fontSize: 12.5, color: '#22c55e', marginTop: 1 },
 
-  // ── MESSAGES ──
   messageList: { paddingHorizontal: 12, paddingVertical: 12 },
   bubbleRow: { flexDirection: 'row', marginBottom: 6 },
   bubbleRowMe: { justifyContent: 'flex-end' },
@@ -656,7 +599,6 @@ const s = StyleSheet.create({
   bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.adminBody, fontSize: 12, marginTop: 4, textAlign: 'right' },
   bubbleTimeThem: { color: admin.textMuted, fontFamily: fonts.adminBody, fontSize: 12, marginTop: 4, textAlign: 'right' },
 
-  // ── Date separator ──
   dateSepRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, paddingHorizontal: 8 },
   dateSepLine: { flex: 1, height: 1, backgroundColor: '#dde1e6' },
   dateSepPill: {
@@ -664,16 +606,13 @@ const s = StyleSheet.create({
   },
   dateSepText: { fontFamily: fonts.adminBody, fontSize: 12.5, color: admin.textMuted },
 
-  // ── Empty messages ──
   emptyMsgWrap: { alignItems: 'center', marginTop: 60 },
   emptyMsgIcon: { marginBottom: 10 },
   emptyMsgText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted },
 
-  // ── Loading ──
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: 40 },
   loaderText: { fontFamily: fonts.adminBody, fontSize: 14, color: admin.textMuted, marginTop: 12 },
 
-  // ── Pending image bar ──
   pendingBar: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8,
     borderTopWidth: 1, borderTopColor: '#e5e7eb', backgroundColor: '#fafbfc',
@@ -689,7 +628,6 @@ const s = StyleSheet.create({
   },
   pendingRemoveText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
-  // ── INPUT ROW ──
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,
     paddingHorizontal: 10, paddingVertical: 8,

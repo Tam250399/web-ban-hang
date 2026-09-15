@@ -17,9 +17,6 @@ namespace SalesManagerBE.Services
         private const double MinRowHeight = 21;
         private const double MaxColumnBWidth = 45;
 
-        // Template cố định độ rộng cột B và chiều cao dòng (21pt/1 dòng) nên tên vật
-        // liệu dài sẽ wrap 2-3 dòng và tràn đè lên dòng kế tiếp. Nới cột B theo tên
-        // dài nhất trong trang rồi giãn chiều cao từng dòng theo đúng nội dung của nó.
         private static void AutoFitItemRows(IXLWorksheet ws, int firstRow, int lastRow)
         {
             if (lastRow < firstRow) return;
@@ -110,7 +107,7 @@ namespace SalesManagerBE.Services
 
             foreach (var group in customerGroups)
             {
-                // Mỗi phiếu (SalesInvoice) = 1 khối ngày; phiếu >20 dòng thì chẻ thành nhiều khối con
+
                 var blocks = new List<DateBlock>();
                 foreach (var inv in group.OrderBy(i => i.InvoiceDate))
                 {
@@ -124,7 +121,6 @@ namespace SalesManagerBE.Services
                         blocks.Add(new DateBlock { Date = inv.InvoiceDate, Items = items.Skip(i).Take(ItemsPerPage).ToList() });
                 }
 
-                // Dồn khối vào trang, không chẻ đôi 1 khối giữa 2 trang
                 var pages = new List<List<DateBlock>>();
                 var currentPage = new List<DateBlock>();
                 int currentCount = 0;

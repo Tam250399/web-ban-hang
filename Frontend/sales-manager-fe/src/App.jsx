@@ -17,13 +17,8 @@ import { CartProvider } from './context/CartContext'
 import { useAuth } from './context/auth-context'
 import { DEFAULT_ADMIN_TAB, PATHS } from './routes/paths'
 
-// Khu quản trị gồm 9 panel và là phần nặng nhất của bundle, nhưng chỉ Admin mới
-// mở tới. Tách chunk riêng để khách vãng lai vào xem giá không phải tải kèm.
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'))
 
-// ChatWidget trả về null với mọi vai trò không phải Customer, nhưng nó kéo theo
-// @microsoft/signalr — thư viện nặng nhất dự án. Tải động để khách vãng lai
-// (phần lớn lượt truy cập) không phải nhận về thứ họ không dùng.
 const ChatWidget = lazy(() => import('./components/common/ChatWidget'))
 
 function RouteLoading({ label }) {
@@ -35,9 +30,6 @@ function RouteLoading({ label }) {
   )
 }
 
-// ChatWidget nằm ngoài <Routes> để không bị unmount mỗi lần đổi trang — cuộc
-// trò chuyện đang mở phải sống xuyên suốt phiên, không phải tải lại tin nhắn
-// mỗi lần khách bấm sang trang khác.
 function FloatingChat() {
   const { user } = useAuth()
   if (user?.role !== 'Customer') return null
@@ -51,9 +43,6 @@ function FloatingChat() {
 function AppRoutes() {
   return (
     <Routes>
-      {/* Chi tiết sản phẩm là route CON của trang chủ: TrangChu không bị
-          unmount nên giữ nguyên danh sách đã tải và vị trí cuộn, còn URL thì
-          chia sẻ được cho khách. */}
       <Route path={PATHS.home} element={<TrangChu />}>
         <Route index element={<HomeMeta />} />
         <Route path="san-pham/:productId" element={<ProductDetailRoute />} />
@@ -81,7 +70,6 @@ function AppRoutes() {
         />
       </Route>
 
-      {/* Đường dẫn lạ (gõ sai, link cũ) đưa về trang chủ thay vì để trang trắng. */}
       <Route path="*" element={<Navigate to={PATHS.home} replace />} />
     </Routes>
   )
@@ -90,7 +78,6 @@ function AppRoutes() {
 function App() {
   return (
     <BrowserRouter>
-      {/* Toaster ngoài ErrorBoundary để toast vẫn hiện được khi cây bên trong đã hỏng. */}
       <Toaster
         position="top-right"
         toastOptions={{

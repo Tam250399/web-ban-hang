@@ -13,7 +13,6 @@ import { fonts } from '../theme/fonts'
 import { formatVnd } from '../utils/format'
 import { Icon, ICON_ROW } from '../components/ui/Icon'
 
-// Component điều khiển số lượng: có nút − / + và ô TextInput nhập số trực tiếp
 function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {
   const [localText, setLocalText] = useState(String(quantity))
 
@@ -128,8 +127,6 @@ export default function CartScreen() {
       Toast.show({ type: 'error', text1: 'Vui lòng nhập số điện thoại' })
       return
     }
-    // Giỏ hàng đã lưu trên máy nên không mất gì — người dùng đặt lại được ngay
-    // khi có sóng, miễn là biết rõ vì sao chưa gửi được.
     if (!requireOnline('Đặt hàng')) return
     setSubmitting(true)
     try {
@@ -206,7 +203,6 @@ export default function CartScreen() {
 
             <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ScrollView contentContainerStyle={styles.modalBody} keyboardShouldPersistTaps="handled">
-              {/* ── Danh sách sản phẩm trong đơn (có thể điền số lượng trực tiếp) ── */}
               <View style={styles.orderSummarySection}>
                 <View style={ICON_ROW}>
                   <Icon name="box" size={16} color={brand.text} />
@@ -228,7 +224,6 @@ export default function CartScreen() {
                 ))}
               </View>
 
-              {/* ── Thông tin người nhận & giao hàng ── */}
               <View style={[ICON_ROW, { marginTop: 6 }]}>
                 <Icon name="pin" size={16} color={brand.text} />
                 <Text style={styles.sectionTitle}>Thông tin giao hàng</Text>
@@ -296,7 +291,6 @@ const styles = StyleSheet.create({
   name: { fontFamily: fonts.bodyBold, fontSize: 15, color: '#0F172A' },
   unitPrice: { fontFamily: fonts.monoBold, fontSize: 13, color: brand.primary, marginTop: 2 },
   
-  // ── Qty controls ──
   qtyControls: {
     flexDirection: 'row', alignItems: 'center', backgroundColor: '#F1F5F9',
     borderRadius: 9, borderWidth: 1, borderColor: '#E2E8F0', padding: 2,

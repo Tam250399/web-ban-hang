@@ -9,7 +9,7 @@ using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Hubs
 {
-    // Chat hỗ trợ: mọi Customer nhắn về Admin, chỉ Admin đọc được tin của Customer.
+
     [Authorize]
     public class ChatHub : Hub
     {
@@ -54,8 +54,6 @@ namespace SalesManagerBE.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
-        // Khách hàng gửi tin nhắn về shop (conversation của chính họ). Có thể kèm ảnh
-        // (imageUrl từ /api/upload/image), content có thể rỗng nếu chỉ gửi ảnh.
         public async Task SendMessage(string content, string? imageUrl = null)
         {
             if (IsAdmin) return;
@@ -68,7 +66,6 @@ namespace SalesManagerBE.Hubs
             await Clients.Group(AdminsGroup).SendAsync("ConversationUpdated", await ToConversationDtoAsync(conversation.Id));
         }
 
-        // Admin trả lời một hội thoại cụ thể, có thể kèm ảnh.
         public async Task ReplyToConversation(int conversationId, string content, string? imageUrl = null)
         {
             if (!IsAdmin) return;
@@ -83,7 +80,6 @@ namespace SalesManagerBE.Hubs
             await Clients.Group(AdminsGroup).SendAsync("ConversationUpdated", await ToConversationDtoAsync(conversation.Id));
         }
 
-        // Admin mở xem một hội thoại để nhận tin realtime + đánh dấu đã đọc.
         public async Task JoinConversation(int conversationId)
         {
             if (!IsAdmin) return;
@@ -97,7 +93,6 @@ namespace SalesManagerBE.Hubs
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, ConvGroup(conversationId));
         }
 
-        // Khách hàng đánh dấu đã đọc các tin của admin trong hội thoại của mình.
         public async Task MarkRead()
         {
             if (IsAdmin) return;

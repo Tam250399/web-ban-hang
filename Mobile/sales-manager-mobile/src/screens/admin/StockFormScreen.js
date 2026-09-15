@@ -18,7 +18,6 @@ import { fonts } from '../../theme/fonts'
 import { formatVnd, isSameDay, formatDDMMYYYY, formatYYYYMMDD, WEEKDAYS } from '../../utils/format'
 import { ICON_ROW, Icon } from '../../components/ui/Icon'
 
-// ── Bảng màu riêng cho màn hình này: tương phản cao, dễ nhìn với người lớn tuổi ──
 const C = {
   bg: '#F1F5F9',
   card: '#FFFFFF',
@@ -37,7 +36,6 @@ const C = {
 
 const STEP_LABELS = ['Khách hàng', 'Hàng hóa', 'Kiểm tra']
 
-// Nhãn ngày thân thiện: "Hôm nay", "Hôm qua" hoặc thứ trong tuần.
 function dayLabel(date) {
   const today = new Date()
   const yesterday = new Date()
@@ -60,16 +58,16 @@ export default function StockFormScreen({ navigation, route }) {
   const [customers, setCustomers] = useState([])
   const [products, setProducts] = useState([])
 
-  const [step, setStep] = useState(0)               // 0: khách hàng · 1: hàng hóa · 2: kiểm tra
+  const [step, setStep] = useState(0)
   const [customerId, setCustomerId] = useState('')
   const [customerName, setCustomerName] = useState('')
   const [invoiceDate, setInvoiceDate] = useState(new Date())
-  const [items, setItems] = useState([])            // { key, productId, quantity, unitPrice }
+  const [items, setItems] = useState([])
 
   const [showDatePicker, setShowDatePicker] = useState(false)
-  const [picker, setPicker] = useState(null)        // 'customer' | 'product' | null
+  const [picker, setPicker] = useState(null)
   const [stepError, setStepError] = useState('')
-  const [rowErrors, setRowErrors] = useState({})    // { [key]: { quantity, unitPrice } }
+  const [rowErrors, setRowErrors] = useState({})
   const [dirty, setDirty] = useState(false)
 
   useEffect(() => {
@@ -89,7 +87,6 @@ export default function StockFormScreen({ navigation, route }) {
             (invoice.items || []).map((it) => ({
               key: newKey(),
               productId: String(it.productId),
-              // Bỏ phần thập phân thừa (vd "5.00" -> "5") cho dễ đọc/dễ sửa.
               quantity: String(Number(it.quantity)),
               unitPrice: it.unitPrice,
             }))
@@ -108,7 +105,6 @@ export default function StockFormScreen({ navigation, route }) {
     [items]
   )
 
-  // ── Cập nhật dòng hàng ──
   const updateItem = (key, patch) => {
     setDirty(true)
     setItems((list) => list.map((it) => (it.key === key ? { ...it, ...patch } : it)))
@@ -178,7 +174,6 @@ export default function StockFormScreen({ navigation, route }) {
     }
   }
 
-  // ── Kiểm tra dữ liệu từng bước ──
   const checkStep = (index) => {
     if (index === 0) {
       if (!customerId) {
@@ -259,8 +254,6 @@ export default function StockFormScreen({ navigation, route }) {
   const handleSave = async () => {
     if (!checkStep(0)) { setStep(0); return }
     if (!checkStep(1)) { setStep(1); return }
-    // Chặn trước khi setSaving: nếu để request tự hết hạn thì nút kẹt ở "Đang
-    // lưu..." 15 giây rồi mới báo lỗi, dễ khiến người dùng bấm lưu nhiều lần.
     if (!requireOnline('Lưu phiếu bán hàng')) return
 
     setSaving(true)
@@ -292,7 +285,6 @@ export default function StockFormScreen({ navigation, route }) {
     }
   }
 
-  // ── Dữ liệu cho bộ chọn ──
   const customerOptions = customers.map((c) => ({
     value: String(c.id),
     label: c.fullName,
@@ -323,7 +315,6 @@ export default function StockFormScreen({ navigation, route }) {
   return (
     <SafeAreaProvider>
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-      {/* ══ Thanh trên cùng ══ */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backBtn}
@@ -349,7 +340,6 @@ export default function StockFormScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      {/* ══ Thanh 3 bước ══ */}
       <View style={styles.stepsBar}>
         {STEP_LABELS.map((label, index) => {
           const done = index < step
@@ -381,7 +371,6 @@ export default function StockFormScreen({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          {/* ── Băng thông báo lỗi bằng lời dễ hiểu ── */}
           {!!stepError && (
             <View style={styles.errorBanner}>
               <Icon name="alert" size={18} color={C.danger} />
@@ -389,7 +378,6 @@ export default function StockFormScreen({ navigation, route }) {
             </View>
           )}
 
-          {/* ══════════ BƯỚC 1: KHÁCH HÀNG & NGÀY ══════════ */}
           {step === 0 && (
             <>
               <Text style={styles.bigQuestion}>Bán cho ai?</Text>
@@ -455,7 +443,6 @@ export default function StockFormScreen({ navigation, route }) {
             </>
           )}
 
-          {/* ══════════ BƯỚC 2: HÀNG HÓA ══════════ */}
           {step === 1 && (
             <>
               <Text style={styles.bigQuestion}>Bán những hàng gì?</Text>
@@ -478,7 +465,6 @@ export default function StockFormScreen({ navigation, route }) {
                   const lineTotal = (Number(it.quantity) || 0) * (Number(it.unitPrice) || 0)
                   return (
                     <View key={it.key} style={[styles.itemCard, !!rowErr && styles.itemCardError]}>
-                      {/* Tên hàng */}
                       <View style={styles.itemHead}>
                         <View style={styles.itemIndex}>
                           <Text style={styles.itemIndexText}>{idx + 1}</Text>
@@ -496,7 +482,6 @@ export default function StockFormScreen({ navigation, route }) {
                         </View>
                       </View>
 
-                      {/* Số lượng: nút trừ / cộng cỡ lớn */}
                       <Text style={styles.fieldLabel}>Số lượng</Text>
                       <View style={styles.qtyRow}>
                         <TouchableOpacity
@@ -532,7 +517,6 @@ export default function StockFormScreen({ navigation, route }) {
                         </View>
                       )}
 
-                      {/* Đơn giá */}
                       <Text style={styles.fieldLabel}>Đơn giá bán</Text>
                       <MoneyField
                         value={it.unitPrice}
@@ -558,7 +542,6 @@ export default function StockFormScreen({ navigation, route }) {
                         </TouchableOpacity>
                       )}
 
-                      {/* Thành tiền + Bỏ hàng */}
                       <View style={styles.itemFooter}>
                         <Text style={styles.itemFooterLabel}>Thành tiền</Text>
                         <Text style={styles.itemFooterValue}>{formatVnd(lineTotal)}đ</Text>
@@ -574,7 +557,6 @@ export default function StockFormScreen({ navigation, route }) {
             </>
           )}
 
-          {/* ══════════ BƯỚC 3: KIỂM TRA & LƯU ══════════ */}
           {step === 2 && (
             <>
               <Text style={styles.bigQuestion}>Kiểm tra lại phiếu</Text>
@@ -637,7 +619,6 @@ export default function StockFormScreen({ navigation, route }) {
           )}
         </ScrollView>
 
-        {/* ══ Thanh dưới cùng: luôn hiện, nút to ══ */}
         <View style={styles.footer}>
           {step === 1 && items.length > 0 && (
             <View style={styles.footerTotalRow}>
@@ -667,7 +648,6 @@ export default function StockFormScreen({ navigation, route }) {
         </View>
       </KeyboardAvoidingView>
 
-      {/* ══ Bộ chọn khách hàng / sản phẩm ══ */}
       <BigPickerModal
         visible={picker === 'customer'}
         title="Chọn khách hàng"
@@ -699,7 +679,6 @@ export default function StockFormScreen({ navigation, route }) {
         emptyText="Không tìm thấy mặt hàng nào"
       />
 
-      {/* ══ Lịch chọn ngày ══ */}
       {Platform.OS === 'android' && showDatePicker && (
         <DateTimePicker value={invoiceDate} mode="date" display="default" onChange={handleDateChange} />
       )}
@@ -737,7 +716,6 @@ const styles = StyleSheet.create({
   loadingRoot: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: C.bg, gap: 14 },
   loadingText: { fontFamily: fonts.adminBodyMedium, fontSize: 18, color: C.textSoft },
 
-  // ── Header ──
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
     paddingHorizontal: 12, paddingVertical: 10,
@@ -757,7 +735,6 @@ const styles = StyleSheet.create({
   },
   closeBtnText: { fontSize: 18, color: C.danger, fontFamily: fonts.adminBodyBold },
 
-  // ── Thanh 3 bước ──
   stepsBar: {
     flexDirection: 'row', backgroundColor: C.card,
     paddingHorizontal: 8, paddingBottom: 10, gap: 4,
@@ -775,7 +752,6 @@ const styles = StyleSheet.create({
   stepLabel: { fontFamily: fonts.adminBodyMedium, fontSize: 13, color: C.textMuted },
   stepLabelActive: { fontFamily: fonts.adminBodyBold, color: C.text },
 
-  // ── Nội dung ──
   body: { flex: 1 },
   bodyContent: { padding: 14, paddingBottom: 24, gap: 12 },
   bigQuestion: { fontFamily: fonts.adminDisplayBold, fontSize: 19, color: C.text, marginTop: 2 },
@@ -791,7 +767,6 @@ const styles = StyleSheet.create({
   },
   errorBannerText: { flex: 1, fontFamily: fonts.adminBodyBold, fontSize: 15, color: '#991B1B', lineHeight: 20 },
 
-  // ── Ô chọn lớn (khách hàng) ──
   pickBox: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10,
     minHeight: 68, paddingHorizontal: 14, paddingVertical: 11,
@@ -811,7 +786,6 @@ const styles = StyleSheet.create({
     borderRadius: 9, overflow: 'hidden',
   },
 
-  // ── Ngày bán ──
   dateCard: {
     backgroundColor: C.card, borderWidth: 2, borderColor: C.border,
     borderRadius: 14, padding: 14, gap: 12,
@@ -828,7 +802,6 @@ const styles = StyleSheet.create({
   dateQuickText: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.textSoft },
   dateQuickTextOn: { color: C.primary },
 
-  // ── Nút thêm mặt hàng ──
   addBigBtn: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
     height: 52, borderRadius: 13, backgroundColor: C.primary,
@@ -844,7 +817,6 @@ const styles = StyleSheet.create({
   emptyTitle: { fontFamily: fonts.adminBodyBold, fontSize: 16.5, color: C.text },
   emptyHint: { fontFamily: fonts.adminBody, fontSize: 14.5, color: C.textMuted, textAlign: 'center', lineHeight: 19 },
 
-  // ── Thẻ mặt hàng ──
   itemCard: {
     backgroundColor: C.card, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0',
     padding: 13, gap: 7,
@@ -898,7 +870,6 @@ const styles = StyleSheet.create({
   },
   removeBtnText: { fontFamily: fonts.adminBodyBold, fontSize: 14.5, color: C.danger },
 
-  // ── Bước kiểm tra ──
   reviewCard: {
     backgroundColor: C.card, borderRadius: 14, borderWidth: 2, borderColor: '#E2E8F0',
     padding: 14, gap: 5,
@@ -925,7 +896,6 @@ const styles = StyleSheet.create({
   totalCardLabel: { fontFamily: fonts.adminBodyBold, fontSize: 14, color: '#CBD5E1', letterSpacing: 0.8 },
   totalCardValue: { fontFamily: fonts.adminDisplayBold, fontSize: 30, color: '#FBBF24' },
 
-  // ── Thanh dưới ──
   footer: {
     backgroundColor: C.card, borderTopWidth: 1, borderTopColor: '#E2E8F0',
     paddingHorizontal: 14, paddingTop: 10, paddingBottom: 10, gap: 8,
@@ -953,7 +923,6 @@ const styles = StyleSheet.create({
   nextBigText: { fontFamily: fonts.adminBodyBold, fontSize: 17, color: '#FFFFFF', letterSpacing: 0.4 },
   btnDisabled: { opacity: 0.6 },
 
-  // ── Lịch iOS ──
   iosOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   iosSheet: { backgroundColor: '#FFFFFF', borderTopLeftRadius: 20, borderTopRightRadius: 20, paddingBottom: 24 },
   iosSheetHead: {

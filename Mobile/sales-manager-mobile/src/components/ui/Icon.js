@@ -1,23 +1,6 @@
 import Svg, { Path } from 'react-native-svg'
 import { brand } from '../../theme/colors'
 
-// ─────────────────────────────────────────────────────────────────────────
-// Bộ biểu tượng dùng chung của app.
-//
-// Các đường vẽ ở đây GIỐNG HỆT bản web (Frontend/sales-manager-fe/src/
-// components/common/Icon.jsx) — cùng lưới 24x24, cùng nét 2px. Khách dùng cả
-// web lẫn app thì thấy đúng một ngôn ngữ hình, và sửa một icon là biết phải
-// sửa ở hai chỗ nào.
-//
-// Trước đây phần lớn icon trong app là emoji. Emoji tự tô màu nên không đổi
-// theo màu chữ khi nút đổi trạng thái, và mỗi phiên bản Android lại vẽ một
-// kiểu khác — thứ đáng ra là chi tiết thương hiệu thì lại do máy người dùng
-// quyết định.
-//
-// icons.js vẫn giữ các icon riêng của thanh tab (HomeIcon, CartIcon...) vì
-// chúng có kiểu vẽ khác, đầy đặn hơn cho vùng chạm lớn.
-// ─────────────────────────────────────────────────────────────────────────
-
 const PATHS = {
   edit:      'M4 20h4L18.5 9.5a2.1 2.1 0 0 0-3-3L5 17v3Z M13.5 6.5l4 4',
   trash:     'M4 7h16 M9 7V4h6v3 M6 7l1 13h10l1-13 M10 11v6 M14 11v6',
@@ -73,21 +56,10 @@ const PATHS = {
   inbox:     'M3 13h5l1.5 3h5l1.5-3h5 M3 13 5.5 5h13L21 13v7H3v-7Z',
 }
 
-// Icon đứng cạnh nhãn chữ thì phải nằm cùng một hàng. Dùng chung hằng số này
-// thay vì mỗi màn tự khai một style row riêng — và vì là hằng số ngoài render,
-// tham chiếu không đổi nên memo() của các thẻ vẫn khớp.
 export const ICON_ROW = { flexDirection: 'row', alignItems: 'center', gap: 7 }
 
-/**
- * @param name  tên icon trong PATHS
- * @param size  cạnh của ô vuông, mặc định 18
- * @param color mặc định theo màu chữ chính
- * @param label mô tả cho máy đọc màn hình. Bỏ trống = icon trang trí (đã có
- *              nhãn chữ bên cạnh hoặc nút cha đã có accessibilityLabel).
- */
 export function Icon({ name, size = 18, color = brand.text, label }) {
   const d = PATHS[name]
-  // Gõ sai tên thì không dựng khoảng trắng lơ lửng giữa nhãn — thà không vẽ gì.
   if (!d) return null
 
   return (

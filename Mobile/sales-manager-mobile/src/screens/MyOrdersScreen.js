@@ -42,8 +42,6 @@ export default function MyOrdersScreen() {
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
 
-  // Cache-then-network: đơn hàng đã xem vẫn tra cứu được khi ra công trình mất
-  // sóng, thay vì màn hình trắng như trước.
   const {
     data,
     loading,
@@ -71,8 +69,6 @@ export default function MyOrdersScreen() {
   const displayedOrders = filteredOrders.slice(0, visibleCount)
   const hasMore = displayedOrders.length < filteredOrders.length
 
-  // Dữ liệu đã nằm sẵn trong state, chỉ cắt thêm một lát mảng — không có gì để
-  // "chờ". setTimeout 200ms trước đây chỉ là độ trễ nhân tạo khi cuộn tới cuối.
   const handleEndReached = () => {
     if (!hasMore) return
     setVisibleCount((prev) => prev + PAGE_SIZE)
@@ -119,7 +115,6 @@ export default function MyOrdersScreen() {
     }
   }
 
-  // ── Guest view ──
   if (isGuest) {
     return (
       <SafeAreaView style={styles.root} edges={['top']}>
@@ -145,13 +140,11 @@ export default function MyOrdersScreen() {
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
-      {/* ── Header ── */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Đơn hàng của tôi</Text>
         <Text style={styles.headerSub}>Cửa Hàng VLXD Lý Sáu • {orders.length} đơn hàng</Text>
       </View>
 
-      {/* ── Filter row ── */}
       <View style={styles.filterBarWrap}>
         <ScrollView
           horizontal
@@ -177,7 +170,6 @@ export default function MyOrdersScreen() {
         </ScrollView>
       </View>
 
-      {/* ── Đang xem bản lưu trên máy ── */}
       {isStale && !loading && (
         <View style={styles.staleBar}>
           <Text style={styles.staleText}>
@@ -188,7 +180,6 @@ export default function MyOrdersScreen() {
         </View>
       )}
 
-      {/* ── Content ── */}
       {loading ? (
         <View style={styles.listContent}>
           {Array.from({ length: 4 }).map((_, i) => <OrderCardSkeleton key={i} />)}
@@ -221,7 +212,6 @@ export default function MyOrdersScreen() {
 
             return (
               <View style={styles.orderCard}>
-                {/* ── Card top ── */}
                 <View style={styles.cardHeader}>
                   <Text style={styles.orderId}>Đơn #{item.id} • {formatDay(item.createdAt)}</Text>
                   <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, borderColor: statusStyle.border }]}>
@@ -231,7 +221,6 @@ export default function MyOrdersScreen() {
                   </View>
                 </View>
 
-                {/* ── Delivery info ── */}
                 <View style={styles.deliverySection}>
                   <View style={ICON_ROW}>
                     <Icon name="user" size={14} color={brand.textMuted} />
@@ -249,7 +238,6 @@ export default function MyOrdersScreen() {
                   )}
                 </View>
 
-                {/* ── Order items ── */}
                 <View style={styles.itemsList}>
                   {item.items?.map((it, idx) => (
                     <View key={idx} style={styles.itemRow}>
@@ -261,18 +249,15 @@ export default function MyOrdersScreen() {
                   ))}
                 </View>
 
-                {/* ── Total row ── */}
                 <View style={styles.totalRow}>
                   <Text style={styles.totalLabel}>Tổng cộng</Text>
                   <Text style={styles.totalValue}>{formatVnd(item.total)}đ</Text>
                 </View>
 
-                {/* ── Cancel reason ── */}
                 {item.status === 'Cancelled' && !!item.cancelReason && (
                   <Text style={styles.cancelReason}>Lý do hủy: {item.cancelReason}</Text>
                 )}
 
-                {/* ── Action buttons ── */}
                 {item.status === 'Pending' && (
                   <View style={styles.cardActions}>
                     <TouchableOpacity
@@ -348,7 +333,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontFamily: fonts.displayExtraBold, fontSize: 19, color: '#0F172A' },
   headerSub: { fontFamily: fonts.bodyBold, fontSize: 13, color: brand.primary, marginTop: 2 },
 
-  // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   guestIcon: { marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
@@ -356,7 +340,6 @@ const styles = StyleSheet.create({
   loginBtn: { backgroundColor: brand.primary, paddingHorizontal: 28, paddingVertical: 13, borderRadius: 12 },
   loginBtnText: { color: '#fff', fontFamily: fonts.displayBold, fontSize: 16 },
 
-  // ── Filter row ──
   filterBarWrap: {
     backgroundColor: brand.white,
     borderBottomWidth: 1,

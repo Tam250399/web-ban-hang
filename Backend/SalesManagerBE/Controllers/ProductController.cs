@@ -55,7 +55,6 @@ namespace SalesManagerBE.Controllers
             if (await _context.Products.AnyAsync(p => p.ProductCode == dto.ProductCode))
                 return BadRequest(new { message = "Mã sản phẩm đã tồn tại." });
 
-            // Lấy tên danh mục từ CategoryId nếu có
             string? categoryName = dto.Category;
             if (dto.CategoryId.HasValue)
             {
@@ -63,7 +62,6 @@ namespace SalesManagerBE.Controllers
                 categoryName = cat?.Name ?? dto.Category;
             }
 
-            // Lấy tên đơn vị từ UnitTypeId nếu có
             string unitName = dto.Unit;
             if (dto.UnitTypeId.HasValue)
             {

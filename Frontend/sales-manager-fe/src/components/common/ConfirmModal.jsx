@@ -1,13 +1,6 @@
 import { useModalA11y } from '../../hooks/useModalA11y'
 import { Icon } from './Icon'
 
-/**
- * Hộp thoại xác nhận dùng chung.
- *
- * Mặc định vẫn là ngữ cảnh "xóa" để 9 chỗ đang dùng sẵn không phải sửa gì, nhưng
- * cho phép đổi tiêu đề/nhãn nút để dùng được cho thao tác khác (vd. huỷ đơn hàng
- * — không phải xoá, và cũng không phải "không thể hoàn tác").
- */
 function ConfirmModal({
   message,
   onConfirm,

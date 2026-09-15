@@ -56,9 +56,6 @@ function Login() {
   const handleSubmit = async (event) => {
     event.preventDefault()
 
-    // Màn ĐĂNG NHẬP chỉ kiểm tra ô có trống hay không. Ràng buộc độ dài ở đây
-    // sẽ khoá luôn tài khoản tạo từ trước khi có chính sách, mà chẳng thêm chút
-    // an toàn nào vì mật khẩu vẫn do server đối chiếu.
     let uErr = ''
     let pErr = ''
     if (!username.trim()) uErr = 'Vui lòng nhập tên đăng nhập'
@@ -79,8 +76,6 @@ function Login() {
       const loggedIn = data?.user || { username }
       toast.success(`Đăng nhập thành công! Xin chào ${loggedIn.fullName || loggedIn.username}`)
       login(loggedIn)
-      // Bị guard đá về đây thì quay lại đúng trang định vào; còn lại thì Admin
-      // vào thẳng khu quản trị, khách về trang chủ.
       const from = location.state?.from?.pathname
       navigate(from || (loggedIn.role === 'Admin' ? PATHS.admin : PATHS.home), { replace: true })
     } catch (error) {

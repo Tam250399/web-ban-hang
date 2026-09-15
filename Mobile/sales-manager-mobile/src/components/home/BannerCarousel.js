@@ -8,8 +8,6 @@ import { fonts } from '../../theme/fonts'
 const AUTO_PLAY_MS = 5000
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
-// Tương đương Carousel.jsx bên web — vuốt/tự chuyển slide banner do Admin
-// quản lý qua bannerService, đồng bộ với những gì hiện trên web.
 export default function BannerCarousel({ banners }) {
   const [index, setIndex] = useState(0)
   const pagerRef = useRef(null)

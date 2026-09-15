@@ -51,7 +51,6 @@ export default function DropdownSelect({
 
   return (
     <View style={styles.outerWrap}>
-      {/* ── Dropdown Trigger Button ── */}
       <TouchableOpacity
         style={[
           styles.trigger,
@@ -77,7 +76,6 @@ export default function DropdownSelect({
         <Text style={[styles.chevron, open && styles.chevronOpen, error && styles.chevronError]}>▼</Text>
       </TouchableOpacity>
 
-      {/* Thông báo lỗi bên dưới field */}
       {!!errorText && (
         <View style={ICON_ROW}>
           <Icon name="alert" size={13} color="#EF4444" />
@@ -85,7 +83,6 @@ export default function DropdownSelect({
         </View>
       )}
 
-      {/* ── Dropdown Modal (Bottom Sheet Menu) ── */}
       <Modal
         visible={open}
         transparent
@@ -98,7 +95,6 @@ export default function DropdownSelect({
             style={styles.keyboardWrap}
           >
             <Pressable style={[styles.dropdownContainer, { paddingBottom: Math.max(insets.bottom, 16) }]} onPress={(e) => e.stopPropagation()}>
-              {/* Header */}
               <View style={styles.dropdownHeader}>
                 <View style={styles.headerIndicator} />
                 <View style={styles.headerTitleRow}>
@@ -115,7 +111,6 @@ export default function DropdownSelect({
                 </View>
               </View>
 
-              {/* Ô tìm kiếm */}
               {options.length > 5 && (
                 <View style={styles.searchWrap}>
                   <Icon name="search" size={14} color={admin.textMuted} />
@@ -131,7 +126,6 @@ export default function DropdownSelect({
                 </View>
               )}
 
-              {/* Danh sách options */}
               <FlatList
                 data={filtered}
                 keyExtractor={(item) => String(item.value)}
@@ -229,7 +223,6 @@ const styles = StyleSheet.create({
     paddingLeft: 2,
   },
 
-  // Modal / Bottom Sheet
   overlay: {
     flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.45)',

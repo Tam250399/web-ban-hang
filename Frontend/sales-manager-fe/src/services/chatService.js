@@ -10,8 +10,6 @@ let startPromise = null
 
 function getConnection() {
   if (!connection) {
-    // Không truyền accessTokenFactory: cookie access_token (HttpOnly) tự động được gửi
-    // kèm cùng-origin (withCredentials mặc định = true của SignalR client).
     connection = new signalR.HubConnectionBuilder()
       .withUrl(HUB_URL)
       .withAutomaticReconnect()
@@ -25,9 +23,6 @@ export const chatService = {
   getConversations:        ()   => request(`${CHAT}/conversations`),
   getConversationMessages: (id) => request(`${CHAT}/conversations/${id}/messages`),
 
-  // Idempotent: nhiều lệnh gọi chồng nhau (vd. React StrictMode chạy effect 2 lần)
-  // đều dùng chung một promise start() thay vì gọi conn.start() song song, vì
-  // SignalR sẽ ném lỗi nếu start() được gọi lúc connection đang ở trạng thái "Connecting".
   connect() {
     const conn = getConnection()
     if (conn.state === signalR.HubConnectionState.Connected) return Promise.resolve()
@@ -38,8 +33,6 @@ export const chatService = {
   },
   disconnect() {
     if (connection) {
-      // stop() trả về promise; không bắt lỗi ở đây sẽ tạo unhandled rejection
-      // khi đăng xuất lúc kết nối đang dở dang.
       connection.stop().catch(() => {})
       connection = null
       startPromise = null
@@ -47,8 +40,6 @@ export const chatService = {
   },
 
   on:  (event, cb) => getConnection().on(event, cb),
-  // Không dùng getConnection() ở đây: nếu disconnect() đã chạy trước (vd. logout),
-  // gọi off() không nên tạo lại một connection mới chỉ để bỏ đăng ký handler.
   off: (event, cb) => { if (connection) connection.off(event, cb) },
 
   sendMessage:          (content, imageUrl = null)                  => getConnection().invoke('SendMessage', content, imageUrl),
@@ -58,6 +49,4 @@ export const chatService = {
   markRead:             ()                   => getConnection().invoke('MarkRead'),
 }
 
-// Đăng ký ngay khi module được nạp, để App.jsx ngắt được kết nối qua chatSession
-// mà không cần import tĩnh file này.
 registerChatDisconnect(() => chatService.disconnect())

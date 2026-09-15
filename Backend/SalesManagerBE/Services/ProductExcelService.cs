@@ -53,7 +53,6 @@ namespace SalesManagerBE.Services
 
             var lastRow = TemplateDataRows + 1;
 
-            // Sheet ẩn chứa danh sách hợp lệ cho dropdown Danh mục / Đơn vị tính.
             var listSheet = workbook.Worksheets.Add("Lists");
             for (int i = 0; i < categoryNames.Count; i++) listSheet.Cell(i + 1, 1).Value = categoryNames[i];
             for (int i = 0; i < unitNames.Count; i++) listSheet.Cell(i + 1, 2).Value = unitNames[i];

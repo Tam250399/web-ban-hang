@@ -14,7 +14,6 @@ import { Icon } from '../ui/Icon'
 
 const PAGE_SIZE = 10
 
-// Bảng màu tương phản cao, đồng bộ với màn tạo phiếu bán hàng.
 const C = {
   bg: '#F1F5F9',
   card: '#FFFFFF',
@@ -34,7 +33,6 @@ const RANGES = [
   { key: 'week', label: '7 ngày qua' },
 ]
 
-// Nhãn ngày thân thiện dùng cho tiêu đề nhóm: "HÔM NAY", "HÔM QUA", "THỨ BA, 12-08-2026".
 function sectionTitle(date) {
   const d = startOfDay(date)
   const today = startOfDay(new Date())
@@ -67,7 +65,6 @@ export default function StockExportPanel() {
 
   useEffect(() => { load(false) }, [load])
 
-  // Reload khi quay lại từ màn tạo/sửa phiếu.
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => load(false))
     return unsubscribe
@@ -100,7 +97,6 @@ export default function StockExportPanel() {
   const displayed = filtered.slice(0, visibleCount)
   const hasMore = displayed.length < filtered.length
 
-  // Gom phiếu theo ngày để dễ dò tìm (tiêu đề nhóm dính khi cuộn).
   const sections = useMemo(() => {
     const groups = []
     displayed.forEach((inv) => {
@@ -144,10 +140,6 @@ export default function StockExportPanel() {
     [navigation]
   )
 
-  // InvoiceCard đã memo — cả renderItem lẫn hai callback truyền xuống đều phải
-  // giữ nguyên tham chiếu. Nếu bọc arrow function theo từng item ở đây thì props
-  // đổi mỗi lần render và memo không bao giờ khớp; vì vậy InvoiceCard tự truyền
-  // lại `invoice` khi gọi onEdit/onDelete.
   const renderInvoice = useCallback(
     ({ item }) => <InvoiceCard invoice={item} onEdit={handleEdit} onDelete={handleDelete} />,
     [handleEdit, handleDelete]
@@ -155,7 +147,6 @@ export default function StockExportPanel() {
 
   const listHeader = (
     <View style={styles.listHeader}>
-      {/* ── Ô tìm kiếm ── */}
       <View style={styles.searchWrap}>
         <Icon name="search" size={16} color={C.textMuted} />
         <TextInput
@@ -179,7 +170,6 @@ export default function StockExportPanel() {
         )}
       </View>
 
-      {/* ── Lọc nhanh theo thời gian ── */}
       <View style={styles.rangeRow}>
         {RANGES.map((item) => {
           const active = range === item.key
@@ -196,7 +186,6 @@ export default function StockExportPanel() {
         })}
       </View>
 
-      {/* ── Tổng kết nhanh ── */}
       <View style={styles.summaryCard}>
         <View style={styles.summaryCol}>
           <Text style={styles.summaryLabel}>Số phiếu</Text>
@@ -213,7 +202,6 @@ export default function StockExportPanel() {
 
   return (
     <View style={styles.root}>
-      {/* ══ Tiêu đề + nút tạo phiếu (luôn hiện) ══ */}
       <View style={styles.header}>
         <Text style={styles.heading}>Phiếu bán hàng</Text>
         <TouchableOpacity
@@ -287,7 +275,6 @@ export default function StockExportPanel() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: C.bg },
 
-  // ── Tiêu đề cố định ──
   header: {
     paddingHorizontal: 14, paddingTop: 12, paddingBottom: 12, gap: 10,
     backgroundColor: C.card, borderBottomWidth: 1, borderBottomColor: C.borderSoft,
@@ -301,7 +288,6 @@ const styles = StyleSheet.create({
   addBtnIcon: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 19, lineHeight: 22 },
   addBtnText: { color: '#FFFFFF', fontFamily: fonts.adminBodyBold, fontSize: 15.5, letterSpacing: 0.3 },
 
-  // ── Phần đầu danh sách (cuộn theo) ──
   listHeader: { gap: 10, paddingBottom: 4 },
   searchWrap: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
@@ -337,7 +323,6 @@ const styles = StyleSheet.create({
   summaryValue: { fontFamily: fonts.adminDisplayBold, fontSize: 20, color: C.text },
   summaryMoney: { color: C.money, fontSize: 18 },
 
-  // ── Danh sách ──
   list: { padding: 14, paddingBottom: 28, gap: 10 },
   sectionHeaderWrap: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',

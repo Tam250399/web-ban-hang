@@ -1,7 +1,5 @@
 import { useNetwork } from '../../context/network-context'
 
-// Dải báo mất mạng cố định trên cùng. Trạng thái lấy từ NetworkProvider để cả
-// app chỉ có một nguồn sự thật về mạng.
 function OfflineBanner() {
   const { isOnline } = useNetwork()
   if (isOnline) return null

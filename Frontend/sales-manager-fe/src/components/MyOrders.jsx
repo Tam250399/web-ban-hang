@@ -19,13 +19,8 @@ function MyOrders() {
   const requireOnline = useRequireOnline()
   const [cancellingId, setCancellingId] = useState(null)
   const [reorderingId, setReorderingId] = useState(null)
-  // Huỷ đơn trước đây chỉ cách một cú bấm, không hỏi lại câu nào — trong khi
-  // khu quản trị đã dùng ConfirmModal ở 9 chỗ. Thao tác phá huỷ duy nhất mà
-  // khách hàng chạm tới lại là chỗ thiếu bảo vệ.
   const [confirmCancelOrder, setConfirmCancelOrder] = useState(null)
 
-  // Cache-then-network: đơn hàng đã xem vẫn tra cứu được khi ra công trình mất
-  // sóng, thay vì trang trắng như trước.
   const {
     data,
     loading,
@@ -51,8 +46,6 @@ function MyOrders() {
     setCancellingId(null)
   }
 
-  // Đặt lại đơn đã huỷ: cập nhật lại CHÍNH đơn đó về Pending (không tạo đơn mới),
-  // giá được backend làm mới theo giá hiện tại, sản phẩm hết hàng sẽ tự bị loại.
   const handleReorder = async (id) => {
     if (!requireOnline('Đặt lại đơn hàng')) return
     setReorderingId(id)

@@ -30,7 +30,6 @@ function StatCard({ icon, label, value, color, onClick, hint = 'Bấm để xem 
 function StatDetailModal({ modal, onClose, products = [], transactions = [], loadingTransactions = false }) {
   const [search, setSearch] = useState('')
 
-  // Đóng modal khi bấm phím ESC
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') onClose()
@@ -41,7 +40,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
 
   const keyword = search.trim().toLowerCase()
 
-  // 1. Danh sách sản phẩm (Tất cả / Giá trị tồn / Sắp hết / Theo danh mục)
   const filteredProducts = useMemo(() => {
     let list = [...products]
     if (modal.type === 'stock_value') {
@@ -62,7 +60,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
     )
   }, [products, modal, keyword])
 
-  // 2. Danh sách giao dịch nhập / xuất
   const filteredTransactions = useMemo(() => {
     let list = [...transactions]
     if (modal.type === 'import') {
@@ -79,7 +76,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
     )
   }, [transactions, modal, keyword])
 
-  // Tính tổng số liệu theo danh sách đang hiển thị
   const totalStockQty = filteredProducts.reduce((sum, p) => sum + (p.stockQuantity || 0), 0)
   const totalStockVal = filteredProducts.reduce((sum, p) => sum + ((p.stockQuantity || 0) * (p.price || 0)), 0)
   const totalTxQty = filteredTransactions.reduce((sum, t) => sum + (t.quantity || 0), 0)
@@ -91,7 +87,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-box modal-box-xl" onClick={e => e.stopPropagation()}>
         
-        {/* Header Modal */}
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {modal.type === 'products' && <Icon name="box" size={24} />}
@@ -112,7 +107,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '16px 24px' }}>
           
-          {/* Cảnh báo riêng cho sản phẩm sắp hết hàng */}
           {modal.type === 'low_stock' && (
             <div style={{
               display: 'flex',
@@ -132,7 +126,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
             </div>
           )}
 
-          {/* Thanh tìm kiếm & bộ lọc */}
           <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap', flexShrink: 0 }}>
             <div style={{ position: 'relative', flex: 1, minWidth: 240 }}>
               <input
@@ -166,7 +159,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
             </span>
           </div>
 
-          {/* Bảng dữ liệu: Sản phẩm */}
           {isProductModal && (
             <div className="admin-table-wrap" style={{ flex: 1, minHeight: 200, maxHeight: '50vh', overflowY: 'auto' }}>
               <table className="admin-table">
@@ -230,7 +222,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
             </div>
           )}
 
-          {/* Bảng dữ liệu: Giao dịch Nhập / Xuất kho */}
           {!isProductModal && (
             <div className="admin-table-wrap" style={{ flex: 1, minHeight: 200, maxHeight: '50vh', overflowY: 'auto' }}>
               {loadingTransactions ? (
@@ -284,7 +275,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
             </div>
           )}
 
-          {/* Dòng tổng kết phía dưới bảng */}
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -321,7 +311,6 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
 
         </div>
 
-        {/* Modal Footer */}
         <div className="modal-footer">
           <button type="button" className="btn-ghost" onClick={onClose}>Đóng</button>
         </div>
@@ -337,7 +326,6 @@ function Statistics({ stats, products: propProducts = [] }) {
   const [loadingTransactions, setLoadingTransactions] = useState(false)
   const [activeModal, setActiveModal] = useState(null)
 
-  // Đồng bộ sản phẩm khi propProducts thay đổi
   useEffect(() => {
     if (propProducts && propProducts.length > 0) {
       setLocalProducts(propProducts)
@@ -346,7 +334,6 @@ function Statistics({ stats, products: propProducts = [] }) {
     }
   }, [propProducts])
 
-  // Tải danh sách giao dịch khi mở modal cần xem giao dịch
   const loadTransactionsIfNeeded = async () => {
     if (transactions.length > 0) return
     setLoadingTransactions(true)
@@ -354,7 +341,6 @@ function Statistics({ stats, products: propProducts = [] }) {
       const data = await stockService.getAll()
       setTransactions(Array.isArray(data) ? data : [])
     } catch {
-      // Nếu API gặp lỗi, dùng recentTransactions tạm thời
       if (stats?.recentTransactions) {
         setTransactions(stats.recentTransactions)
       }
@@ -390,7 +376,6 @@ function Statistics({ stats, products: propProducts = [] }) {
         </span>
       </div>
 
-      {/* Grid 5 thẻ thống kê chính */}
       <div className="stats-grid">
         <StatCard
           icon={<Icon name="box" size={26} />}
@@ -444,10 +429,8 @@ function Statistics({ stats, products: propProducts = [] }) {
         />
       </div>
 
-      {/* Chi tiết thống kê */}
       <div className="stats-detail-grid">
 
-        {/* Thống kê theo danh mục */}
         <div className="form-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h4 style={{ margin: 0 }}>Thống kê theo danh mục</h4>
@@ -490,7 +473,6 @@ function Statistics({ stats, products: propProducts = [] }) {
           </div>
         </div>
 
-        {/* Giao dịch gần nhất */}
         <div className="form-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <h4 style={{ margin: 0 }}>Giao dịch gần nhất</h4>
@@ -547,7 +529,6 @@ function Statistics({ stats, products: propProducts = [] }) {
 
       </div>
 
-      {/* Modal chi tiết danh sách tương ứng */}
       {activeModal && (
         <StatDetailModal
           modal={activeModal}

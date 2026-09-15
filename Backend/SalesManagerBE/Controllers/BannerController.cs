@@ -15,7 +15,6 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         public BannerController(AppDbContext context) { _context = context; }
 
-        // Dùng cho trang chủ — chỉ lấy banner đang bật, sắp theo thứ tự hiển thị
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetActive() =>
@@ -24,7 +23,6 @@ namespace SalesManagerBE.Controllers
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync());
 
-        // Dùng cho trang quản trị — lấy tất cả
         [HttpGet("all")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _context.Banners

@@ -25,14 +25,13 @@ namespace SalesManagerBE.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // Roles seed
+
             modelBuilder.Entity<Role>().HasData(
                 new Role { Id = 1, RoleName = "Admin" },
                 new Role { Id = 2, RoleName = "Customer" },
                 new Role { Id = 3, RoleName = "Staff" }
             );
 
-            // User config
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -47,12 +46,8 @@ namespace SalesManagerBE.Data
                     .HasForeignKey(e => e.RoleId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                // Không seed tài khoản admin có sẵn ở đây: tài khoản admin đầu tiên được
-                // tạo lúc khởi động (xem Program.cs) từ mật khẩu do AdminBootstrap:Password
-                // cung cấp, để không có mật khẩu thật nào bị commit vào mã nguồn.
             });
 
-            // ProductCategory seed
             modelBuilder.Entity<ProductCategory>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -68,7 +63,6 @@ namespace SalesManagerBE.Data
                 );
             });
 
-            // UnitType seed
             modelBuilder.Entity<UnitType>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -87,7 +81,6 @@ namespace SalesManagerBE.Data
                 );
             });
 
-            // ProductNameTemplate seed
             modelBuilder.Entity<ProductNameTemplate>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -115,7 +108,6 @@ namespace SalesManagerBE.Data
                 );
             });
 
-            // Product config
             modelBuilder.Entity<Product>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -147,7 +139,6 @@ namespace SalesManagerBE.Data
                 );
             });
 
-            // Banner config
             modelBuilder.Entity<Banner>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -155,7 +146,6 @@ namespace SalesManagerBE.Data
                 entity.Property(e => e.ImageUrl).IsRequired().HasMaxLength(500);
             });
 
-            // Conversation config
             modelBuilder.Entity<Conversation>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -166,7 +156,6 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Message config
             modelBuilder.Entity<Message>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -182,7 +171,6 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // StockTransaction config
             modelBuilder.Entity<StockTransaction>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -199,7 +187,6 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Customer config
             modelBuilder.Entity<Customer>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -209,7 +196,6 @@ namespace SalesManagerBE.Data
                 entity.HasIndex(e => e.PhoneNumber).IsUnique();
             });
 
-            // SalesInvoice config
             modelBuilder.Entity<SalesInvoice>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -220,7 +206,6 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // Order config
             modelBuilder.Entity<Order>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -238,8 +223,6 @@ namespace SalesManagerBE.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-            // ContactInfo config — seed đúng nội dung đang hardcode trên trang chủ,
-            // để sau migration trang chủ vẫn hiện được ngay chứ không trống trơn.
             modelBuilder.Entity<ContactInfo>(entity =>
             {
                 entity.HasKey(e => e.Id);
@@ -260,7 +243,6 @@ namespace SalesManagerBE.Data
                 );
             });
 
-            // OrderItem config
             modelBuilder.Entity<OrderItem>(entity =>
             {
                 entity.HasKey(e => e.Id);

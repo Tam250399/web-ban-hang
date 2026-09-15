@@ -5,7 +5,6 @@ import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 import { Icon } from '../common/Icon'
 
-// ---- Phân quyền: danh sách user + đổi vai trò ----
 function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) {
   const [savingId, setSavingId] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -153,7 +152,6 @@ function EyeOffIcon() {
   )
 }
 
-// ---- Modal thêm/sửa user ----
 function UserFormModal({ user, roles, onSave, onClose }) {
   const isEdit = !!user
   const emptyForm = { username: '', password: 'Abc@123', fullName: '', email: '', phoneNumber: '' }
@@ -282,7 +280,6 @@ function UserFormModal({ user, roles, onSave, onClose }) {
   )
 }
 
-// ---- Đăng ký user mới + danh sách user (CRUD đầy đủ) ----
 function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [editUser, setEditUser] = useState(null)
@@ -422,7 +419,6 @@ function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDel
   )
 }
 
-// ---- Main SystemManager ----
 const SUB_TABS = [
   { key: 'permissions', label: <><Icon name="key" /> Phân quyền</> },
   { key: 'register',    label: <><Icon name="plus" /> Đăng ký user</> },

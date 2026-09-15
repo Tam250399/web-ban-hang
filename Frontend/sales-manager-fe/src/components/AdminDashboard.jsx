@@ -32,8 +32,6 @@ function AdminDashboard() {
   const navigate = useNavigate()
   const { tabSlug } = useParams()
 
-  // Tab lấy thẳng từ URL: admin bookmark được /quan-tri/don-hang, F5 vẫn ở đúng
-  // tab, và nút Back của trình duyệt quay lại tab trước thay vì thoát khỏi web.
   const activeTab = adminTabBySlug(tabSlug)
   const tab = activeTab?.key ?? DEFAULT_ADMIN_TAB.key
 
@@ -59,9 +57,6 @@ function AdminDashboard() {
     }
   }, [tab])
 
-  // Nhóm cha nào đang xổ ra — hoàn toàn do người dùng tự bấm, không tự ép mở
-  // lại theo tab active (làm vậy thì bấm đóng trong lúc tab con vẫn active sẽ
-  // vô tác dụng). Mặc định mở sẵn nhóm chứa tab lúc vào trang.
   const [openGroups, setOpenGroups] = useState(() => new Set(
     SIDEBAR_GROUPS.filter(g => g.tabKeys.includes(tab)).map(g => g.key)
   ))
@@ -92,16 +87,11 @@ function AdminDashboard() {
     }
   }, [tab, loadProducts, loadStats])
 
-  // Theme riêng cho khu vực quản trị (bảng màu/typography khác trang bán hàng).
-  // Gắn class lên <body> thay vì .admin-shell để các panel render qua Portal
-  // (SearchableSelect...) vẫn nằm trong scope theme này.
   useEffect(() => {
     document.body.classList.add('admin-theme')
     return () => document.body.classList.remove('admin-theme')
   }, [])
 
-  // Kết nối chat + theo dõi hội thoại ngay khi vào Admin Dashboard, không phụ
-  // thuộc tab đang mở, để chuông thông báo trên header luôn cập nhật realtime.
   useEffect(() => {
     chatService.getConversations().then(setConversations).catch(() => {})
 
@@ -131,7 +121,6 @@ function AdminDashboard() {
     }
   }, [loadPendingOrders])
 
-  // Đóng dropdown thông báo khi bấm ra ngoài.
   useEffect(() => {
     if (!notifOpen) return
     const handleClickOutside = (e) => {
@@ -144,8 +133,6 @@ function AdminDashboard() {
   const unreadTotal = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0)
 
   const switchTab = (key) => {
-    // Rời tab Chat thì bỏ chọn hội thoại đang mở, để lần sau vào lại Chat
-    // không tự động focus vào hội thoại đã mở trước đó.
     if (tab === 'chat' && key !== 'chat') setActiveConversationId(null)
     const target = ADMIN_TABS.find((t) => t.key === key) ?? DEFAULT_ADMIN_TAB
     navigate(PATHS.adminTab(target.slug))
@@ -156,8 +143,6 @@ function AdminDashboard() {
     window.scrollTo(0, 0)
   }
 
-  // Gõ sai slug (vd. /quan-tri/linh-tinh) thì đưa về tab mặc định, đừng để
-  // sidebar không tab nào sáng và vùng nội dung trống trơn.
   if (tabSlug && !activeTab) {
     return <Navigate to={PATHS.adminTab(DEFAULT_ADMIN_TAB.slug)} replace />
   }
@@ -166,7 +151,6 @@ function AdminDashboard() {
     <div className="admin-shell">
       <PageMeta title={`Quản trị · ${(activeTab ?? DEFAULT_ADMIN_TAB).label}`} noIndex />
 
-      {/* Header */}
       <header className="admin-header">
         <div className="admin-header-left">
           <div className="brand-icon">VL</div>
@@ -240,7 +224,6 @@ function AdminDashboard() {
         </div>
       </header>
 
-      {/* Mobile horizontal tab bar: hiện ngay toàn bộ chức năng trên điện thoại */}
       <nav className="admin-mobile-tabs" ref={mobileTabContainerRef} aria-label="Chức năng quản lý">
         {ADMIN_TABS.map(t => {
           const isActive = tab === t.key
@@ -261,7 +244,6 @@ function AdminDashboard() {
       </nav>
 
       <div className="admin-body">
-        {/* Sidebar (desktop) */}
         <aside className="admin-sidebar">
           <p className="sidebar-label">Quản lý</p>
           {SIDEBAR_GROUPS.map(group => {
@@ -334,7 +316,6 @@ function AdminDashboard() {
           </div>
         </aside>
 
-        {/* Nội dung chính */}
         <main className="admin-main">
           {tab === 'list' && (
             <ProductList

@@ -4,9 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { brand } from '../../theme/colors'
 import { Icon } from './Icon'
 
-// Không có ranh giới lỗi thì một exception khi render ở bất kỳ màn nào cũng làm
-// trắng màn hình và người dùng chỉ còn cách tắt hẳn app. Ở đây bắt lỗi lại,
-// hiện thông báo tiếng Việt và cho bấm "Thử lại" để render lại cây component.
 export default class ErrorBoundary extends Component {
   state = { error: null }
 
@@ -15,8 +12,6 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    // Chưa gắn dịch vụ báo lỗi từ xa (Sentry/Bugsnag) — tạm ghi ra log để còn
-    // đọc được trong `npx expo start` hoặc logcat khi user báo sự cố.
     console.error('[ErrorBoundary]', error, info?.componentStack)
   }
 
@@ -50,9 +45,6 @@ export default class ErrorBoundary extends Component {
   }
 }
 
-// Cố tình KHÔNG dùng font tuỳ biến ở màn này: lỗi có thể xảy ra trước khi
-// useAppFonts() nạp xong, mà fontFamily chưa đăng ký sẽ làm iOS crash tiếp —
-// đúng lúc cần một màn hình luôn hiện được thì lại hỏng.
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#F8FAFC' },
   content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 28, gap: 10 },

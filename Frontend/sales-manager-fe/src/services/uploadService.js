@@ -1,6 +1,5 @@
 import { ApiError, BASE_URL } from './apiClient'
 
-// Upload ảnh nặng hơn request JSON thường nên cho hạn rộng hơn 15s của apiClient.
 const UPLOAD_TIMEOUT_MS = 45000
 
 export async function uploadImage(file) {

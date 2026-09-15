@@ -1,14 +1,7 @@
 import { ApiError, BASE_URL, notifyUnauthorized } from './apiClient'
 
-// Upload ảnh nặng hơn request JSON thường nên cho hạn dài hơn 15s của apiClient.
 const UPLOAD_TIMEOUT_MS = 45000
 
-/**
- * Upload ảnh lên backend (POST /api/upload/image).
- * React Native dùng { uri, name, type } thay vì Web File object.
- * @param {{ uri: string, fileName?: string, mimeType?: string }} asset — asset từ expo-image-picker
- * @returns {Promise<string>} URL ảnh đã upload
- */
 export async function uploadImage(asset) {
   const formData = new FormData()
   formData.append('file', {
@@ -26,8 +19,6 @@ export async function uploadImage(asset) {
       method: 'POST',
       body: formData,
       signal: controller.signal,
-      // Không set Content-Type — fetch tự thêm boundary cho multipart/form-data.
-      // Cookie access_token tự đính kèm qua native cookie jar.
     })
   } catch (err) {
     if (err?.name === 'AbortError') {

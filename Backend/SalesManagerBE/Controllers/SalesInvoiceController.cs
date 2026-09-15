@@ -17,15 +17,7 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         private readonly IExcelExportService _excelExportService;
 
-
-        /// <summary>
-        /// Tên người lập phiếu, lấy từ danh tính ĐÃ XÁC THỰC chứ không nhận từ
-        /// client. Trước đây web gửi lên trường này bằng dữ liệu đọc từ
-        /// localStorage, nên chỉ cần sửa localStorage trong devtools là ghi được
-        /// tên người khác vào phiếu — trong khi đây chính là trường dùng để truy
-        /// vết ai đã lập phiếu.
-        /// </summary>
-        private async Task<string> GetPreparedByNameAsync()
+                private async Task<string> GetPreparedByNameAsync()
         {
             var userId = User.GetUserId();
             if (userId is null) return User.GetUsername() ?? "";
@@ -98,7 +90,6 @@ namespace SalesManagerBE.Controllers
                 products[item.ProductId] = product;
             }
 
-            // Gộp số lượng cùng 1 sản phẩm xuất hiện ở nhiều dòng để kiểm tra tồn kho chính xác
             var neededByProduct = dto.Items
                 .GroupBy(i => i.ProductId)
                 .ToDictionary(g => g.Key, g => g.Sum(i => i.Quantity));
@@ -166,7 +157,6 @@ namespace SalesManagerBE.Controllers
                 return product;
             }
 
-            // Trả lại tồn kho theo các dòng cũ trước khi tính lại
             foreach (var oldItem in invoice.Items)
             {
                 var product = await GetProductAsync(oldItem.ProductId);
@@ -254,7 +244,7 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("export")]
-        // preparedBy đã bỏ khỏi query: tên người lập lấy từ danh tính đã xác thực.
+
         public async Task<IActionResult> ExportMultiple([FromQuery] string ids)
         {
             if (string.IsNullOrWhiteSpace(ids))
@@ -280,7 +270,7 @@ namespace SalesManagerBE.Controllers
 
             var bytes = _excelExportService.ExportSalesInvoicesMerged(invoices, await GetPreparedByNameAsync());
             var customerName = invoices.First().CustomerName?.Trim() ?? "KhachHang";
-            // Remove invalid filename characters
+
             var safeName = string.Join("_", customerName.Split(Path.GetInvalidFileNameChars(), StringSplitOptions.RemoveEmptyEntries));
             var fileName = $"PhieuBanHang_{safeName}.xlsx";
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);

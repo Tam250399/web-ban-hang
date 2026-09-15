@@ -3,11 +3,7 @@ import { resolveMediaUrl } from '../services/config'
 import { useModalA11y } from '../hooks/useModalA11y'
 import { Icon } from './common/Icon'
 
-// Modal chi tiet san pham. Duoc mo boi route /san-pham/:id nen link chia se
-// duoc, va dong lai la quay ve trang chu qua nut Back cua trinh duyet.
 function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
-  // Escape để đóng, khoá cuộn nền, giữ tiêu điểm bên trong và trả về đúng chỗ
-  // khi đóng — xem src/hooks/useModalA11y.js.
   const dialogRef = useModalA11y({ onClose })
 
   const catName  = product.categoryName  || product.category  || 'Khác'
@@ -29,7 +25,6 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
         <button className="modal-close product-detail-close" onClick={onClose} aria-label="Đóng">✕</button>
 
         <div className="product-detail-body">
-          {/* Ảnh */}
           <div className="product-detail-image">
             {product.imageUrl ? (
               <img src={resolveMediaUrl(product.imageUrl)} alt={product.productName} decoding="async" />
@@ -39,7 +34,6 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
             {!inStock && <span className="low-stock-badge" style={{ position: 'absolute', top: 12, left: 12 }}>Sắp hết hàng</span>}
           </div>
 
-          {/* Thông tin */}
           <div className="product-detail-info">
             <span className="product-category" style={{ fontSize: '0.8rem' }}>{catName}</span>
             <h2 className="product-detail-name" id="product-detail-title">{product.productName}</h2>
@@ -70,7 +64,6 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
             </div>
 
             <div className="product-detail-cta-row">
-              {/* Admin chỉ tra cứu thông tin sản phẩm, không đặt hàng. */}
               {!hideAddToCart && (
                 <button
                   className="btn-primary product-detail-cta"

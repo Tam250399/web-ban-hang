@@ -18,14 +18,6 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// Origin được phép gọi API. Trước đây hardcode đúng http://localhost:5173 nên
-// khi deploy lên domain thật, trình duyệt chặn sạch mọi request bằng CORS.
-//
-// Cấu hình qua appsettings hoặc biến môi trường, phân tách bằng dấu phẩy:
-//   Cors__AllowedOrigins="https://lysau.vn,https://www.lysau.vn"
-//
-// Lưu ý: AllowCredentials() bắt buộc phải đi kèm danh sách origin cụ thể —
-// không được dùng AllowAnyOrigin() vì cookie phiên sẽ không gửi kèm được.
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     ?? new[] { "http://localhost:5173" };
@@ -68,8 +60,7 @@ builder.Services.AddAuthentication(options =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey)),
         ValidateLifetime = true,
     };
-    // Token được lưu trong cookie HttpOnly (không phải localStorage) nên JWT Bearer
-    // middleware cần tự đọc từ cookie thay vì chỉ trông chờ header Authorization.
+
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>

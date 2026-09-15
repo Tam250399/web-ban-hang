@@ -24,7 +24,6 @@ namespace SalesManagerBE.Controllers
 
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        // Customer: lấy (hoặc tạo) hội thoại của chính mình + toàn bộ tin nhắn.
         [HttpGet("me")]
         public async Task<IActionResult> GetMyConversation()
         {
@@ -55,7 +54,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { conversationId = conversation.Id, messages });
         }
 
-        // Admin: danh sách toàn bộ hội thoại, mới nhất lên đầu.
         [HttpGet("conversations")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetConversations()
@@ -90,7 +88,6 @@ namespace SalesManagerBE.Controllers
             return Ok(result);
         }
 
-        // Admin: toàn bộ tin nhắn của một hội thoại (đánh dấu tin của khách đã đọc).
         [HttpGet("conversations/{id}/messages")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetConversationMessages(int id)

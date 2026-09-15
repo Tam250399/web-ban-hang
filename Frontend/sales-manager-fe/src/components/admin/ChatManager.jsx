@@ -13,16 +13,13 @@ function formatDay(iso) {
   return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
 }
 
-// Danh sách hội thoại, hội thoại đang mở, và kết nối SignalR được quản lý ở
-// AdminDashboard (để chuông thông báo trên header hoạt động dù đang ở tab nào),
-// ChatManager chỉ nhận qua props.
 function ChatManager({ conversations, setConversations, activeId, setActiveId }) {
   const [search, setSearch] = useState('')
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const [loadingMsgs, setLoadingMsgs] = useState(false)
-  const [pendingImage, setPendingImage] = useState(null) // { previewUrl, url, uploading }
+  const [pendingImage, setPendingImage] = useState(null)
   const [dragOver, setDragOver] = useState(false)
   const bodyRef = useRef(null)
   const fileInputRef = useRef(null)
@@ -38,8 +35,6 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
     }
     chatService.on('ReceiveMessage', handleReceive)
 
-    // Component bị unmount/mount lại mỗi khi chuyển tab ra vào Chat; nếu đã có
-    // sẵn hội thoại đang mở (activeId đến từ AdminDashboard) thì nạp lại tin nhắn.
     if (activeIdRef.current) {
       setLoadingMsgs(true)
       chatService.getConversationMessages(activeIdRef.current)
@@ -52,17 +47,10 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
     return () => chatService.off('ReceiveMessage', handleReceive)
   }, [])
 
-  // Phụ thuộc cả loadingMsgs vì bong bóng tin nhắn chỉ thực sự render ra DOM sau
-  // khi loadingMsgs chuyển false (loadingMsgs=false đến ở một lượt render khác,
-  // trễ hơn lúc messages được set) — nếu chỉ phụ thuộc [messages] thì lúc effect
-  // chạy, danh sách tin nhắn vẫn còn ẩn sau "Đang tải...", scrollHeight đo được
-  // rất nhỏ và không có lần chạy lại nào để cuộn xuống đúng vị trí.
   useEffect(() => {
     if (!loadingMsgs && bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight
   }, [messages, loadingMsgs])
 
-  // Focus lại ô nhập sau khi gửi: gọi .focus() ngay sau setSending(false) không ăn
-  // vì lúc đó React chưa kịp render lại để bỏ thuộc tính disabled trên input.
   useEffect(() => {
     if (!sending) inputRef.current?.focus()
   }, [sending])
@@ -78,7 +66,7 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
       const data = await chatService.getConversationMessages(id)
       setMessages(data)
       await chatService.joinConversation(id)
-    } catch { /* noop */ }
+    } catch {  }
     setLoadingMsgs(false)
   }
 
@@ -86,8 +74,6 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
     return () => { if (activeIdRef.current) chatService.leaveConversation(activeIdRef.current).catch(() => {}) }
   }, [])
 
-  // Trên mobile, danh sách và khung chat chiếm toàn màn hình thay phiên nhau
-  // (kiểu Messenger); nút "← Quay lại" chỉ hiện ở breakpoint mobile qua CSS.
   const closeConversation = () => {
     if (activeId) chatService.leaveConversation(activeId).catch(() => {})
     setActiveId(null)
@@ -110,8 +96,6 @@ function ChatManager({ conversations, setConversations, activeId, setActiveId })
     setSending(false)
   }
 
-  // Chọn/dán/kéo-thả ảnh chỉ đính kèm vào ô nhập (upload nền sẵn cho nhanh),
-  // chưa gửi ngay — admin phải bấm Gửi mới thực sự đi tới khách hàng.
   const stageImageFile = async (file) => {
     if (!file || !file.type?.startsWith('image/') || !activeId) return
     const previewUrl = URL.createObjectURL(file)

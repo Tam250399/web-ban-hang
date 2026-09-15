@@ -19,14 +19,7 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         private readonly IHubContext<ChatHub> _hub;
 
-        /// <summary>
-        /// Tên người lập phiếu, lấy từ danh tính ĐÃ XÁC THỰC chứ không nhận từ
-        /// client. Trước đây web gửi lên trường này bằng dữ liệu đọc từ
-        /// localStorage, nên chỉ cần sửa localStorage trong devtools là ghi được
-        /// tên người khác vào phiếu — trong khi đây chính là trường dùng để truy
-        /// vết ai đã lập phiếu.
-        /// </summary>
-        private async Task<string> GetPreparedByNameAsync()
+                private async Task<string> GetPreparedByNameAsync()
         {
             var userId = User.GetUserId();
             if (userId is null) return User.GetUsername() ?? "";
@@ -50,8 +43,6 @@ namespace SalesManagerBE.Controllers
         private int CurrentUserId => int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         private bool IsStaff => User.IsInRole("Admin") || User.IsInRole("Staff");
 
-        // Khách hàng: đặt hàng từ giỏ hàng — chỉ kiểm tra tồn kho tại thời điểm đặt,
-        // KHÔNG trừ kho ngay (chỉ trừ khi admin xác nhận ở Confirm()).
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
         {
@@ -108,7 +99,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đặt hàng thành công! Chúng tôi sẽ liên hệ xác nhận sớm.", orderId = order.Id });
         }
 
-        // Khách hàng: xem đơn hàng của chính mình.
         [HttpGet("mine")]
         public async Task<IActionResult> GetMine()
         {
@@ -136,7 +126,6 @@ namespace SalesManagerBE.Controllers
             return Ok(orders);
         }
 
-        // Admin/Staff: danh sách toàn bộ đơn hàng, lọc theo trạng thái (tuỳ chọn).
         [HttpGet]
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> GetAll([FromQuery] string? status)
@@ -193,8 +182,6 @@ namespace SalesManagerBE.Controllers
             });
         }
 
-        // Admin/Staff: xác nhận đơn — tạo (hoặc dùng lại) Khách hàng theo SĐT, tạo Phiếu bán hàng
-        // và trừ kho, giống hệt luồng SalesInvoiceController.Create.
         [HttpPost("{id:int}/confirm")]
         [Authorize(Roles = "Admin,Staff")]
         public async Task<IActionResult> Confirm(int id, [FromBody] ConfirmOrderDto? dto)
@@ -258,9 +245,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xác nhận đơn hàng và tạo phiếu bán hàng.", invoiceId = invoice.Id });
         }
 
-        // Khách hàng: đặt lại đơn đã huỷ — cập nhật lại CHÍNH đơn đó (giữ nguyên Id) về
-        // trạng thái Pending thay vì tạo đơn mới. Giá được làm mới theo giá hiện tại,
-        // sản phẩm nào hết hàng sẽ bị loại khỏi đơn.
         [HttpPost("{id:int}/reorder")]
         public async Task<IActionResult> Reorder(int id)
         {
@@ -308,7 +292,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message, orderId = order.Id });
         }
 
-        // Chủ đơn (khi còn Pending) hoặc Admin/Staff đều có thể huỷ đơn.
         [HttpPost("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id, [FromBody] CancelOrderDto? dto)
         {

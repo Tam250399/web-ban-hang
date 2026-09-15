@@ -1,8 +1,5 @@
 import * as LocalAuthentication from 'expo-local-authentication'
 
-// Bọc expo-local-authentication: kiểm tra phần cứng/đã đăng ký sinh trắc học
-// chưa, và tự chọn nhãn hiển thị phù hợp (Face ID / vân tay) theo loại cảm
-// biến máy đang có.
 export async function isBiometricAvailable() {
   const hasHardware = await LocalAuthentication.hasHardwareAsync()
   if (!hasHardware) return false
@@ -22,7 +19,7 @@ export async function authenticateBiometric(promptMessage) {
   const result = await LocalAuthentication.authenticateAsync({
     promptMessage: promptMessage || 'Xác thực để đăng nhập',
     cancelLabel: 'Hủy',
-    disableDeviceFallback: false, // vẫn cho phép lùi về mã khóa màn hình nếu sinh trắc học lỗi
+    disableDeviceFallback: false,
   })
   return result.success
 }

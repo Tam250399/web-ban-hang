@@ -53,8 +53,6 @@ function ImportPreviewModal({ result, onClose, onImported }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: bảng chọn dòng khi nhập Excel rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box import-preview-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -184,8 +182,6 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: form sửa sản phẩm (có upload ảnh) rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
@@ -196,7 +192,6 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
         <form onSubmit={handleSubmit}>
           <div className="edit-modal-body">
 
-            {/* Cột trái — ảnh */}
             <div className="edit-modal-image">
               <p className="form-field-label">Hình ảnh</p>
               {imagePreview ? (
@@ -224,7 +219,6 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
               )}
             </div>
 
-            {/* Cột phải — thông tin */}
             <div className="edit-modal-fields">
               <label className="form-field">
                 <span>Mã sản phẩm</span>

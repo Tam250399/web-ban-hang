@@ -6,9 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts } from '../../theme/fonts'
 import { Icon } from './Icon'
 
-// Bộ chọn toàn màn hình, chữ to - nút to, dành cho người lớn tuổi.
-// Mỗi dòng cao tối thiểu 72px, tên hiển thị 18px, thông tin phụ 14px.
-// data: [{ value, label, sublabel, note, picked }]
 export default function BigPickerModal({
   visible,
   title = 'Chọn',
@@ -46,7 +43,6 @@ export default function BigPickerModal({
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
       <View style={[styles.root, { paddingTop: insets.top }]}>
-        {/* ── Thanh tiêu đề ── */}
         <View style={styles.header}>
           <View style={styles.headerTextWrap}>
             <Text style={styles.title}>{title}</Text>
@@ -57,7 +53,6 @@ export default function BigPickerModal({
           </TouchableOpacity>
         </View>
 
-        {/* ── Ô tìm kiếm ── */}
         <View style={styles.searchWrap}>
           <Icon name="search" size={18} color="#64748B" />
           <TextInput
@@ -82,7 +77,6 @@ export default function BigPickerModal({
           )}
         </View>
 
-        {/* ── Danh sách ── */}
         <FlatList
           data={filtered}
           keyExtractor={(item) => String(item.value)}

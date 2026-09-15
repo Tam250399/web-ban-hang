@@ -19,7 +19,6 @@ const CATEGORY_ICONS = {
   'Sơn': 'palette',
 }
 
-// Tương đương ProductDetailModal trong TrangChu.jsx bên web.
 export default function ProductDetailModal({ visible, product, onClose, onAddToCart, hideAddToCart }) {
   if (!product) return null
 
@@ -31,11 +30,8 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      {/* Modal gốc của RN dựng cây view native riêng nên SafeAreaView bên trong
-          không tự lấy được inset đúng — phải bọc thêm SafeAreaProvider mới ở đây. */}
       <SafeAreaProvider>
         <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
-          {/* ── Header cố định ── */}
           <View style={styles.headerRow}>
             <Text style={styles.headerTitle}>Chi tiết sản phẩm</Text>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose} hitSlop={8} accessibilityLabel="Đóng">
@@ -43,7 +39,6 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
             </TouchableOpacity>
           </View>
 
-          {/* ── Nội dung cuộn ── */}
           <ScrollView contentContainerStyle={styles.body} showsVerticalScrollIndicator={false}>
             <View style={styles.imageWrap}>
               {product.imageUrl ? (
@@ -100,9 +95,6 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
             </View>
           </ScrollView>
 
-          {/* ── Nút CTA cố định dưới cùng ── */}
-          {/* Admin không mua hàng: thẻ sản phẩm đã ẩn nút thêm giỏ từ trước,
-              nhưng modal chi tiết thì bỏ sót nên vẫn đặt hàng được từ đây. */}
           <View style={styles.ctaRow}>
             {!hideAddToCart && (
               <TouchableOpacity
@@ -116,8 +108,6 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
                 </View>
               </TouchableOpacity>
             )}
-            {/* Còn một mình thì "Đóng" thành nút chính, không để một nút viền
-                trống trải chiếm hết chiều ngang. */}
             <TouchableOpacity
               style={hideAddToCart ? styles.addBtn : styles.closeCta}
               onPress={onClose}

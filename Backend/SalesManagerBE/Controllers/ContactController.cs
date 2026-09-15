@@ -15,13 +15,11 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         public ContactController(AppDbContext context) { _context = context; }
 
-        // Dùng cho trang chủ — chỉ đúng 1 thông tin liên hệ đang bật hiển thị
         [HttpGet("active")]
         [AllowAnonymous]
         public async Task<IActionResult> GetActive() =>
             Ok(await _context.ContactInfos.FirstOrDefaultAsync(c => c.IsActive));
 
-        // Dùng cho trang quản trị — lấy tất cả
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
             Ok(await _context.ContactInfos.OrderByDescending(c => c.IsActive).ThenBy(c => c.Id).ToListAsync());
@@ -68,8 +66,6 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xóa thông tin liên hệ." });
         }
 
-        // Chỉ tối đa 1 bản ghi được bật cùng lúc — tắt hết trước khi bật bản ghi mới
-        // (SaveChangesAsync của lệnh gọi sau sẽ lưu cùng lúc, coi như 1 transaction).
         private async Task DeactivateAllAsync()
         {
             var actives = await _context.ContactInfos.Where(c => c.IsActive).ToListAsync();

@@ -1,6 +1,5 @@
 import Svg, { Circle, Line, Path } from 'react-native-svg'
 
-// Chuyển thẳng từ EyeIcon/EyeOffIcon trong Login.jsx (web) sang react-native-svg.
 export function EyeIcon({ size = 18, color = '#5C5648' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -20,16 +19,8 @@ export function EyeOffIcon({ size = 18, color = '#5C5648' }) {
   )
 }
 
-// ── Icon điều hướng ─────────────────────────────────────────────────
-// Trước đây tab bar và header dùng emoji (🏠 📋 💬 🛒 👤 🔔). Emoji render khác
-// nhau giữa iOS/Android và từng phiên bản OS, không đổi màu theo trạng thái
-// active, và trình đọc màn hình đọc ra tên emoji thay vì chức năng. Bộ icon
-// dưới đây vẽ bằng đường nét nên nhận `color` từ tab bar và luôn giống nhau.
-//
-// Tất cả dùng chung viewBox 24x24 và nét 1.9 để cân thị giác khi đặt cạnh nhau.
 const STROKE = 1.9
 
-// Chỉ lo phần khung Svg; màu do từng icon truyền thẳng vào nét vẽ.
 function LineIcon({ size = 24, children }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

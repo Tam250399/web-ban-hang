@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 
-// Meatball menu (dấu ba chấm ngang) gộp các thao tác phụ ít dùng vào 1 nút,
-// tránh dàn hàng ngang nhiều nút trên list-header.
 function OverflowMenu({ items, label = 'Thêm thao tác' }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)

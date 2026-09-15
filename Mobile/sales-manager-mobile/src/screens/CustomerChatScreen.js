@@ -21,11 +21,6 @@ import { Icon } from '../components/ui/Icon'
 
 const BUBBLE_MAX_W = 280
 
-// ─── Message bubble ────────────────────────────────────────────────
-// Tách riêng + memo: danh sách chat dài, mỗi lần gõ một ký tự vào ô nhập là
-// màn hình render lại và trước đây kéo theo toàn bộ bong bóng đang hiển thị
-// (kể cả những cái có ảnh) render lại cùng. `showDate` được tính ở ngoài rồi
-// truyền vào dạng boolean để props vẫn là giá trị nguyên thuỷ, so sánh nông đủ dùng.
 const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const isMe = !message.fromAdmin
   return (
@@ -58,7 +53,6 @@ const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }
   )
 })
 
-// ─── Date separator ────────────────────────────────────────────────
 function DateSeparator({ date }) {
   return (
     <View style={s.dateSepRow}>
@@ -71,7 +65,6 @@ function DateSeparator({ date }) {
   )
 }
 
-// ─── Pending image preview ─────────────────────────────────────────
 function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
@@ -89,32 +82,23 @@ function PendingImageBar({ image, onRemove }) {
   )
 }
 
-// ────────────────────────────────────────────────────────────────────
-// Màn chat dành cho khách hàng — tương ứng ChatWidget.jsx bên web.
-// Khách hàng chỉ có 1 hội thoại duy nhất với shop (không có danh sách).
-// ────────────────────────────────────────────────────────────────────
 export default function CustomerChatScreen() {
   const { isGuest } = useAuth()
   const navigation = useNavigation()
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [input, setInput] = useState('')
-  const [pendingImage, setPendingImage] = useState(null) // { uri, fileName, mimeType, url, uploading }
+  const [pendingImage, setPendingImage] = useState(null)
   const [reconnecting, setReconnecting] = useState(false)
   const flatListRef = useRef(null)
   const requireOnline = useRequireOnline()
 
-  // ── Kết nối + load tin nhắn (Chỉ chạy khi ĐÃ ĐĂNG NHẬP) ──
   useEffect(() => {
     if (isGuest) return
     let cancelled = false
 
     const handleReceive = (msg) => {
       setMessages((prev) => {
-        // Server phát lại chính tin nhắn mình vừa gửi: thay bản tạm bằng bản
-        // thật (có id, thời gian chuẩn từ server) thay vì hiện thành hai dòng.
-        // Không có clientId trong payload nên đối chiếu theo nội dung — chỉ xét
-        // bản tạm đầu tiên còn treo, đủ dùng vì tin gửi đi được xử lý tuần tự.
         if (!msg.fromAdmin) {
           const idx = prev.findIndex(
             (m) => m.pending && m.content === (msg.content ?? null) && m.imageUrl === (msg.imageUrl ?? null)
@@ -145,25 +129,15 @@ export default function CustomerChatScreen() {
     }
   }, [isGuest])
 
-  // ── Auto scroll khi có tin nhắn mới ──
   useEffect(() => {
     if (messages.length > 0 && flatListRef.current) {
       setTimeout(() => flatListRef.current?.scrollToEnd?.({ animated: true }), 100)
     }
   }, [messages])
 
-  // ── Gửi tin nhắn ──
-  // Optimistic: bong bóng hiện ngay khi bấm gửi. Trước đây phải chờ trọn một
-  // vòng WebSocket mới thấy tin của chính mình, trên 3G cảm giác như app treo.
-  //
-  // Ba hàm dưới đây đặt trước nhánh `return` cho khách vì useCallback là hook —
-  // phải chạy ở mọi lần render, kể cả khi màn hình thoát sớm.
   const deliver = useCallback(async (tempId, content, imageUrl) => {
     try {
       await chatService.sendMessage(content, imageUrl)
-      // Không xoá bản tạm ở đây: handleReceive sẽ thay nó bằng bản thật từ
-      // server. Nếu vì lý do nào đó server không phát về, tin vẫn còn trên màn
-      // hình ở trạng thái "đang gửi" chứ không biến mất.
     } catch (err) {
       setMessages((prev) => prev.map((m) =>
         m.id === tempId ? { ...m, pending: false, failed: true } : m
@@ -172,7 +146,6 @@ export default function CustomerChatScreen() {
     }
   }, [])
 
-  // Gửi lại một tin đã lỗi: đưa về trạng thái "đang gửi" rồi thử lại.
   const handleRetry = useCallback((message) => {
     if (!requireOnline('Gửi lại tin nhắn')) return
     setMessages((prev) => prev.map((m) =>
@@ -187,7 +160,6 @@ export default function CustomerChatScreen() {
     return <MessageBubble message={item} showDate={showDate} onRetry={handleRetry} />
   }, [messages, handleRetry])
 
-  // ── Gợi ý đăng nhập nếu là Guest ──
   if (isGuest) {
     return (
       <SafeAreaView style={s.root} edges={['top']}>
@@ -240,7 +212,6 @@ export default function CustomerChatScreen() {
     deliver(tempId, content, imageUrl)
   }
 
-  // ── Chọn ảnh ──
   const handlePickImage = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -258,7 +229,6 @@ export default function CustomerChatScreen() {
         setPendingImage((prev) => prev?.uri === asset.uri ? null : prev)
       }
     } catch {
-      // permission denied or other error
     }
   }
 
@@ -266,7 +236,6 @@ export default function CustomerChatScreen() {
 
   return (
     <SafeAreaView style={s.root} edges={['top']}>
-      {/* ── Header ── */}
       <LinearGradient colors={['#C1440E', '#9B360B']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 0 }} style={s.header}>
         <View style={s.headerAvatar}>
           <Icon name="store" size={20} color={brand.white} />
@@ -284,10 +253,6 @@ export default function CustomerChatScreen() {
         </View>
       )}
 
-      {/* Màn này nằm trong Tab Navigator dạng PagerView (material-top-tabs) —
-          windowSoftInputMode=adjustResize của Android không tự resize được bên
-          trong PagerView như với màn hình Stack thường, nên phải tự đẩy layout
-          lên bằng behavior="height" thay vì để trống. */}
       <KeyboardAvoidingView style={s.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={0}>
         {loading ? (
           <View style={s.loaderWrap}>
@@ -318,10 +283,8 @@ export default function CustomerChatScreen() {
           />
         )}
 
-        {/* ── Pending image preview ── */}
         <PendingImageBar image={pendingImage} onRemove={removePendingImage} />
 
-        {/* ── Input row ── */}
         <View style={s.inputRow}>
           <TouchableOpacity style={s.attachBtn} onPress={handlePickImage} activeOpacity={0.7} hitSlop={6} accessibilityLabel="Đính kèm ảnh">
             <Icon name="paperclip" size={18} color={brand.textMuted} />
@@ -377,7 +340,6 @@ const s = StyleSheet.create({
   loaderWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   loaderText: { color: brand.textMuted, fontFamily: fonts.body, fontSize: 14, marginTop: 10 },
 
-  // ── Guest view ──
   guestWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32 },
   guestIcon: { marginBottom: 14 },
   guestTitle: { fontFamily: fonts.displayBold, fontSize: 22, color: brand.text, marginBottom: 8 },
@@ -404,7 +366,6 @@ const s = StyleSheet.create({
   bubbleTimeMe: { color: 'rgba(255,255,255,0.65)', fontFamily: fonts.body, fontSize: 12, marginTop: 4, textAlign: 'right' },
   bubbleTimeThem: { color: brand.textFaint, fontFamily: fonts.body, fontSize: 12, marginTop: 4, textAlign: 'right' },
 
-  // ── Date separator ──
   dateSepRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 14, paddingHorizontal: 8 },
   dateSepLine: { flex: 1, height: 1, backgroundColor: brand.cardBorder },
   dateSepPill: {
@@ -412,13 +373,11 @@ const s = StyleSheet.create({
   },
   dateSepText: { fontFamily: fonts.body, fontSize: 12.5, color: brand.textMuted },
 
-  // ── Empty state ──
   emptyWrap: { alignItems: 'center', marginTop: 80, paddingHorizontal: 40 },
   emptyIcon: { marginBottom: 12 },
   emptyTitle: { fontFamily: fonts.displayBold, fontSize: 20, color: brand.text, marginBottom: 6 },
   emptyText: { fontFamily: fonts.body, fontSize: 14.5, color: brand.textMuted, textAlign: 'center', lineHeight: 20 },
 
-  // ── Pending image bar ──
   pendingBar: {
     flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8,
     borderTopWidth: 1, borderTopColor: brand.cardBorder, backgroundColor: brand.card,
@@ -434,7 +393,6 @@ const s = StyleSheet.create({
   },
   pendingRemoveText: { color: '#fff', fontSize: 13, fontWeight: '700' },
 
-  // ── Input row ──
   inputRow: {
     flexDirection: 'row', alignItems: 'flex-end', gap: 8,
     paddingHorizontal: 10, paddingVertical: 8,

@@ -2,9 +2,6 @@ import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
-// Input tiền VNĐ: hiển thị số đã format dấu chấm ngăn cách hàng nghìn + hậu tố
-// "đ", nhưng vẫn phát ra onChangeValue với chuỗi số thô (không dấu chấm) —
-// tương đương MoneyInput.jsx bên web.
 export default function MoneyField({ value, onChangeValue, style, inputStyle, ...rest }) {
   const display = value === '' || value === null || value === undefined
     ? ''

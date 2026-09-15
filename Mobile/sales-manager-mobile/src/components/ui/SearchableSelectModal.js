@@ -4,8 +4,6 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
-// Modal chọn 1 giá trị có tìm kiếm — tương đương SearchableSelect.jsx bên web,
-// dùng cho picker khách hàng/sản phẩm trong các form kho.
 export default function SearchableSelectModal({
   visible,
   onClose,
@@ -30,8 +28,6 @@ export default function SearchableSelectModal({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      {/* Modal gốc của RN dựng cây view native riêng nên SafeAreaView bên trong
-          không tự lấy được inset đúng — phải bọc thêm SafeAreaProvider mới ở đây. */}
       <SafeAreaProvider>
       <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
         <View style={styles.header}>

@@ -6,9 +6,6 @@ const STORAGE_KEY = 'salesManagerCart'
 
 export function CartProvider({ children }) {
   const [items, setItems] = useState([])
-  // AsyncStorage đọc bất đồng bộ nên không thể nạp state khởi tạo ngay như
-  // localStorage bên web; cờ này tránh ghi đè STORAGE_KEY bằng mảng rỗng
-  // trước khi dữ liệu đã lưu kịp nạp xong.
   const hasLoaded = useRef(false)
 
   useEffect(() => {
@@ -23,9 +20,6 @@ export function CartProvider({ children }) {
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(items)).catch(() => {})
   }, [items])
 
-  // Các hàm dưới đây phải giữ nguyên tham chiếu giữa các lần render: chúng được
-  // truyền xuống ProductCard (đã memo) và dùng làm dependency của useCallback ở
-  // ProductCatalog — tạo mới mỗi render là memo mất tác dụng hoàn toàn.
   const addItem = useCallback((product, quantity = 1) => {
     const maxStock = product.stockQuantity ?? Infinity
     setItems(prev => {
@@ -61,8 +55,6 @@ export function CartProvider({ children }) {
     totalPrice: items.reduce((sum, i) => sum + i.quantity * i.price, 0),
   }), [items])
 
-  // Object literal đặt thẳng vào value sẽ là tham chiếu mới ở mỗi lần render,
-  // khiến mọi màn hình dùng useCart() render lại dù giỏ hàng không đổi gì.
   const value = useMemo(
     () => ({ items, addItem, updateQuantity, removeItem, clear, totalCount, totalPrice }),
     [items, addItem, updateQuantity, removeItem, clear, totalCount, totalPrice]

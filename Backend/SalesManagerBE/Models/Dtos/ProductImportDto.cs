@@ -10,7 +10,7 @@ namespace SalesManagerBE.Models.Dtos
         public decimal Price { get; set; }
         public decimal StockQuantity { get; set; }
         public string? Description { get; set; }
-        // "New" | "Duplicate" | "Invalid"
+
         public string Status { get; set; } = "New";
         public string? Message { get; set; }
     }
@@ -24,7 +24,7 @@ namespace SalesManagerBE.Models.Dtos
         public decimal Price { get; set; }
         public decimal StockQuantity { get; set; }
         public string? Description { get; set; }
-        // true = cập nhật đè lên sản phẩm đã tồn tại cùng mã
+
         public bool Overwrite { get; set; }
     }
 

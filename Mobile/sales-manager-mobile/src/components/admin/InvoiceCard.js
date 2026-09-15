@@ -4,7 +4,6 @@ import { fonts } from '../../theme/fonts'
 import { formatVnd, formatDDMMYYYY } from '../../utils/format'
 import { Icon } from '../ui/Icon'
 
-// Bảng màu tương phản cao, đồng bộ với màn tạo phiếu bán hàng.
 const C = {
   card: '#FFFFFF',
   border: '#E2E8F0',
@@ -21,18 +20,11 @@ const C = {
   manualBg: '#F1F5F9',
 }
 
-// Thẻ phiếu bán hàng cỡ lớn: tên khách 20px, tổng tiền 26px,
-// hai nút thao tác cao 56px kèm nhãn chữ rõ ràng.
-//
-// Nhận thẳng bản ghi thô từ API thay vì một object "view model" dựng sẵn ở phía
-// gọi: object literal dựng trong renderItem là tham chiếu mới ở mỗi lần render,
-// nên memo() sẽ không bao giờ khớp và mọi thẻ đều render lại.
 function InvoiceCard({ invoice, onEdit, onDelete }) {
   const isOnline = !!invoice.fromOrderId
   const sourceLabel = isOnline ? `Từ đơn hàng #${invoice.fromOrderId}` : 'Tự tạo tại quầy'
   return (
     <View style={styles.card}>
-      {/* ── Tên khách hàng ── */}
       <View style={styles.topRow}>
         <Icon name="user" size={19} color={C.textSoft} />
         <Text style={styles.customer} numberOfLines={2}>{invoice.customerName}</Text>
@@ -49,7 +41,6 @@ function InvoiceCard({ invoice, onEdit, onDelete }) {
         </Text>
       </View>
 
-      {/* ── Thông tin phiếu ── */}
       <View style={styles.infoBlock}>
         <View style={styles.infoRow}>
           <Text style={styles.infoLabel}>Ngày bán</Text>
@@ -61,13 +52,11 @@ function InvoiceCard({ invoice, onEdit, onDelete }) {
         </View>
       </View>
 
-      {/* ── Tổng tiền ── */}
       <View style={styles.totalRow}>
         <Text style={styles.totalLabel}>Tổng tiền</Text>
         <Text style={styles.totalValue}>{formatVnd(invoice.total)}đ</Text>
       </View>
 
-      {/* ── Thao tác ── */}
       <View style={styles.actions}>
         <TouchableOpacity
           style={styles.editBtn}

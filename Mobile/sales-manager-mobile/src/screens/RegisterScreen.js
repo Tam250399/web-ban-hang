@@ -19,7 +19,6 @@ const EMPTY_FORM = {
   fullName: '', email: '', phoneNumber: '',
 }
 
-// ── Thanh độ mạnh mật khẩu ──
 function PasswordStrengthBar({ password }) {
   const strength = getPasswordStrength(password)
   if (!password) return null
@@ -46,8 +45,6 @@ export default function RegisterScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [submitting, setSubmitting] = useState(false)
-  // Chỉ hiện lỗi của ô nào người dùng đã rời khỏi hoặc đã bấm gửi một lần —
-  // bật lỗi ngay từ ký tự đầu tiên thì ô nào cũng đỏ trong lúc còn đang gõ dở.
   const [touched, setTouched] = useState({})
   const requireOnline = useRequireOnline()
 
@@ -74,7 +71,6 @@ export default function RegisterScreen({ navigation }) {
   const firstError = Object.values(errors).find(Boolean)
 
   const handleSubmit = async () => {
-    // Bấm gửi thì hiện hết lỗi đang có, kể cả ô chưa chạm tới.
     setTouched({
       username: true, password: true, confirmPassword: true,
       fullName: true, email: true, phoneNumber: true,
@@ -88,7 +84,6 @@ export default function RegisterScreen({ navigation }) {
     setMessage({ type: '', text: '' })
     setSubmitting(true)
     try {
-      // confirmPassword chỉ để đối chiếu ở client, backend không nhận field này.
       const { confirmPassword, ...payload } = form
       const data = await authService.register({
         ...payload,

@@ -12,14 +12,12 @@ namespace SalesManagerBE.Controllers
         private readonly IMinioService _minio;
         private const string Bucket = "products";
 
-        // Chữ ký (magic bytes) đầu file — Content-Type do client khai báo có thể bị giả mạo,
-        // nên phải tự kiểm tra byte thật của file trước khi coi nó là ảnh hợp lệ.
         private static readonly (string ContentType, string Extension, byte[][] Signatures)[] AllowedImageSignatures =
         {
             ("image/jpeg", ".jpg", new[] { new byte[] { 0xFF, 0xD8, 0xFF } }),
             ("image/png",  ".png", new[] { new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A } }),
             ("image/gif",  ".gif", new[] { new byte[] { 0x47, 0x49, 0x46, 0x38, 0x37, 0x61 }, new byte[] { 0x47, 0x49, 0x46, 0x38, 0x39, 0x61 } }),
-            // WEBP: "RIFF" + 4 byte kích thước + "WEBP" — kiểm tra riêng bên dưới vì có khoảng trống ở giữa.
+
         };
 
         public UploadController(IMinioService minio) { _minio = minio; }
@@ -63,7 +61,6 @@ namespace SalesManagerBE.Controllers
                 }
             }
 
-            // WEBP: byte 0-3 "RIFF", byte 8-11 "WEBP"
             if (length >= 12 &&
                 header[0] == 'R' && header[1] == 'I' && header[2] == 'F' && header[3] == 'F' &&
                 header[8] == 'W' && header[9] == 'E' && header[10] == 'B' && header[11] == 'P')

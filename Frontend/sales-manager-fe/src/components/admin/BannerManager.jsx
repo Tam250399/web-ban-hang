@@ -62,8 +62,6 @@ function BannerModal({ banner, onClose, onSaved }) {
   }
 
   return (
-    // Không đóng khi bấm ra ngoài: form thêm/sửa banner (có upload ảnh) rất dễ bị tắt nhầm
-    // khi đang thao tác, chỉ đóng qua nút ✕ hoặc sau khi lưu thành công.
     <div className="modal-overlay">
       <div className="modal-box" onClick={e => e.stopPropagation()}>
         <div className="modal-header">

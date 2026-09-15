@@ -28,9 +28,6 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
     categoryService.getProductNames().then(setProductNames).catch(() => {})
   }, [])
 
-  // Đây là giá trị SUY RA từ productNames + categoryId, không phải state cần
-  // đồng bộ với hệ thống bên ngoài. Trước đây tính trong useEffect rồi setState
-  // nên mỗi lần đổi danh mục phải render hai lượt (eslint: set-state-in-effect).
   const filteredNames = useMemo(() => {
     if (!form.categoryId) return productNames
     return productNames.filter(n => n.categoryId === +form.categoryId)
@@ -97,7 +94,6 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
         <form onSubmit={handleSubmit}>
           <div className="edit-modal-body">
 
-            {/* Cột trái — ảnh */}
             <div className="edit-modal-image">
               <p className="form-field-label">Hình ảnh sản phẩm</p>
               {imagePreview ? (
@@ -125,7 +121,6 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
               )}
             </div>
 
-            {/* Cột phải — thông tin */}
             <div className="edit-modal-fields">
               <div className="form-row">
                 <label className="form-field">

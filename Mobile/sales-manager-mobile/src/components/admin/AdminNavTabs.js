@@ -58,8 +58,6 @@ export default function AdminNavTabs({ active, onChange }) {
 }
 
 const styles = StyleSheet.create({
-  // Chỉ định chiều cao cố định: ScrollView ngang không tự co theo nội dung khi
-  // nằm trong flex column, nếu không sẽ giãn hết phần không gian còn lại.
   wrap: { backgroundColor: admin.dark, height: 54, flexGrow: 0, flexShrink: 0 },
   content: { gap: 8, paddingHorizontal: 12, paddingVertical: 9 },
   pill: {

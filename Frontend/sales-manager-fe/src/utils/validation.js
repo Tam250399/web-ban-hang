@@ -1,28 +1,12 @@
-// Kiểm tra dữ liệu nhập phía client.
-//
-// Lưu ý: backend chỉ kiểm tra Username/Password khác rỗng
-// (Backend/SalesManagerBE/Services/AuthService.cs), nên những quy tắc dưới đây
-// là hàng rào duy nhất.
-//
-// File này là bản sao của Mobile/sales-manager-mobile/src/utils/validation.js —
-// hai nền tảng dùng chung một backend nên chính sách mật khẩu phải khớp nhau.
-// Sửa một bên thì nhớ sửa bên kia. Chúng bảo vệ người dùng khỏi tự đặt mật khẩu quá yếu,
-// chứ không thay được việc siết ở server — ai gọi thẳng API vẫn lách được.
 
 export const PASSWORD_MIN_LENGTH = 8
 
-// Mật khẩu hay gặp trong các đợt lộ dữ liệu, cộng vài biến thể kiểu Việt Nam.
-// Danh sách ngắn và cố ý thế: bắt đúng những lựa chọn tệ nhất mà không biến ô
-// mật khẩu thành câu đố.
 const COMMON_PASSWORDS = new Set([
   '12345678', '123456789', '1234567890', 'password', 'password1', 'passw0rd',
   'qwertyui', 'qwerty123', 'abc12345', '11111111', '00000000', 'iloveyou',
   'matkhau1', 'vietnam1', 'admin123', 'adminadmin', '87654321', 'letmein1',
 ])
 
-/**
- * @returns {string} chuỗi rỗng nếu hợp lệ, ngược lại là thông báo lỗi tiếng Việt.
- */
 export function validatePassword(password) {
   if (!password) return 'Vui lòng nhập mật khẩu'
   if (password.length < PASSWORD_MIN_LENGTH) {
@@ -37,11 +21,6 @@ export function validatePassword(password) {
   return ''
 }
 
-/**
- * Đánh giá độ mạnh để hiện thanh gợi ý — chỉ là phản hồi trực quan, việc chặn
- * hay không vẫn do validatePassword quyết định.
- * @returns {{ level: 0|1|2|3, label: string, color: string }}
- */
 export function getPasswordStrength(password) {
   if (!password) return { level: 0, label: '', color: '#CBD5E1' }
 
@@ -78,7 +57,6 @@ export function validateFullName(fullName) {
   return ''
 }
 
-/** Email là tuỳ chọn — chỉ kiểm định dạng khi người dùng có nhập. */
 export function validateEmail(email) {
   const value = (email || '').trim()
   if (!value) return ''
@@ -86,7 +64,6 @@ export function validateEmail(email) {
   return ''
 }
 
-/** Số điện thoại cũng là tuỳ chọn; chấp nhận cả dạng +84 lẫn 0xxx. */
 export function validatePhoneNumber(phoneNumber) {
   const value = (phoneNumber || '').trim()
   if (!value) return ''

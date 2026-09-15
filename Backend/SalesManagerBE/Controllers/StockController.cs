@@ -77,7 +77,6 @@ namespace SalesManagerBE.Controllers
             var newProduct = await _context.Products.FindAsync(dto.ProductId);
             if (newProduct == null) return NotFound(new { message = "Sản phẩm không tồn tại." });
 
-            // Hoàn tác ảnh hưởng tồn kho của giao dịch cũ trước khi áp dụng giá trị mới.
             var oldProduct = transaction.ProductId == dto.ProductId
                 ? newProduct
                 : await _context.Products.FindAsync(transaction.ProductId);

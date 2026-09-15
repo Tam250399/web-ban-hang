@@ -9,10 +9,6 @@ import { Icon } from '../ui/Icon'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
-// Mỗi ô trong lưới sản phẩm dựng ảnh + nhiều Text; không memo thì đổi bất kỳ
-// state nào ở ProductCatalog (gõ tìm kiếm, bấm Xem thêm) cũng render lại toàn
-// bộ ô đang hiển thị. Props đều là giá trị nguyên thuỷ/tham chiếu ổn định nên
-// so sánh nông là đủ.
 function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(product)} activeOpacity={0.9}>

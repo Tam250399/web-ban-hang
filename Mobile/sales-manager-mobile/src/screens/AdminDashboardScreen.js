@@ -28,7 +28,6 @@ export default function AdminDashboardScreen({ navigation, route }) {
   const pagerRef = useRef(null)
   const isProgrammaticScroll = useRef(false)
 
-  // Đảm bảo tab hiện tại luôn được đánh dấu là đã load
   useEffect(() => {
     setLoadedTabs((prev) => {
       if (prev.has(navTab)) return prev
@@ -36,7 +35,6 @@ export default function AdminDashboardScreen({ navigation, route }) {
     })
   }, [navTab])
 
-  // Chuyển tab khi có tham số initialTab từ ngoài truyền vào
   useEffect(() => {
     if (route?.params?.initialTab) {
       handleTabChange(route.params.initialTab)
@@ -62,7 +60,6 @@ export default function AdminDashboardScreen({ navigation, route }) {
     }
   }, [containerWidth])
 
-  // Xử lý khi người dùng lướt ngang xong
   const handleScrollEnd = useCallback((e) => {
     if (isProgrammaticScroll.current) return
     const offsetX = e.nativeEvent.contentOffset.x
@@ -94,7 +91,6 @@ export default function AdminDashboardScreen({ navigation, route }) {
       <AdminHeader />
       <AdminNavTabs active={navTab} onChange={handleTabChange} />
 
-      {/* ── ScrollView cuộn ngang phân trang (cho phép lướt trái / phải chuyển tab) ── */}
       <ScrollView
         ref={pagerRef}
         horizontal

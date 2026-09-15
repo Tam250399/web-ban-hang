@@ -45,7 +45,6 @@ namespace SalesManagerBE.Services
             var lastRow = TemplateDataRows + 1;
             var codes = products.Select(p => p.ProductCode).Distinct().OrderBy(c => c).ToList();
 
-            // Sheet ẩn chứa danh sách mã sản phẩm hợp lệ cho dropdown ở cột Mã sản phẩm.
             var listSheet = workbook.Worksheets.Add("Lists");
             for (int i = 0; i < codes.Count; i++) listSheet.Cell(i + 1, 1).Value = codes[i];
             listSheet.Visibility = XLWorksheetVisibility.VeryHidden;
@@ -59,7 +58,6 @@ namespace SalesManagerBE.Services
                 dv.InCellDropdown = true;
             }
 
-            // Sheet tham khảo: mã + tên + tồn hiện tại để người nhập tra cứu nhanh.
             var refSheet = workbook.Worksheets.Add("Danh sách sản phẩm");
             refSheet.Cell(1, 1).Value = "Mã sản phẩm";
             refSheet.Cell(1, 2).Value = "Tên sản phẩm";

@@ -1,6 +1,6 @@
 namespace SalesManagerBE.Models
 {
-    // Mỗi khách hàng có đúng một hội thoại với shop (phía admin trả lời chung).
+
     public class Conversation
     {
         public int Id { get; set; }
