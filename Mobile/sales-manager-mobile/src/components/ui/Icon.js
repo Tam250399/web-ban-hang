@@ -58,6 +58,9 @@ const PATHS = {
 
 export const ICON_ROW = { flexDirection: 'row', alignItems: 'center', gap: 7 }
 
+/**
+ * Component hiển thị icon SVG biểu tượng
+ */
 export function Icon({ name, size = 18, color = brand.text, label }) {
   const d = PATHS[name]
   if (!d) return null

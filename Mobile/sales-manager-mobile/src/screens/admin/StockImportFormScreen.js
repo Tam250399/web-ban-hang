@@ -11,6 +11,9 @@ import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { Icon, ICON_ROW } from '../../components/ui/Icon'
 
+/**
+ * Màn hình lập phiếu nhập kho sản phẩm
+ */
 export default function StockImportFormScreen({ navigation, route }) {
   const transactionId = route.params?.transactionId
   const isEdit = !!transactionId

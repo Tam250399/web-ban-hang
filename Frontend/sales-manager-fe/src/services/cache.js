@@ -6,6 +6,9 @@ export const CACHE_KEYS = {
   myOrders: 'myOrders',
 }
 
+/**
+ * Đọc dữ liệu đã lưu trong localStorage theo khóa
+ */
 export function readCache(key) {
   try {
     const raw = localStorage.getItem(PREFIX + key)
@@ -18,6 +21,9 @@ export function readCache(key) {
   }
 }
 
+/**
+ * Lưu dữ liệu mới vào localStorage kèm mốc thời gian ghi nhận
+ */
 export function writeCache(key, data) {
   try {
     localStorage.setItem(PREFIX + key, JSON.stringify({ data, cachedAt: Date.now() }))
@@ -25,6 +31,9 @@ export function writeCache(key, data) {
   }
 }
 
+/**
+ * Hàm clearAllCache: thực thi chức năng xử lý của module
+ */
 export function clearAllCache() {
   try {
     Object.keys(localStorage)
@@ -34,6 +43,9 @@ export function clearAllCache() {
   }
 }
 
+/**
+ * Định dạng thời gian đã lưu cache sang chuỗi hiển thị thân thiện
+ */
 export function formatCacheAge(cachedAt) {
   if (!cachedAt) return ''
   const minutes = Math.floor((Date.now() - cachedAt) / 60000)

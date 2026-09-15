@@ -5,14 +5,23 @@ import { uploadImage } from '../../services/uploadService'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from '../common/Icon'
 
+/**
+ * Hàm formatTime: thực thi chức năng xử lý của module
+ */
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }
 
+/**
+ * Hàm formatDay: thực thi chức năng xử lý của module
+ */
 function formatDay(iso) {
   return new Date(iso).toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit' })
 }
 
+/**
+ * Phân hệ hỗ trợ khách hàng qua tin nhắn trực tuyến SignalR thời gian thực
+ */
 function ChatManager({ conversations, setConversations, activeId, setActiveId }) {
   const [search, setSearch] = useState('')
   const [messages, setMessages] = useState([])

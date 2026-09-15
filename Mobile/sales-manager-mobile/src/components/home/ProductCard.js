@@ -9,6 +9,9 @@ import { Icon } from '../ui/Icon'
 
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
+/**
+ * Thẻ hiển thị thông tin tóm tắt và giá của một sản phẩm
+ */
 function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
   return (
     <TouchableOpacity style={styles.card} onPress={() => onPress?.(product)} activeOpacity={0.9}>

@@ -6,10 +6,16 @@ import { useRequireOnline } from '../../hooks/useRequireOnline'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from './Icon'
 
+/**
+ * Hàm formatTime: thực thi chức năng xử lý của module
+ */
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }
 
+/**
+ * Nút bấm và khung chat nổi hỗ trợ trực tuyến
+ */
 function ChatWidget({ user }) {
   const requireOnline = useRequireOnline()
   const [open, setOpen] = useState(false)

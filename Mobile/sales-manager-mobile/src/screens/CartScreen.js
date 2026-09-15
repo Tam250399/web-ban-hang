@@ -13,6 +13,9 @@ import { fonts } from '../theme/fonts'
 import { formatVnd } from '../utils/format'
 import { Icon, ICON_ROW } from '../components/ui/Icon'
 
+/**
+ * Component QtyControl
+ */
 function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {
   const [localText, setLocalText] = useState(String(quantity))
 
@@ -88,6 +91,9 @@ function QtyControl({ quantity, maxStock, onChangeQty, compact = false }) {
   )
 }
 
+/**
+ * Màn hình giỏ hàng và đặt hàng trên di động
+ */
 export default function CartScreen() {
   const navigation = useNavigation()
   const { items, updateQuantity, removeItem, clear, totalPrice } = useCart()

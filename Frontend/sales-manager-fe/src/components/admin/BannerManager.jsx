@@ -8,6 +8,9 @@ import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { title: '', description: '', imageUrl: '', displayOrder: 0, isActive: true }
 
+/**
+ * Component BannerModal
+ */
 function BannerModal({ banner, onClose, onSaved }) {
   const isEdit = !!banner
   const [form, setForm] = useState(banner ? {
@@ -133,6 +136,9 @@ function BannerModal({ banner, onClose, onSaved }) {
   )
 }
 
+/**
+ * Component quản lý danh sách banner quảng cáo
+ */
 function BannerManager() {
   const [banners, setBanners] = useState([])
   const [search, setSearch] = useState('')

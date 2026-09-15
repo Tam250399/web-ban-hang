@@ -5,6 +5,9 @@ import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 import { Icon } from '../common/Icon'
 
+/**
+ * Component PermissionTable
+ */
 function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) {
   const [savingId, setSavingId] = useState(null)
   const [deleting, setDeleting] = useState(null)
@@ -133,6 +136,9 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
   )
 }
 
+/**
+ * Component EyeIcon
+ */
 function EyeIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -142,6 +148,9 @@ function EyeIcon() {
   )
 }
 
+/**
+ * Component EyeOffIcon
+ */
 function EyeOffIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -152,6 +161,9 @@ function EyeOffIcon() {
   )
 }
 
+/**
+ * Component UserFormModal
+ */
 function UserFormModal({ user, roles, onSave, onClose }) {
   const isEdit = !!user
   const emptyForm = { username: '', password: 'Abc@123', fullName: '', email: '', phoneNumber: '' }
@@ -280,6 +292,9 @@ function UserFormModal({ user, roles, onSave, onClose }) {
   )
 }
 
+/**
+ * Component RegisterUserForm
+ */
 function RegisterUserForm({ users, roles, currentUser, onCreate, onUpdate, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [editUser, setEditUser] = useState(null)
@@ -424,6 +439,9 @@ const SUB_TABS = [
   { key: 'register',    label: <><Icon name="plus" /> Đăng ký user</> },
 ]
 
+/**
+ * Component quản lý cài đặt hệ thống
+ */
 function SystemManager({ currentUser }) {
   const [sub, setSub] = useState('permissions')
   const [users, setUsers] = useState([])

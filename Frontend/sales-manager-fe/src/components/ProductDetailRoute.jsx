@@ -3,8 +3,14 @@ import ProductDetailModal from './ProductDetailModal'
 import PageMeta from './common/PageMeta'
 import { PATHS } from '../routes/paths'
 
+/**
+ * Hàm formatVnd: thực thi chức năng xử lý của module
+ */
 const formatVnd = (value) => Number(value ?? 0).toLocaleString('vi-VN')
 
+/**
+ * Component ProductDetailRoute
+ */
 function ProductDetailRoute() {
   const { productId } = useParams()
   const navigate = useNavigate()

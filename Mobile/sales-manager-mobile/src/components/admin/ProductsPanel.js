@@ -9,6 +9,9 @@ import { formatVnd } from '../../utils/format'
 
 const PAGE_SIZE = 15
 
+/**
+ * Component ProductsPanel
+ */
 export default function ProductsPanel() {
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)

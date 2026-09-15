@@ -17,7 +17,10 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         private readonly IExcelExportService _excelExportService;
 
-                private async Task<string> GetPreparedByNameAsync()
+                /// <summary>
+        /// Lấy tên người lập phiếu bán hàng từ tài khoản đang đăng nhập
+        /// </summary>
+        private async Task<string> GetPreparedByNameAsync()
         {
             var userId = User.GetUserId();
             if (userId is null) return User.GetUsername() ?? "";
@@ -39,6 +42,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet]
+        /// <summary>
+        /// Lấy danh sách toàn bộ các phiếu bán hàng
+        /// </summary>
         public async Task<IActionResult> GetAll()
         {
             var invoices = await _context.SalesInvoices
@@ -60,6 +66,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("{id:int}")]
+        /// <summary>
+        /// Lấy chi tiết phiếu bán hàng và danh sách hàng hóa theo ID
+        /// </summary>
         public async Task<IActionResult> GetById(int id)
         {
             var invoice = await _context.SalesInvoices
@@ -70,6 +79,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost]
+        /// <summary>
+        /// Tạo mới phiếu bán hàng, trừ tồn kho và ghi nhận lịch sử xuất kho
+        /// </summary>
         public async Task<IActionResult> Create([FromBody] CreateSalesInvoiceDto dto)
         {
             if (dto.CustomerId <= 0)
@@ -133,6 +145,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPut("{id:int}")]
+        /// <summary>
+        /// Cập nhật thông tin phiếu bán hàng và điều chỉnh lại số lượng tồn kho
+        /// </summary>
         public async Task<IActionResult> Update(int id, [FromBody] CreateSalesInvoiceDto dto)
         {
             if (dto.CustomerId <= 0)
@@ -211,6 +226,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        /// <summary>
+        /// Xóa phiếu bán hàng và hoàn lại số lượng tồn kho cho các sản phẩm
+        /// </summary>
         public async Task<IActionResult> Delete(int id)
         {
             var invoice = await _context.SalesInvoices

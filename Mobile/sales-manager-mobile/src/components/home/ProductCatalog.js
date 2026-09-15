@@ -18,6 +18,9 @@ import { fonts } from '../../theme/fonts'
 const ALL_CATEGORY = 'Tất cả'
 const PAGE_SIZE = 8
 
+/**
+ * Component ProductCatalog
+ */
 export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderComponent, refreshing, onRefresh }) {
   const { addItem } = useCart()
   const { user } = useAuth()

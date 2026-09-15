@@ -2,6 +2,9 @@ import { StyleSheet, Text, TouchableOpacity } from 'react-native'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component PickerField
+ */
 export default function PickerField({ label, placeholder, onPress, style, textStyle }) {
   return (
     <TouchableOpacity style={[styles.box, style]} onPress={onPress} activeOpacity={0.7}>

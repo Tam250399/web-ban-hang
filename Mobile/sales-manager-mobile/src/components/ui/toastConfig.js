@@ -2,6 +2,9 @@ import { StyleSheet, Text, View } from 'react-native'
 import Svg, { Circle, Path } from 'react-native-svg'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component SuccessIcon
+ */
 function SuccessIcon() {
   return (
     <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
@@ -10,6 +13,9 @@ function SuccessIcon() {
   )
 }
 
+/**
+ * Component ErrorIcon
+ */
 function ErrorIcon() {
   return (
     <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
@@ -18,6 +24,9 @@ function ErrorIcon() {
   )
 }
 
+/**
+ * Component InfoIcon
+ */
 function InfoIcon() {
   return (
     <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">

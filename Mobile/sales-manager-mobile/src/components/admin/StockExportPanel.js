@@ -33,6 +33,9 @@ const RANGES = [
   { key: 'week', label: '7 ngày qua' },
 ]
 
+/**
+ * Hàm sectionTitle: thực thi chức năng xử lý của module
+ */
 function sectionTitle(date) {
   const d = startOfDay(date)
   const today = startOfDay(new Date())
@@ -42,6 +45,9 @@ function sectionTitle(date) {
   return `${WEEKDAYS[d.getDay()]}, ${formatDDMMYYYY(d)}`.toUpperCase()
 }
 
+/**
+ * Component StockExportPanel
+ */
 export default function StockExportPanel() {
   const navigation = useNavigation()
   const [invoices, setInvoices] = useState([])

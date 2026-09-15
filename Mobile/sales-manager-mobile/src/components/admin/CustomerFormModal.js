@@ -9,6 +9,9 @@ import { Icon, ICON_ROW } from '../ui/Icon'
 
 const EMPTY_FORM = { fullName: '', phoneNumber: '', address: '', isBusiness: false }
 
+/**
+ * Component CustomerFormModal
+ */
 export default function CustomerFormModal({ visible, customer, onClose, onSaved }) {
   const isEdit = !!customer
   const [form, setForm] = useState(EMPTY_FORM)

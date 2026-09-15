@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { NetworkContext } from './network-context'
 
+/**
+ * Provider theo dõi trạng thái kết nối mạng trực tuyến/ngoại tuyến của trình duyệt
+ */
 export function NetworkProvider({ children }) {
   const [isOnline, setIsOnline] = useState(() => navigator.onLine !== false)
 

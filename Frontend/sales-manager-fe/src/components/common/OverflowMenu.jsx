@@ -1,5 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 
+/**
+ * Menu tùy chọn ba chấm thu gọn
+ */
 function OverflowMenu({ items, label = 'Thêm thao tác' }) {
   const [open, setOpen] = useState(false)
   const rootRef = useRef(null)

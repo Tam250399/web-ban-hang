@@ -7,6 +7,9 @@ import { fonts } from '../../theme/fonts'
 import { formatVnd } from '../../utils/format'
 import { Icon } from '../ui/Icon'
 
+/**
+ * Hàm formatMoney: thực thi chức năng xử lý của module
+ */
 const formatMoney = (value) => `${formatVnd(value)}đ`
 
 const STAT_CARDS = [
@@ -17,6 +20,9 @@ const STAT_CARDS = [
   { key: 'lowStockCount', icon: 'alert', label: 'Sản phẩm sắp hết', color: '#C1440E', format: (v) => v ?? 0 },
 ]
 
+/**
+ * Component StatisticsPanel
+ */
 export default function StatisticsPanel() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)

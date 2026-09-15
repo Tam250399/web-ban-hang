@@ -12,6 +12,9 @@ const EMPTY_FORM = {
   price: '', stockQuantity: '', description: '', imageUrl: ''
 }
 
+/**
+ * Component form thêm mới hoặc chỉnh sửa thông tin sản phẩm
+ */
 function AddProduct({ onRefresh, onSuccess, onClose }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [categories, setCategories] = useState([])

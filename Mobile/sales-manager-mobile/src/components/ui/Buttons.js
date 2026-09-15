@@ -2,6 +2,9 @@ import { ActivityIndicator, StyleSheet, Text, TouchableOpacity } from 'react-nat
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component PrimaryButton
+ */
 export function PrimaryButton({ title, onPress, loading, disabled, style }) {
   return (
     <TouchableOpacity
@@ -15,6 +18,9 @@ export function PrimaryButton({ title, onPress, loading, disabled, style }) {
   )
 }
 
+/**
+ * Component OutlineButton
+ */
 export function OutlineButton({ title, onPress, style, textStyle, dark }) {
   return (
     <TouchableOpacity

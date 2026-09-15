@@ -123,6 +123,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("import-template")]
+        /// <summary>
+        /// Tải về file mẫu Excel để nhập kho hàng loạt
+        /// </summary>
         public async Task<IActionResult> ImportTemplate()
         {
             var products = await _context.Products.OrderBy(p => p.ProductCode).ToListAsync();
@@ -131,6 +134,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost("import/preview")]
+        /// <summary>
+        /// Xem trước và kiểm tra file Excel nhập kho hàng loạt
+        /// </summary>
         public async Task<IActionResult> ImportPreview(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -187,6 +193,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost("import/commit")]
+        /// <summary>
+        /// Xác nhận lưu các dòng nhập kho từ file Excel vào hệ thống
+        /// </summary>
         public async Task<IActionResult> ImportCommit([FromBody] StockImportCommitDto dto)
         {
             if (dto.Rows == null || dto.Rows.Count == 0)

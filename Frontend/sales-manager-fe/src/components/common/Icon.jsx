@@ -59,6 +59,9 @@ const P = {
   inbox:     <path d="M3 13h5l1.5 3h5l1.5-3h5 M3 13 5.5 5h13L21 13v7H3v-7Z" />,
 }
 
+/**
+ * Component hiển thị icon SVG biểu tượng
+ */
 export function Icon({ name, size = 18, title, className = '', style }) {
   const path = P[name]
   if (!path) return null

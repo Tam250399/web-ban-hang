@@ -9,6 +9,9 @@ import { AuthContext } from './auth-context'
 const GUEST_USER = { username: 'guest', fullName: 'Khách' }
 const USER_STORAGE_KEY = 'salesManagerUser'
 
+/**
+ * Provider quản lý trạng thái đăng nhập, thông tin tài khoản và quyền của người dùng
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(GUEST_USER)
 

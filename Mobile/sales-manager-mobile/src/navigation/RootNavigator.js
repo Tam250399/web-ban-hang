@@ -10,6 +10,9 @@ import StockImportFormScreen from '../screens/admin/StockImportFormScreen'
 
 const Stack = createNativeStackNavigator()
 
+/**
+ * Component RootNavigator
+ */
 export default function RootNavigator() {
   return (
     <NavigationContainer>

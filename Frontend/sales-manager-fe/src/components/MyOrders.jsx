@@ -15,6 +15,9 @@ import { Icon } from './common/Icon'
 const STATUS_LABEL = { Pending: 'Chờ xác nhận', Confirmed: 'Đã xác nhận', Cancelled: 'Đã huỷ' }
 const STATUS_CLASS = { Pending: 'pending', Confirmed: 'confirmed', Cancelled: 'cancelled' }
 
+/**
+ * Màn hình quản lý lịch sử đơn đặt hàng của khách hàng (xem trạng thái, hủy đơn, đặt lại đơn)
+ */
 function MyOrders() {
   const requireOnline = useRequireOnline()
   const [cancellingId, setCancellingId] = useState(null)

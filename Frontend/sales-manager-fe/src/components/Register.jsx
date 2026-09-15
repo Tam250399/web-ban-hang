@@ -10,6 +10,9 @@ import {
   validateEmail, validatePhoneNumber, getPasswordStrength, PASSWORD_MIN_LENGTH,
 } from '../utils/validation'
 
+/**
+ * Component PasswordStrengthBar
+ */
 function PasswordStrengthBar({ password }) {
   const strength = getPasswordStrength(password)
   if (!password) return null
@@ -29,6 +32,9 @@ function PasswordStrengthBar({ password }) {
   )
 }
 
+/**
+ * Component giao diện đăng ký tài khoản khách hàng mới
+ */
 function Register() {
   const requireOnline = useRequireOnline()
   const [form, setForm] = useState({

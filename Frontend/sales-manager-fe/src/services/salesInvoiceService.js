@@ -2,6 +2,9 @@ import { BASE_URL, request, downloadFile } from './apiClient'
 
 const URL = `${BASE_URL}/SalesInvoice`
 
+/**
+ * Hàm resolveInvoiceFileName: thực thi chức năng xử lý của module
+ */
 function resolveInvoiceFileName(headers) {
   const disposition = headers.get('content-disposition') || ''
   const utf8Match = disposition.match(/filename\*=UTF-8''(.+?)(?:;|$)/i)
@@ -9,6 +12,9 @@ function resolveInvoiceFileName(headers) {
   return utf8Match ? decodeURIComponent(utf8Match[1].trim()) : asciiMatch ? asciiMatch[1].trim() : null
 }
 
+/**
+ * Dịch vụ API quản lý phiếu bán hàng và xuất báo cáo Excel
+ */
 export const salesInvoiceService = {
   getAll: () => request(URL),
   getById: (id) => request(`${URL}/${id}`),

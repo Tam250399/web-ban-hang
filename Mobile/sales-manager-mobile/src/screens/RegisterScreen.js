@@ -19,6 +19,9 @@ const EMPTY_FORM = {
   fullName: '', email: '', phoneNumber: '',
 }
 
+/**
+ * Component PasswordStrengthBar
+ */
 function PasswordStrengthBar({ password }) {
   const strength = getPasswordStrength(password)
   if (!password) return null
@@ -40,6 +43,9 @@ function PasswordStrengthBar({ password }) {
   )
 }
 
+/**
+ * Màn hình đăng ký tài khoản mới trên di động
+ */
 export default function RegisterScreen({ navigation }) {
   const [form, setForm] = useState(EMPTY_FORM)
   const [showPassword, setShowPassword] = useState(false)

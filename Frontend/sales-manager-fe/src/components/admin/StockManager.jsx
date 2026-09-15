@@ -15,8 +15,17 @@ const IMPORT_STATUS_LABEL = { Valid: 'Hợp lệ', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { Valid: 'new', Invalid: 'invalid' }
 
 const EMPTY_IMPORT_FORM = { productId: '', quantity: '', unitPrice: '', note: '' }
+/**
+ * Hàm today: thực thi chức năng xử lý của module
+ */
 const today = () => new Date().toISOString().slice(0, 10)
+/**
+ * Hàm emptyItem: thực thi chức năng xử lý của module
+ */
 const emptyItem = () => ({ productId: '', quantity: 1, unitPrice: 0 })
+/**
+ * Component ImportModal
+ */
 function ImportModal({ products, transaction, onClose, onSaved }) {
   const isEdit = !!transaction
   const [form, setForm] = useState(isEdit ? {
@@ -101,6 +110,9 @@ function ImportModal({ products, transaction, onClose, onSaved }) {
   )
 }
 
+/**
+ * Component StockImportPreviewModal
+ */
 function StockImportPreviewModal({ result, onClose, onImported }) {
   const [selected, setSelected] = useState(() => new Set(
     result.rows.filter(r => r.status !== 'Invalid').map(r => r.rowNumber)
@@ -202,6 +214,9 @@ function StockImportPreviewModal({ result, onClose, onImported }) {
   )
 }
 
+/**
+ * Component ImportPanel
+ */
 function ImportPanel({ products, transactions, reload, onChanged }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -410,6 +425,9 @@ function ImportPanel({ products, transactions, reload, onChanged }) {
   )
 }
 
+/**
+ * Component CreateInvoiceModal
+ */
 function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) {
   const isEdit = !!invoice
   const [customerId, setCustomerId] = useState(invoice?.customerId ? String(invoice.customerId) : '')
@@ -627,6 +645,9 @@ function CreateInvoiceModal({ products, customers, invoice, onClose, onSaved }) 
   )
 }
 
+/**
+ * Component ExportPanel
+ */
 function ExportPanel({ products, customers, invoices, reload, onChanged }) {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
@@ -887,6 +908,9 @@ function ExportPanel({ products, customers, invoices, reload, onChanged }) {
   )
 }
 
+/**
+ * Component quản lý giao dịch xuất nhập tồn kho
+ */
 function StockManager({ products, onChanged }) {
   const [sub, setSub] = useState('import')
   const [transactions, setTransactions] = useState([])

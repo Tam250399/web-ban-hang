@@ -1,4 +1,7 @@
 
+/**
+ * Hàm stripTrailingSlash: thực thi chức năng xử lý của module
+ */
 const stripTrailingSlash = (value) => String(value).replace(/\/+$/, '')
 
 const API_ORIGIN = import.meta.env.VITE_API_URL
@@ -16,6 +19,9 @@ const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0'])
 
 const mediaCache = new Map()
 
+/**
+ * Hàm resolveMediaUrl: thực thi chức năng xử lý của module
+ */
 export function resolveMediaUrl(url) {
   if (!url) return url
   if (url.startsWith('blob:') || url.startsWith('data:')) return url

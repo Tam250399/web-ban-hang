@@ -2,6 +2,9 @@ import { StyleSheet, Text, View } from 'react-native'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component BrandTag
+ */
 export default function BrandTag({ label = 'Lý Sáu', style, textStyle }) {
   return (
     <View style={[styles.chip, style]}>

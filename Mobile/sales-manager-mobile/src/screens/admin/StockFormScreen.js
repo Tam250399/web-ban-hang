@@ -36,6 +36,9 @@ const C = {
 
 const STEP_LABELS = ['Khách hàng', 'Hàng hóa', 'Kiểm tra']
 
+/**
+ * Hàm dayLabel: thực thi chức năng xử lý của module
+ */
 function dayLabel(date) {
   const today = new Date()
   const yesterday = new Date()
@@ -45,8 +48,14 @@ function dayLabel(date) {
   return WEEKDAYS[date.getDay()]
 }
 
+/**
+ * Hàm newKey: thực thi chức năng xử lý của module
+ */
 const newKey = () => Math.random().toString(36).slice(2)
 
+/**
+ * Màn hình lập phiếu xuất/nhập kho chi tiết
+ */
 export default function StockFormScreen({ navigation, route }) {
   const { user } = useAuth()
   const requireOnline = useRequireOnline()

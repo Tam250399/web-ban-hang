@@ -21,6 +21,9 @@ const AdminDashboard = lazy(() => import('./components/AdminDashboard'))
 
 const ChatWidget = lazy(() => import('./components/common/ChatWidget'))
 
+/**
+ * Component RouteLoading
+ */
 function RouteLoading({ label }) {
   return (
     <div className="route-loading">
@@ -30,6 +33,9 @@ function RouteLoading({ label }) {
   )
 }
 
+/**
+ * Component FloatingChat
+ */
 function FloatingChat() {
   const { user } = useAuth()
   if (user?.role !== 'Customer') return null
@@ -40,6 +46,9 @@ function FloatingChat() {
   )
 }
 
+/**
+ * Component AppRoutes
+ */
 function AppRoutes() {
   return (
     <Routes>
@@ -75,6 +84,9 @@ function AppRoutes() {
   )
 }
 
+/**
+ * Component App
+ */
 function App() {
   return (
     <BrowserRouter>

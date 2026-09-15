@@ -11,6 +11,9 @@ import { AuthContext } from './auth-context'
 const GUEST_USER = { username: 'guest', fullName: 'Khách' }
 const BIOMETRIC_STORAGE_KEY = 'salesManagerBiometricEnabled'
 
+/**
+ * Provider cung cấp thông tin tài khoản và phân quyền cho toàn ứng dụng
+ */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(GUEST_USER)
   const [restoring, setRestoring] = useState(true)

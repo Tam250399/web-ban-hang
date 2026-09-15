@@ -18,6 +18,9 @@ const TAB_COMPONENTS = {
   stats: StatisticsPanel,
 }
 
+/**
+ * Màn hình bảng điều khiển quản trị trên di động
+ */
 export default function AdminDashboardScreen({ navigation, route }) {
   const { user } = useAuth()
   const { width: windowWidth } = useWindowDimensions()

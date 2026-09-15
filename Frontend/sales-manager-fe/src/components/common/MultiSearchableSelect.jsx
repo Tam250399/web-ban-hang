@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 
+/**
+ * Component MultiSearchableSelect
+ */
 function MultiSearchableSelect({
   values = [],
   onChange,

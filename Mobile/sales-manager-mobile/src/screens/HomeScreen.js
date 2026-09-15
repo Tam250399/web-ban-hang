@@ -17,6 +17,9 @@ import AdminNotificationModal from '../components/admin/AdminNotificationModal'
 import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 
+/**
+ * Màn hình trang chủ ứng dụng Mobile: hiển thị banner, danh mục sản phẩm và tìm kiếm
+ */
 export default function HomeScreen({ navigation }) {
   const { isGuest, user } = useAuth()
   const { totalCount } = useCart()
@@ -146,6 +149,9 @@ export default function HomeScreen({ navigation }) {
   )
 }
 
+/**
+ * Component Stat
+ */
 function Stat({ value, label }) {
   return (
     <View style={styles.stat}>

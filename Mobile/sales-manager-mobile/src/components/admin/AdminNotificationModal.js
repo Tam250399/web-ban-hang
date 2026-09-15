@@ -11,6 +11,9 @@ import { fonts } from '../../theme/fonts'
 import { formatVnd, formatTime } from '../../utils/format'
 import { Icon, ICON_ROW } from '../ui/Icon'
 
+/**
+ * Component AdminNotificationModal
+ */
 export default function AdminNotificationModal({ visible, onClose, navigation }) {
   const [pendingOrders, setPendingOrders] = useState([])
   const [unreadConversations, setUnreadConversations] = useState([])

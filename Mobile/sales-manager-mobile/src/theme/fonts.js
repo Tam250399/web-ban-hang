@@ -34,6 +34,9 @@ export const fonts = {
   adminBodyBold: 'IBMPlexSans_700Bold',
 }
 
+/**
+ * Custom hook useAppFonts xử lý logic cho component
+ */
 export function useAppFonts() {
   return useFonts({
     BarlowCondensed_700Bold,

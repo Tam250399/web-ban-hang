@@ -22,12 +22,18 @@ import { Icon } from '../components/ui/Icon'
 const { width: SCREEN_W } = Dimensions.get('window')
 const AVATAR_COLORS = ['#366bd3', '#0f9d58', '#db4437', '#f4b400', '#ab47bc', '#00acc1', '#ff7043']
 
+/**
+ * Hàm lấy dữ liệu getAvatarColor
+ */
 function getAvatarColor(name) {
   let hash = 0
   for (let i = 0; i < (name || '').length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length]
 }
 
+/**
+ * Component Avatar
+ */
 function Avatar({ name, size = 40, online = false }) {
   const color = getAvatarColor(name)
   const letter = (name || '?')[0].toUpperCase()
@@ -48,6 +54,9 @@ function Avatar({ name, size = 40, online = false }) {
   )
 }
 
+/**
+ * Hàm shiftColor: thực thi chức năng xử lý của module
+ */
 function shiftColor(hex, amount) {
   let r = parseInt(hex.slice(1, 3), 16)
   let g = parseInt(hex.slice(3, 5), 16)
@@ -58,6 +67,9 @@ function shiftColor(hex, amount) {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
+/**
+ * Component MessageBubble
+ */
 const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const imgUrl = message.imageUrl ? resolveMediaUrl(message.imageUrl) : null
   return (
@@ -95,6 +107,9 @@ const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }
   )
 })
 
+/**
+ * Component DateSeparator
+ */
 function DateSeparator({ date }) {
   return (
     <View style={s.dateSepRow}>
@@ -107,6 +122,9 @@ function DateSeparator({ date }) {
   )
 }
 
+/**
+ * Component PendingImageBar
+ */
 function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
@@ -124,6 +142,9 @@ function PendingImageBar({ image, onRemove }) {
   )
 }
 
+/**
+ * Component AdminChatScreen
+ */
 export default function AdminChatScreen({ route }) {
   const [conversations, setConversations] = useState([])
   const [loadingList, setLoadingList] = useState(true)

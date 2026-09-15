@@ -25,6 +25,9 @@ const FILTERS = [
 
 const PAGE_SIZE = 12
 
+/**
+ * Component OrdersPanel
+ */
 export default function OrdersPanel() {
   const { user } = useAuth()
   const [orders, setOrders] = useState([])

@@ -4,6 +4,9 @@ import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { Icon } from '../ui/Icon'
 
+/**
+ * Component AdminHeader
+ */
 export default function AdminHeader() {
   return (
     <SafeAreaView style={styles.safeArea} edges={['top']}>

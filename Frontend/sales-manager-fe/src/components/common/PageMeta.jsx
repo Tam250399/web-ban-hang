@@ -2,6 +2,9 @@ import { useLocation } from 'react-router-dom'
 
 const SITE_NAME = 'Cửa Hàng VLXD Lý Sáu'
 
+/**
+ * Component thiết lập tiêu đề trang và meta SEO
+ */
 function PageMeta({ title, description, noIndex = false }) {
   const { pathname } = useLocation()
   const fullTitle = title ? `${title} — ${SITE_NAME}` : SITE_NAME

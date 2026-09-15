@@ -2,6 +2,9 @@ import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-na
 import { SafeAreaView } from 'react-native-safe-area-context'
 import HazardStripe from './HazardStripe'
 
+/**
+ * Component DarkAuthShell
+ */
 export default function DarkAuthShell({ children }) {
   return (
     <SafeAreaView style={styles.shell} edges={['top', 'bottom']}>

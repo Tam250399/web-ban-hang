@@ -6,6 +6,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { fonts } from '../../theme/fonts'
 import { Icon } from './Icon'
 
+/**
+ * Component BigPickerModal
+ */
 export default function BigPickerModal({
   visible,
   title = 'Chọn',

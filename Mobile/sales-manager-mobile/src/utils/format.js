@@ -3,10 +3,16 @@ const vndFormatter = new Intl.NumberFormat('vi-VN')
 const dateFormatter = new Intl.DateTimeFormat('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' })
 const timeFormatter = new Intl.DateTimeFormat('vi-VN', { hour: '2-digit', minute: '2-digit' })
 
+/**
+ * Hàm formatVnd: thực thi chức năng xử lý của module
+ */
 export function formatVnd(value) {
   return vndFormatter.format(Number(value ?? 0))
 }
 
+/**
+ * Hàm formatDay: thực thi chức năng xử lý của module
+ */
 export function formatDay(iso) {
   if (!iso) return ''
   const d = new Date(iso)
@@ -14,6 +20,9 @@ export function formatDay(iso) {
   return dateFormatter.format(d)
 }
 
+/**
+ * Hàm formatTime: thực thi chức năng xử lý của module
+ */
 export function formatTime(iso) {
   if (!iso) return ''
   const d = new Date(iso)
@@ -21,6 +30,9 @@ export function formatTime(iso) {
   return timeFormatter.format(d)
 }
 
+/**
+ * Hàm formatDDMMYYYY: thực thi chức năng xử lý của module
+ */
 export function formatDDMMYYYY(date) {
   if (!date) return ''
   const d = new Date(date)
@@ -30,6 +42,9 @@ export function formatDDMMYYYY(date) {
   return `${day}-${month}-${d.getFullYear()}`
 }
 
+/**
+ * Hàm formatYYYYMMDD: thực thi chức năng xử lý của module
+ */
 export function formatYYYYMMDD(date) {
   if (!date) return ''
   const d = new Date(date)
@@ -39,6 +54,9 @@ export function formatYYYYMMDD(date) {
   return `${d.getFullYear()}-${month}-${day}`
 }
 
+/**
+ * Hàm kiểm tra điều kiện isSameDay
+ */
 export function isSameDay(a, b) {
   if (!a || !b) return false
   const da = new Date(a)
@@ -50,6 +68,9 @@ export function isSameDay(a, b) {
   )
 }
 
+/**
+ * Hàm startOfDay: thực thi chức năng xử lý của module
+ */
 export function startOfDay(date) {
   const d = new Date(date)
   d.setHours(0, 0, 0, 0)

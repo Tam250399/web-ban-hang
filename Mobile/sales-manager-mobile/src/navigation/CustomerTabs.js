@@ -15,6 +15,9 @@ import { fonts } from '../theme/fonts'
 
 const Tab = createMaterialTopTabNavigator()
 
+/**
+ * Component CustomerTabs
+ */
 export default function CustomerTabs() {
   const { user } = useAuth()
   const isAdmin = user?.role === 'Admin'

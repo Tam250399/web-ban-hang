@@ -15,6 +15,9 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         public BannerController(AppDbContext context) { _context = context; }
 
+        /// <summary>
+        /// Lấy danh sách banner đang hoạt động để hiển thị ở trang chủ
+        /// </summary>
         [HttpGet]
         [AllowAnonymous]
         public async Task<IActionResult> GetActive() =>
@@ -23,12 +26,18 @@ namespace SalesManagerBE.Controllers
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync());
 
+        /// <summary>
+        /// Lấy tất cả banner phục vụ quản lý (Admin/Staff)
+        /// </summary>
         [HttpGet("all")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _context.Banners
                 .OrderBy(b => b.DisplayOrder)
                 .ToListAsync());
 
+        /// <summary>
+        /// Tạo mới một banner quảng cáo
+        /// </summary>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] BannerDto dto)
         {
@@ -45,6 +54,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Cập nhật thông tin banner theo ID
+        /// </summary>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] BannerDto dto)
         {
@@ -59,6 +71,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Xóa banner theo ID
+        /// </summary>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {

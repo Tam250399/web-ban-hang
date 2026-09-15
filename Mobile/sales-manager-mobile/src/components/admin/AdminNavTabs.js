@@ -12,6 +12,9 @@ export const NAV_ITEMS = [
   { id: 'stats', label: 'Thống kê', icon: 'chart' },
 ]
 
+/**
+ * Component AdminNavTabs
+ */
 export default function AdminNavTabs({ active, onChange }) {
   const scrollRef = useRef(null)
   const itemLayouts = useRef({})

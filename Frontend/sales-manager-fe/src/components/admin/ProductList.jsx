@@ -13,6 +13,9 @@ import { Icon } from '../common/Icon'
 const IMPORT_STATUS_LABEL = { New: 'Mới', Duplicate: 'Trùng mã', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { New: 'new', Duplicate: 'duplicate', Invalid: 'invalid' }
 
+/**
+ * Component ImportPreviewModal
+ */
 function ImportPreviewModal({ result, onClose, onImported }) {
   const [selected, setSelected] = useState(() => new Set(
     result.rows.filter(r => r.status !== 'Invalid').map(r => r.rowNumber)
@@ -120,6 +123,9 @@ function ImportPreviewModal({ result, onClose, onImported }) {
   )
 }
 
+/**
+ * Component EditModal
+ */
 function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   const [form, setForm] = useState({
     productName: product.productName,
@@ -272,6 +278,9 @@ function EditModal({ product, categories, unitTypes, onSave, onClose }) {
   )
 }
 
+/**
+ * Component quản lý danh sách sản phẩm (tìm kiếm, lọc, sửa, xóa, xuất Excel)
+ */
 function ProductList({ products, categories, unitTypes, onRefresh }) {
   const [deleting, setDeleting]   = useState(null)
   const [confirmId, setConfirmId] = useState(null)

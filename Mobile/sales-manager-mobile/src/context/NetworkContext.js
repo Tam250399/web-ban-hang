@@ -2,6 +2,9 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import NetInfo from '@react-native-community/netinfo'
 import { NetworkContext } from './network-context'
 
+/**
+ * Provider theo dõi và phát sự kiện trạng thái kết nối mạng của thiết bị
+ */
 export function NetworkProvider({ children }) {
   const [isOnline, setIsOnline] = useState(true)
 

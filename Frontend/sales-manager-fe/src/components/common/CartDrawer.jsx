@@ -7,6 +7,9 @@ import { useModalA11y } from '../../hooks/useModalA11y'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from './Icon'
 
+/**
+ * Ngăn kéo hiển thị giỏ hàng xem nhanh và thanh toán
+ */
 function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }) {
   const { items, updateQuantity, removeItem, clear, totalPrice } = useCart()
   const requireOnline = useRequireOnline()

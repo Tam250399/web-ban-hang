@@ -6,6 +6,9 @@ import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { address: '', phone: '', email: '', workingHours: '', isActive: false }
 
+/**
+ * Component ContactFormModal
+ */
 function ContactFormModal({ item, onClose, onSaved }) {
   const isEdit = !!item
   const [form, setForm] = useState(item ? {
@@ -73,6 +76,9 @@ function ContactFormModal({ item, onClose, onSaved }) {
   )
 }
 
+/**
+ * Component quản lý thông tin liên hệ của cửa hàng
+ */
 function ContactManager() {
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)

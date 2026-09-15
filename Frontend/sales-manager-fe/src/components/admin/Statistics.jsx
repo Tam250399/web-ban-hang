@@ -4,6 +4,9 @@ import { productService } from '../../services/productService'
 import { stockService } from '../../services/stockService'
 import { resolveMediaUrl } from '../../services/config'
 
+/**
+ * Component StatCard
+ */
 function StatCard({ icon, label, value, color, onClick, hint = 'Bấm để xem danh sách' }) {
   return (
     <div
@@ -27,6 +30,9 @@ function StatCard({ icon, label, value, color, onClick, hint = 'Bấm để xem 
   )
 }
 
+/**
+ * Component StatDetailModal
+ */
 function StatDetailModal({ modal, onClose, products = [], transactions = [], loadingTransactions = false }) {
   const [search, setSearch] = useState('')
 
@@ -320,6 +326,9 @@ function StatDetailModal({ modal, onClose, products = [], transactions = [], loa
   )
 }
 
+/**
+ * Component biểu đồ thống kê doanh thu và phân tích bán hàng
+ */
 function Statistics({ stats, products: propProducts = [] }) {
   const [localProducts, setLocalProducts] = useState(propProducts)
   const [transactions, setTransactions] = useState([])

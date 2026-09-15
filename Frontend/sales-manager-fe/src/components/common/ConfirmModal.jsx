@@ -1,6 +1,9 @@
 import { useModalA11y } from '../../hooks/useModalA11y'
 import { Icon } from './Icon'
 
+/**
+ * Hộp thoại xác nhận hành động nguy hiểm hoặc hủy đơn
+ */
 function ConfirmModal({
   message,
   onConfirm,

@@ -14,6 +14,9 @@ namespace SalesManagerBE.Controllers
         public RoleController(AppDbContext context) { _context = context; }
 
         [HttpGet]
+        /// <summary>
+        /// Lấy danh sách các vai trò (roles) trong hệ thống
+        /// </summary>
         public async Task<IActionResult> GetRoles() =>
             Ok(await _context.Roles.OrderBy(r => r.Id).ToListAsync());
     }

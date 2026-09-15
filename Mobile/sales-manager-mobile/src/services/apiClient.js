@@ -8,10 +8,16 @@ const AUTH_ENTRY_POINTS = ['/auth/login', '/auth/register']
 
 let unauthorizedHandler = null
 
+/**
+ * Hàm cập nhật setUnauthorizedHandler
+ */
 export function setUnauthorizedHandler(fn) {
   unauthorizedHandler = fn
 }
 
+/**
+ * Hàm notifyUnauthorized: thực thi chức năng xử lý của module
+ */
 export function notifyUnauthorized() {
   unauthorizedHandler?.()
 }
@@ -25,8 +31,14 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Hàm kiểm tra điều kiện isNetworkError
+ */
 export const isNetworkError = (err) => err?.kind === 'network' || err?.kind === 'timeout'
 
+/**
+ * Hàm request: thực thi chức năng xử lý của module
+ */
 export async function request(path, { body, headers, signal, ...options } = {}) {
   const url = path.startsWith('http') ? path : `${BASE_URL}${path}`
 

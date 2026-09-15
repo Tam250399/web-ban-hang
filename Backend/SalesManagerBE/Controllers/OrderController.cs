@@ -19,7 +19,10 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         private readonly IHubContext<ChatHub> _hub;
 
-                private async Task<string> GetPreparedByNameAsync()
+                /// <summary>
+        /// Lấy họ tên hiển thị của người dùng/nhân viên hiện tại
+        /// </summary>
+        private async Task<string> GetPreparedByNameAsync()
         {
             var userId = User.GetUserId();
             if (userId is null) return User.GetUsername() ?? "";
@@ -44,6 +47,9 @@ namespace SalesManagerBE.Controllers
         private bool IsStaff => User.IsInRole("Admin") || User.IsInRole("Staff");
 
         [HttpPost]
+        /// <summary>
+        /// Khách hàng tạo mới một đơn đặt hàng
+        /// </summary>
         public async Task<IActionResult> Create([FromBody] CreateOrderDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.RecipientName))
@@ -128,6 +134,9 @@ namespace SalesManagerBE.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Staff")]
+        /// <summary>
+        /// Lấy toàn bộ danh sách đơn hàng cho Admin/Staff (hỗ trợ lọc theo trạng thái)
+        /// </summary>
         public async Task<IActionResult> GetAll([FromQuery] string? status)
         {
             var query = _context.Orders.Include(o => o.Items).Include(o => o.User).AsQueryable();
@@ -157,6 +166,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("{id:int}")]
+        /// <summary>
+        /// Lấy thông tin chi tiết của một đơn hàng theo ID
+        /// </summary>
         public async Task<IActionResult> GetById(int id)
         {
             var order = await _context.Orders
@@ -184,6 +196,9 @@ namespace SalesManagerBE.Controllers
 
         [HttpPost("{id:int}/confirm")]
         [Authorize(Roles = "Admin,Staff")]
+        /// <summary>
+        /// Nhân viên xác nhận đơn hàng: kiểm tra tồn kho, trừ kho và tự động lập phiếu bán hàng
+        /// </summary>
         public async Task<IActionResult> Confirm(int id, [FromBody] ConfirmOrderDto? dto)
         {
             var order = await _context.Orders
@@ -246,6 +261,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost("{id:int}/reorder")]
+        /// <summary>
+        /// Đặt lại đơn hàng đã hủy: cập nhật lại đơn về trạng thái Pending theo giá sản phẩm mới nhất
+        /// </summary>
         public async Task<IActionResult> Reorder(int id)
         {
             var order = await _context.Orders

@@ -21,6 +21,9 @@ namespace SalesManagerBE.Services
             _configuration = configuration;
         }
 
+        /// <summary>
+        /// Xử lý đăng ký tài khoản người dùng mới
+        /// </summary>
         public async Task<AuthResult> RegisterAsync(RegisterDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
@@ -52,6 +55,9 @@ namespace SalesManagerBE.Services
             return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, phoneNumber: user.PhoneNumber), null);
         }
 
+        /// <summary>
+        /// Xử lý đăng nhập tài khoản và xác thực mật khẩu
+        /// </summary>
         public async Task<AuthResult> LoginAsync(LoginDto dto)
         {
             var user = await _context.Users.Include(u => u.Role).FirstOrDefaultAsync(u => u.Username == dto.Username);
@@ -64,6 +70,9 @@ namespace SalesManagerBE.Services
             return new AuthResult(true, new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName, user.PhoneNumber), null, token);
         }
 
+        /// <summary>
+        /// Tạo JWT token mang định danh và vai trò của người dùng
+        /// </summary>
         private string GenerateJwtToken(User user)
         {
             var jwtKey = _configuration["Jwt:Key"];
@@ -94,6 +103,9 @@ namespace SalesManagerBE.Services
         private const int Pbkdf2SaltSize = 16;
         private const int Pbkdf2HashSize = 32;
 
+        /// <summary>
+        /// Băm mật khẩu người dùng với muối ngẫu nhiên bằng thuật toán PBKDF2
+        /// </summary>
         public static string HashPassword(string password)
         {
             var salt = RandomNumberGenerator.GetBytes(Pbkdf2SaltSize);
@@ -101,6 +113,9 @@ namespace SalesManagerBE.Services
             return $"{Pbkdf2Iterations}.{Convert.ToBase64String(salt)}.{Convert.ToBase64String(hash)}";
         }
 
+        /// <summary>
+        /// Kiểm tra tính khớp nhau của mật khẩu nhập vào với mã băm lưu trong cơ sở dữ liệu
+        /// </summary>
         private static bool VerifyPassword(string password, string storedHash)
         {
             var parts = storedHash.Split('.');

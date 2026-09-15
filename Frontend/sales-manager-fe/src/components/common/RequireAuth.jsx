@@ -2,6 +2,9 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom'
 import { useAuth } from '../../context/auth-context'
 import { ADMIN_ORDERS_TAB, PATHS } from '../../routes/paths'
 
+/**
+ * Component bọc bảo vệ yêu cầu đăng nhập trước khi truy cập
+ */
 function RequireAuth({ adminOnly = false, customerOnly = false }) {
   const { isLoggedIn, isAdmin, restoring } = useAuth()
   const location = useLocation()

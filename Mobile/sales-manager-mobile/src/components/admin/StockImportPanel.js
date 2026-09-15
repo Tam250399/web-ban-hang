@@ -10,6 +10,9 @@ import { formatVnd } from '../../utils/format'
 
 const PAGE_SIZE = 15
 
+/**
+ * Component StockImportPanel
+ */
 export default function StockImportPanel() {
   const navigation = useNavigation()
   const [transactions, setTransactions] = useState([])

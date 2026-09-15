@@ -3,6 +3,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import StockExportPanel from '../components/admin/StockExportPanel'
 import { admin } from '../theme/colors'
 
+/**
+ * Màn hình quản lý xuất kho trên di động
+ */
 export default function StockExportTabScreen() {
   return (
     <SafeAreaView style={styles.root} edges={['top']}>

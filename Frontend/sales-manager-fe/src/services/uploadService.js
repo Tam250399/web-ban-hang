@@ -2,6 +2,9 @@ import { ApiError, BASE_URL } from './apiClient'
 
 const UPLOAD_TIMEOUT_MS = 45000
 
+/**
+ * Tải file hình ảnh lên máy chủ MinIO qua API Upload
+ */
 export async function uploadImage(file) {
   const formData = new FormData()
   formData.append('file', file)

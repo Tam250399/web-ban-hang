@@ -5,6 +5,9 @@ import Pagination from '../common/Pagination'
 import ConfirmModal from '../common/ConfirmModal'
 import { Icon } from '../common/Icon'
 
+/**
+ * Component SimpleFormModal
+ */
 function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
   const isEdit = !!item
   const [form, setForm] = useState({
@@ -75,6 +78,9 @@ function SimpleFormModal({ title, item, onSave, onClose, withHomeToggle }) {
   )
 }
 
+/**
+ * Component ProductNameFormModal
+ */
 function ProductNameFormModal({ item, categories, onSave, onClose }) {
   const isEdit = !!item
   const [form, setForm] = useState({
@@ -134,6 +140,9 @@ function ProductNameFormModal({ item, categories, onSave, onClose }) {
   )
 }
 
+/**
+ * Component SimpleCrudTable
+ */
 function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onDelete, withHomeToggle }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
@@ -279,6 +288,9 @@ function SimpleCrudTable({ title, modalTitle, items, loading, onAdd, onEdit, onD
   )
 }
 
+/**
+ * Component ProductNameCrud
+ */
 function ProductNameCrud({ items, categories, loading, onAdd, onEdit, onDelete }) {
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState(null)
@@ -404,6 +416,9 @@ const SUB_TABS = [
   { key: 'units',      label: <><Icon name="ruler" /> Đơn vị tính</> },
 ]
 
+/**
+ * Component quản lý danh mục và đơn vị tính sản phẩm
+ */
 function CategoryManager() {
   const [sub, setSub]             = useState('names')
   const [categories, setCategories] = useState([])

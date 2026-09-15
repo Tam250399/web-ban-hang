@@ -2,6 +2,9 @@ import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component MoneyField
+ */
 export default function MoneyField({ value, onChangeValue, style, inputStyle, ...rest }) {
   const display = value === '' || value === null || value === undefined
     ? ''

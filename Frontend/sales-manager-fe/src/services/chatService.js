@@ -8,6 +8,9 @@ const CHAT = `${BASE_URL}/chat`
 let connection = null
 let startPromise = null
 
+/**
+ * Hàm lấy dữ liệu getConnection
+ */
 function getConnection() {
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()
@@ -18,6 +21,9 @@ function getConnection() {
   return connection
 }
 
+/**
+ * Dịch vụ SignalR và API quản lý cuộc trò chuyện trực tuyến giữa khách hàng và quản trị viên
+ */
 export const chatService = {
   getMyConversation:       ()   => request(`${CHAT}/me`),
   getConversations:        ()   => request(`${CHAT}/conversations`),

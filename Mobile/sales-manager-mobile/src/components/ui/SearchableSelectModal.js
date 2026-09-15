@@ -4,6 +4,9 @@ import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'
 import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component SearchableSelectModal
+ */
 export default function SearchableSelectModal({
   visible,
   onClose,

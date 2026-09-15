@@ -9,10 +9,16 @@ let startPromise = null
 
 const stateListeners = new Set()
 
+/**
+ * Hàm emitState: thực thi chức năng xử lý của module
+ */
 function emitState(connected) {
   stateListeners.forEach((cb) => cb(connected))
 }
 
+/**
+ * Hàm lấy dữ liệu getConnection
+ */
 function getConnection() {
   if (!connection) {
     connection = new signalR.HubConnectionBuilder()

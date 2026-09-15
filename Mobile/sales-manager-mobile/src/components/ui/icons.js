@@ -1,5 +1,8 @@
 import Svg, { Circle, Line, Path } from 'react-native-svg'
 
+/**
+ * Component EyeIcon
+ */
 export function EyeIcon({ size = 18, color = '#5C5648' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -9,6 +12,9 @@ export function EyeIcon({ size = 18, color = '#5C5648' }) {
   )
 }
 
+/**
+ * Component EyeOffIcon
+ */
 export function EyeOffIcon({ size = 18, color = '#5C5648' }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -21,6 +27,9 @@ export function EyeOffIcon({ size = 18, color = '#5C5648' }) {
 
 const STROKE = 1.9
 
+/**
+ * Component LineIcon
+ */
 function LineIcon({ size = 24, children }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -29,6 +38,9 @@ function LineIcon({ size = 24, children }) {
   )
 }
 
+/**
+ * Component HomeIcon
+ */
 export function HomeIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -40,6 +52,9 @@ export function HomeIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component OrdersIcon
+ */
 export function OrdersIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -53,6 +68,9 @@ export function OrdersIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component ChatIcon
+ */
 export function ChatIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -64,6 +82,9 @@ export function ChatIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component CartIcon
+ */
 export function CartIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -77,6 +98,9 @@ export function CartIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component AccountIcon
+ */
 export function AccountIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -89,6 +113,9 @@ export function AccountIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component ExportIcon
+ */
 export function ExportIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>
@@ -102,6 +129,9 @@ export function ExportIcon({ size = 24, color = '#0F172A' }) {
   )
 }
 
+/**
+ * Component BellIcon
+ */
 export function BellIcon({ size = 24, color = '#0F172A' }) {
   return (
     <LineIcon size={size}>

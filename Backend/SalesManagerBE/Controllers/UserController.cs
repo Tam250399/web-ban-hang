@@ -17,6 +17,9 @@ namespace SalesManagerBE.Controllers
         public UserController(AppDbContext context) { _context = context; }
 
         [HttpGet]
+        /// <summary>
+        /// Lấy danh sách tất cả tài khoản người dùng trong hệ thống
+        /// </summary>
         public async Task<IActionResult> GetUsers() =>
             Ok(await _context.Users
                 .Include(u => u.Role)
@@ -35,6 +38,9 @@ namespace SalesManagerBE.Controllers
                 .ToListAsync());
 
         [HttpPost]
+        /// <summary>
+        /// Tạo mới một tài khoản người dùng và phân quyền
+        /// </summary>
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
         {
             if (string.IsNullOrWhiteSpace(dto.Username) || string.IsNullOrWhiteSpace(dto.Password))
@@ -73,6 +79,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPut("{id}")]
+        /// <summary>
+        /// Cập nhật thông tin tài khoản và vai trò của người dùng
+        /// </summary>
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDto dto)
         {
             var user = await _context.Users.FindAsync(id);
@@ -105,6 +114,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPut("{id}/role")]
+        /// <summary>
+        /// Cập nhật vai trò phân quyền cho tài khoản
+        /// </summary>
         public async Task<IActionResult> UpdateUserRole(int id, [FromBody] UpdateUserRoleDto dto)
         {
             var user = await _context.Users.FindAsync(id);
@@ -120,6 +132,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpDelete("{id}")]
+        /// <summary>
+        /// Xóa tài khoản người dùng khỏi hệ thống
+        /// </summary>
         public async Task<IActionResult> DeleteUser(int id)
         {
             var user = await _context.Users.FindAsync(id);

@@ -1,6 +1,9 @@
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Component FormField
+ */
 export default function FormField({ label, error, rightElement, style, ...inputProps }) {
   return (
     <View style={[styles.field, style]}>

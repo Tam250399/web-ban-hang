@@ -25,6 +25,9 @@ namespace SalesManagerBE.Controllers
             _env = env;
         }
 
+        /// <summary>
+        /// Đăng ký tài khoản người dùng mới
+        /// </summary>
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] RegisterDto dto)
         {
@@ -38,6 +41,9 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đăng ký tài khoản thành công!", user = result.User });
         }
 
+        /// <summary>
+        /// Đăng nhập hệ thống và cấp phát cookie xác thực JWT
+        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
         {
@@ -60,6 +66,9 @@ namespace SalesManagerBE.Controllers
             return Ok(new { user = result.User });
         }
 
+        /// <summary>
+        /// Đăng xuất khỏi hệ thống và xóa cookie JWT
+        /// </summary>
         [HttpPost("logout")]
         public IActionResult Logout()
         {
@@ -67,6 +76,9 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã đăng xuất." });
         }
 
+        /// <summary>
+        /// Lấy thông tin tài khoản của người dùng đang đăng nhập
+        /// </summary>
         [HttpGet("me")]
         [Authorize]
         public async Task<IActionResult> Me()

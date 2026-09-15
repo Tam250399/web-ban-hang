@@ -23,10 +23,16 @@ import { ADMIN_TABS, DEFAULT_ADMIN_TAB, PATHS, SIDEBAR_GROUPS, adminTabBySlug } 
 
 const GROUPED_TAB_KEYS = new Set(SIDEBAR_GROUPS.flatMap(g => g.tabKeys))
 
+/**
+ * Hàm formatTime: thực thi chức năng xử lý của module
+ */
 function formatTime(iso) {
   return new Date(iso).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
 }
 
+/**
+ * Component bảng điều khiển tổng quan dành cho quản trị viên
+ */
 function AdminDashboard() {
   const { user } = useAuth()
   const navigate = useNavigate()

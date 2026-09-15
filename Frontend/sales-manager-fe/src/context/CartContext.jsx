@@ -3,6 +3,9 @@ import { CartContext } from './cart-context'
 
 const STORAGE_KEY = 'salesManagerCart'
 
+/**
+ * Hàm loadInitial: thực thi chức năng xử lý của module
+ */
 function loadInitial() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -12,6 +15,9 @@ function loadInitial() {
   }
 }
 
+/**
+ * Provider quản lý trạng thái và dữ liệu giỏ hàng người dùng
+ */
 export function CartProvider({ children }) {
   const [items, setItems] = useState(loadInitial)
 

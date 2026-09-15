@@ -15,10 +15,16 @@ namespace SalesManagerBE.Controllers
         private readonly AppDbContext _context;
         public CategoryController(AppDbContext context) { _context = context; }
 
+        /// <summary>
+        /// Lấy toàn bộ danh mục sản phẩm
+        /// </summary>
         [HttpGet("product-categories")]
         public async Task<IActionResult> GetProductCategories() =>
             Ok(await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync());
 
+        /// <summary>
+        /// Lấy các danh mục sản phẩm được cấu hình hiển thị ở trang chủ
+        /// </summary>
         [HttpGet("product-categories/home")]
         [AllowAnonymous]
         public async Task<IActionResult> GetHomeProductCategories() =>
@@ -27,6 +33,9 @@ namespace SalesManagerBE.Controllers
                 .OrderBy(c => c.Name)
                 .ToListAsync());
 
+        /// <summary>
+        /// Tạo mới danh mục sản phẩm
+        /// </summary>
         [HttpPost("product-categories")]
         public async Task<IActionResult> CreateProductCategory([FromBody] CategoryDto dto)
         {
@@ -38,6 +47,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Cập nhật thông tin danh mục sản phẩm
+        /// </summary>
         [HttpPut("product-categories/{id}")]
         public async Task<IActionResult> UpdateProductCategory(int id, [FromBody] CategoryDto dto)
         {
@@ -50,6 +62,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Xóa danh mục sản phẩm theo ID
+        /// </summary>
         [HttpDelete("product-categories/{id}")]
         public async Task<IActionResult> DeleteProductCategory(int id)
         {
@@ -60,10 +75,16 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xóa danh mục." });
         }
 
+        /// <summary>
+        /// Lấy danh sách các đơn vị tính sản phẩm (cái, hộp, kg, ...)
+        /// </summary>
         [HttpGet("unit-types")]
         public async Task<IActionResult> GetUnitTypes() =>
             Ok(await _context.UnitTypes.OrderBy(u => u.Name).ToListAsync());
 
+        /// <summary>
+        /// Tạo mới đơn vị tính sản phẩm
+        /// </summary>
         [HttpPost("unit-types")]
         public async Task<IActionResult> CreateUnitType([FromBody] CategoryDto dto)
         {
@@ -75,6 +96,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Cập nhật thông tin đơn vị tính sản phẩm
+        /// </summary>
         [HttpPut("unit-types/{id}")]
         public async Task<IActionResult> UpdateUnitType(int id, [FromBody] CategoryDto dto)
         {
@@ -86,6 +110,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Xóa đơn vị tính sản phẩm theo ID
+        /// </summary>
         [HttpDelete("unit-types/{id}")]
         public async Task<IActionResult> DeleteUnitType(int id)
         {
@@ -96,6 +123,9 @@ namespace SalesManagerBE.Controllers
             return Ok(new { message = "Đã xóa đơn vị." });
         }
 
+        /// <summary>
+        /// Lấy danh sách tên mẫu sản phẩm theo danh mục
+        /// </summary>
         [HttpGet("product-names")]
         public async Task<IActionResult> GetProductNames() =>
             Ok(await _context.ProductNameTemplates
@@ -104,6 +134,9 @@ namespace SalesManagerBE.Controllers
                 .Select(p => new { p.Id, p.Name, p.CategoryId, categoryName = p.Category != null ? p.Category.Name : null })
                 .ToListAsync());
 
+        /// <summary>
+        /// Tạo mới tên mẫu sản phẩm
+        /// </summary>
         [HttpPost("product-names")]
         public async Task<IActionResult> CreateProductName([FromBody] ProductNameTemplateDto dto)
         {
@@ -113,6 +146,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Cập nhật tên mẫu sản phẩm
+        /// </summary>
         [HttpPut("product-names/{id}")]
         public async Task<IActionResult> UpdateProductName(int id, [FromBody] ProductNameTemplateDto dto)
         {
@@ -124,6 +160,9 @@ namespace SalesManagerBE.Controllers
             return Ok(entity);
         }
 
+        /// <summary>
+        /// Xóa tên mẫu sản phẩm theo ID
+        /// </summary>
         [HttpDelete("product-names/{id}")]
         public async Task<IActionResult> DeleteProductName(int id)
         {

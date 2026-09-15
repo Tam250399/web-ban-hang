@@ -9,6 +9,9 @@ export const CACHE_KEYS = {
   contact: 'contact',
 }
 
+/**
+ * Hàm readCache: thực thi chức năng xử lý của module
+ */
 export async function readCache(key) {
   try {
     const raw = await AsyncStorage.getItem(PREFIX + key)
@@ -21,6 +24,9 @@ export async function readCache(key) {
   }
 }
 
+/**
+ * Hàm writeCache: thực thi chức năng xử lý của module
+ */
 export async function writeCache(key, data) {
   try {
     await AsyncStorage.setItem(PREFIX + key, JSON.stringify({ data, cachedAt: Date.now() }))
@@ -28,6 +34,9 @@ export async function writeCache(key, data) {
   }
 }
 
+/**
+ * Hàm clearCache: thực thi chức năng xử lý của module
+ */
 export async function clearCache(key) {
   try {
     await AsyncStorage.removeItem(PREFIX + key)
@@ -35,6 +44,9 @@ export async function clearCache(key) {
   }
 }
 
+/**
+ * Hàm clearAllCache: thực thi chức năng xử lý của module
+ */
 export async function clearAllCache() {
   try {
     const keys = await AsyncStorage.getAllKeys()
@@ -44,6 +56,9 @@ export async function clearAllCache() {
   }
 }
 
+/**
+ * Hàm formatCacheAge: thực thi chức năng xử lý của module
+ */
 export function formatCacheAge(cachedAt) {
   if (!cachedAt) return ''
   const diffMs = Date.now() - cachedAt

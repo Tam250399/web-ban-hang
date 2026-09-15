@@ -8,6 +8,9 @@ import { useRequireOnline } from '../hooks/useRequireOnline'
 import PageMeta from './common/PageMeta'
 import { PATHS } from '../routes/paths'
 
+/**
+ * Component EyeIcon
+ */
 function EyeIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -17,6 +20,9 @@ function EyeIcon() {
   )
 }
 
+/**
+ * Component EyeOffIcon
+ */
 function EyeOffIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
@@ -27,6 +33,9 @@ function EyeOffIcon() {
   )
 }
 
+/**
+ * Component giao diện đăng nhập hệ thống
+ */
 function Login() {
   const navigate = useNavigate()
   const location = useLocation()

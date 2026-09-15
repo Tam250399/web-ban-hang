@@ -8,6 +8,9 @@ import { fonts } from '../../theme/fonts'
 const AUTO_PLAY_MS = 5000
 const BLURHASH = 'L5H2EC=PM+yV0g-mq.wG9c010J}I'
 
+/**
+ * Component BannerCarousel
+ */
 export default function BannerCarousel({ banners }) {
   const [index, setIndex] = useState(0)
   const pagerRef = useRef(null)

@@ -7,6 +7,9 @@ import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { Icon } from './Icon'
 
+/**
+ * Component AppLockGate
+ */
 export default function AppLockGate() {
   const {
     isGuest, restoring, logout,

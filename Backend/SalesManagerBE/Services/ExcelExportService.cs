@@ -38,6 +38,9 @@ namespace SalesManagerBE.Services
             _templatePath = Path.Combine(env.ContentRootPath, "Templates", "PhieuBanHang.xlsx");
         }
 
+        /// <summary>
+        /// Xuất dữ liệu chi tiết phiếu bán hàng ra định dạng byte array của file Excel
+        /// </summary>
         public byte[] ExportSalesInvoice(SalesInvoice invoice)
         {
             using var workbook = new XLWorkbook(_templatePath);

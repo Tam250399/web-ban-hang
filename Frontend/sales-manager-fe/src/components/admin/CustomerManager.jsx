@@ -7,6 +7,9 @@ import { Icon } from '../common/Icon'
 
 const EMPTY_FORM = { fullName: '', phoneNumber: '', address: '', isBusiness: false }
 
+/**
+ * Component CustomerModal
+ */
 function CustomerModal({ customer, onClose, onSaved }) {
   const isEdit = !!customer
   const [form, setForm] = useState(customer ? {
@@ -74,6 +77,9 @@ function CustomerModal({ customer, onClose, onSaved }) {
   )
 }
 
+/**
+ * Component quản lý hồ sơ khách hàng
+ */
 function CustomerManager() {
   const [customers, setCustomers] = useState([])
   const [search, setSearch] = useState('')

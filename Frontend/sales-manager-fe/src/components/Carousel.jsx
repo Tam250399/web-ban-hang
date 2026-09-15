@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react'
 import { resolveMediaUrl } from '../services/config'
 
+/**
+ * Hàm prefersReducedMotion: thực thi chức năng xử lý của module
+ */
 const prefersReducedMotion = () =>
   typeof window !== 'undefined'
   && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 
+/**
+ * Component trình chiếu banner quảng cáo tự động cuộn
+ */
 function Carousel({ slides, autoPlayMs = 5000 }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(() => prefersReducedMotion())

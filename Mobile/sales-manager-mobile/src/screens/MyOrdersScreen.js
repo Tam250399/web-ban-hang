@@ -33,6 +33,9 @@ const FILTERS = [
 
 const PAGE_SIZE = 8
 
+/**
+ * Màn hình theo dõi đơn hàng của khách trên di động
+ */
 export default function MyOrdersScreen() {
   const { isGuest } = useAuth()
   const navigation = useNavigation()

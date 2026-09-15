@@ -12,6 +12,9 @@ import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { Icon } from '../components/ui/Icon'
 
+/**
+ * Màn hình đăng nhập tài khoản trên di động
+ */
 export default function LoginScreen({ navigation }) {
   const {
     login, biometricSupported, biometricLabel, biometricEnabled,

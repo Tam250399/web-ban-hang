@@ -23,6 +23,9 @@ namespace SalesManagerBE.Controllers
 
         [HttpGet]
         [AllowAnonymous]
+        /// <summary>
+        /// Lấy danh sách tất cả sản phẩm kèm danh mục và đơn vị tính
+        /// </summary>
         public async Task<IActionResult> GetAll()
         {
             var products = await _context.Products
@@ -42,6 +45,9 @@ namespace SalesManagerBE.Controllers
 
         [HttpGet("{id}")]
         [AllowAnonymous]
+        /// <summary>
+        /// Lấy chi tiết thông tin một sản phẩm theo ID
+        /// </summary>
         public async Task<IActionResult> GetById(int id)
         {
             var product = await _context.Products.Include(p => p.ProductCategory).Include(p => p.UnitType).FirstOrDefaultAsync(p => p.Id == id);
@@ -50,6 +56,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost]
+        /// <summary>
+        /// Thêm mới một sản phẩm vào danh mục
+        /// </summary>
         public async Task<IActionResult> Create([FromBody] CreateProductDto dto)
         {
             if (await _context.Products.AnyAsync(p => p.ProductCode == dto.ProductCode))
@@ -93,6 +102,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPut("{id}")]
+        /// <summary>
+        /// Cập nhật thông tin chi tiết của sản phẩm theo ID
+        /// </summary>
         public async Task<IActionResult> Update(int id, [FromBody] CreateProductDto dto)
         {
             var product = await _context.Products.FindAsync(id);
@@ -130,6 +142,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpDelete("{id}")]
+        /// <summary>
+        /// Xóa sản phẩm khỏi hệ thống (nếu chưa có đơn hàng liên quan)
+        /// </summary>
         public async Task<IActionResult> Delete(int id)
         {
             var product = await _context.Products.FindAsync(id);
@@ -144,6 +159,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("export")]
+        /// <summary>
+        /// Xuất danh sách toàn bộ sản phẩm ra file Excel (.xlsx)
+        /// </summary>
         public async Task<IActionResult> Export()
         {
             var products = await _context.Products.OrderBy(p => p.ProductCode).ToListAsync();
@@ -153,6 +171,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpGet("import-template")]
+        /// <summary>
+        /// Tải về file Excel mẫu để nhập danh sách sản phẩm
+        /// </summary>
         public async Task<IActionResult> ImportTemplate()
         {
             var categories = await _context.ProductCategories.OrderBy(c => c.Name).Select(c => c.Name).ToListAsync();
@@ -162,6 +183,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost("import/preview")]
+        /// <summary>
+        /// Xem trước và kiểm tra tính hợp lệ dữ liệu từ file Excel nhập sản phẩm
+        /// </summary>
         public async Task<IActionResult> ImportPreview(IFormFile file)
         {
             if (file == null || file.Length == 0)
@@ -245,6 +269,9 @@ namespace SalesManagerBE.Controllers
         }
 
         [HttpPost("import/commit")]
+        /// <summary>
+        /// Xác nhận lưu các dòng sản phẩm hợp lệ từ file Excel vào cơ sở dữ liệu
+        /// </summary>
         public async Task<IActionResult> ImportCommit([FromBody] ProductImportCommitDto dto)
         {
             if (dto.Rows == null || dto.Rows.Count == 0)

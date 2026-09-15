@@ -31,4 +31,7 @@ export const DEFAULT_ADMIN_TAB = ADMIN_TABS[0]
 
 export const ADMIN_ORDERS_TAB = ADMIN_TABS.find((t) => t.key === 'orders')
 
+/**
+ * Hàm adminTabBySlug: thực thi chức năng xử lý của module
+ */
 export const adminTabBySlug = (slug) => ADMIN_TABS.find((t) => t.slug === slug)

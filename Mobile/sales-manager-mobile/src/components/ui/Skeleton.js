@@ -1,6 +1,9 @@
 import { useEffect, useRef } from 'react'
 import { Animated, StyleSheet, View } from 'react-native'
 
+/**
+ * Component Skeleton
+ */
 export function Skeleton({ width, height, radius = 8, style }) {
   const opacity = useRef(new Animated.Value(0.35)).current
 
@@ -26,6 +29,9 @@ export function Skeleton({ width, height, radius = 8, style }) {
   )
 }
 
+/**
+ * Component ProductCardSkeleton
+ */
 export function ProductCardSkeleton() {
   return (
     <View style={styles.card}>
@@ -40,6 +46,9 @@ export function ProductCardSkeleton() {
   )
 }
 
+/**
+ * Component OrderCardSkeleton
+ */
 export function OrderCardSkeleton() {
   return (
     <View style={styles.orderCard}>

@@ -21,6 +21,9 @@ import { PATHS } from '../routes/paths'
 
 const PAGE_SIZE = 12
 
+/**
+ * Thẻ hiển thị thông tin tóm tắt và giá của một sản phẩm
+ */
 const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToCart }) {
   const catName  = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
@@ -73,6 +76,9 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
   )
 })
 
+/**
+ * Component trang chủ: hiển thị danh mục, banner và danh sách sản phẩm
+ */
 function TrangChu() {
   const navigate = useNavigate()
   const { user, isAdmin, isLoggedIn, logout } = useAuth()

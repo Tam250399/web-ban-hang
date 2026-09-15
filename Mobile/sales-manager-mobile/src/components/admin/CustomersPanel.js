@@ -9,6 +9,9 @@ import { fonts } from '../../theme/fonts'
 
 const PAGE_SIZE = 15
 
+/**
+ * Component CustomersPanel
+ */
 export default function CustomersPanel() {
   const [customers, setCustomers] = useState([])
   const [loading, setLoading] = useState(true)

@@ -13,6 +13,9 @@ const FILTERS = [
   { key: 'Cancelled', label: 'Đã huỷ' },
 ]
 
+/**
+ * Component CancelReasonModal
+ */
 function CancelReasonModal({ onClose, onConfirm }) {
   const [reason, setReason] = useState('')
   const [loading, setLoading] = useState(false)
@@ -48,6 +51,9 @@ function CancelReasonModal({ onClose, onConfirm }) {
   )
 }
 
+/**
+ * Component OrderDetailModal
+ */
 function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -238,6 +244,9 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
   )
 }
 
+/**
+ * Component quản lý duyệt đơn đặt hàng của khách hàng
+ */
 function OrderManager({ onChanged }) {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)

@@ -4,6 +4,9 @@ const CAT  = `${BASE_URL}/category/product-categories`
 const UNIT = `${BASE_URL}/category/unit-types`
 const NAME = `${BASE_URL}/category/product-names`
 
+/**
+ * Dịch vụ API quản lý danh mục sản phẩm, đơn vị tính và tên mẫu sản phẩm
+ */
 export const categoryService = {
   getCategories:  ()         => request(CAT),
   getHomeCategories: ()      => request(`${CAT}/home`),

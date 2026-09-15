@@ -3,6 +3,9 @@ import { resolveMediaUrl } from '../services/config'
 import { useModalA11y } from '../hooks/useModalA11y'
 import { Icon } from './common/Icon'
 
+/**
+ * Hộp thoại hiển thị chi tiết thông tin và hình ảnh sản phẩm
+ */
 function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
   const dialogRef = useModalA11y({ onClose })
 

@@ -3,6 +3,9 @@ import { Platform } from 'react-native'
 
 const DEV_SERVER_PORT = 5000
 
+/**
+ * Hàm resolveDevHost: thực thi chức năng xử lý của module
+ */
 function resolveDevHost() {
   const hostUri = Constants.expoConfig?.hostUri
   if (hostUri) {
@@ -15,6 +18,9 @@ function resolveDevHost() {
 
 const extra = Constants.expoConfig?.extra ?? {}
 
+/**
+ * Hàm resolveProdServerUrl: thực thi chức năng xử lý của module
+ */
 function resolveProdServerUrl() {
   if (extra.apiUrl) return String(extra.apiUrl).replace(/\/+$/, '')
   const host = extra.apiHost ?? 'localhost'
@@ -46,6 +52,9 @@ if (__DEV__ && !SERVER_URL.startsWith('http')) {
 
 const mediaUrlCache = new Map()
 
+/**
+ * Hàm resolveMediaUrl: thực thi chức năng xử lý của module
+ */
 export function resolveMediaUrl(url) {
   if (!url) return url
   const cached = mediaUrlCache.get(url)

@@ -11,6 +11,9 @@ const STOCK_SUB_TABS = [
   { id: 'export', icon: 'exportBox', label: 'Xuất kho' },
 ]
 
+/**
+ * Component StockPanel
+ */
 export default function StockPanel() {
   const [stockSub, setStockSub] = useState('export')
 

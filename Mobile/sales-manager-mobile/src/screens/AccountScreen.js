@@ -10,6 +10,9 @@ import { brand } from '../theme/colors'
 import { fonts } from '../theme/fonts'
 import { Icon } from '../components/ui/Icon'
 
+/**
+ * Component ContactModal
+ */
 function ContactModal({ visible, contact, onClose }) {
   if (!contact) return null
   return (
@@ -49,6 +52,9 @@ function ContactModal({ visible, contact, onClose }) {
   )
 }
 
+/**
+ * Màn hình quản lý thông tin tài khoản cá nhân
+ */
 export default function AccountScreen({ navigation }) {
   const {
     user, isGuest, logout,

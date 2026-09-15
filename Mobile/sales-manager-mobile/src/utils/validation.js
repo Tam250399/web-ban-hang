@@ -7,6 +7,9 @@ const COMMON_PASSWORDS = new Set([
   'matkhau1', 'vietnam1', 'admin123', 'adminadmin', '87654321', 'letmein1',
 ])
 
+/**
+ * Kiểm tra độ an toàn và hợp lệ của mật khẩu
+ */
 export function validatePassword(password) {
   if (!password) return 'Vui lòng nhập mật khẩu'
   if (password.length < PASSWORD_MIN_LENGTH) {
@@ -21,6 +24,9 @@ export function validatePassword(password) {
   return ''
 }
 
+/**
+ * Hàm lấy dữ liệu getPasswordStrength
+ */
 export function getPasswordStrength(password) {
   if (!password) return { level: 0, label: '', color: '#CBD5E1' }
 
@@ -39,6 +45,9 @@ export function getPasswordStrength(password) {
   return { level: 3, label: 'Mạnh', color: '#16A34A' }
 }
 
+/**
+ * Kiểm tra tính hợp lệ của tên đăng nhập
+ */
 export function validateUsername(username) {
   const value = (username || '').trim()
   if (!value) return 'Vui lòng nhập tên đăng nhập'
@@ -50,6 +59,9 @@ export function validateUsername(username) {
   return ''
 }
 
+/**
+ * Hàm validateFullName: thực thi chức năng xử lý của module
+ */
 export function validateFullName(fullName) {
   const value = (fullName || '').trim()
   if (!value) return 'Vui lòng nhập họ và tên'
@@ -57,6 +69,9 @@ export function validateFullName(fullName) {
   return ''
 }
 
+/**
+ * Hàm validateEmail: thực thi chức năng xử lý của module
+ */
 export function validateEmail(email) {
   const value = (email || '').trim()
   if (!value) return ''
@@ -64,6 +79,9 @@ export function validateEmail(email) {
   return ''
 }
 
+/**
+ * Kiểm tra tính hợp lệ của số điện thoại
+ */
 export function validatePhoneNumber(phoneNumber) {
   const value = (phoneNumber || '').trim()
   if (!value) return ''

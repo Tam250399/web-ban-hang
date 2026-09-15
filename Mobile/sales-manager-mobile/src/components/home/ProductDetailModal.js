@@ -19,6 +19,9 @@ const CATEGORY_ICONS = {
   'Sơn': 'palette',
 }
 
+/**
+ * Hộp thoại hiển thị chi tiết thông tin và hình ảnh sản phẩm
+ */
 export default function ProductDetailModal({ visible, product, onClose, onAddToCart, hideAddToCart }) {
   if (!product) return null
 

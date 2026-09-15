@@ -4,6 +4,9 @@ import { useNetwork } from '../../context/network-context'
 import { brand } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 
+/**
+ * Thanh thông báo trạng thái mất kết nối mạng internet
+ */
 export default function OfflineBanner() {
   const { isOnline } = useNetwork()
 

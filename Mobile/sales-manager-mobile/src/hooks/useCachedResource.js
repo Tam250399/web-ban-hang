@@ -2,6 +2,9 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { readCache, writeCache } from '../services/cache'
 import { useNetwork } from '../context/network-context'
 
+/**
+ * Hook nạp dữ liệu cache offline tức thì và đồng bộ ngầm qua API cho ứng dụng Mobile
+ */
 export function useCachedResource(cacheKey, fetcher, { enabled = true } = {}) {
   const { isOnline, onReconnect } = useNetwork()
 

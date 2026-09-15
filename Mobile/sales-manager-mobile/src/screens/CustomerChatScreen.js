@@ -21,6 +21,9 @@ import { Icon } from '../components/ui/Icon'
 
 const BUBBLE_MAX_W = 280
 
+/**
+ * Component MessageBubble
+ */
 const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }) {
   const isMe = !message.fromAdmin
   return (
@@ -53,6 +56,9 @@ const MessageBubble = memo(function MessageBubble({ message, showDate, onRetry }
   )
 })
 
+/**
+ * Component DateSeparator
+ */
 function DateSeparator({ date }) {
   return (
     <View style={s.dateSepRow}>
@@ -65,6 +71,9 @@ function DateSeparator({ date }) {
   )
 }
 
+/**
+ * Component PendingImageBar
+ */
 function PendingImageBar({ image, onRemove }) {
   if (!image) return null
   return (
@@ -82,6 +91,9 @@ function PendingImageBar({ image, onRemove }) {
   )
 }
 
+/**
+ * Màn hình chat hỗ trợ trực tuyến trên di động
+ */
 export default function CustomerChatScreen() {
   const { isGuest } = useAuth()
   const navigation = useNavigation()

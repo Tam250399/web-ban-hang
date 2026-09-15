@@ -1,3 +1,6 @@
+/**
+ * Ô nhập liệu số tiền có tự động định dạng dấu phân cách
+ */
 function MoneyInput({ value, onChange, className = '', ...rest }) {
   const display = value === '' || value === null || value === undefined
     ? ''

@@ -23,6 +23,9 @@ namespace SalesManagerBE.Controllers
         public UploadController(IMinioService minio) { _minio = minio; }
 
         [HttpPost("image")]
+        /// <summary>
+        /// Tải ảnh lên lưu trữ MinIO và trả về URL của hình ảnh
+        /// </summary>
         public async Task<IActionResult> UploadImage(IFormFile file)
         {
             if (file == null || file.Length == 0)

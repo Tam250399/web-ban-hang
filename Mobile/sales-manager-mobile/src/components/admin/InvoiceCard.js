@@ -20,6 +20,9 @@ const C = {
   manualBg: '#F1F5F9',
 }
 
+/**
+ * Component InvoiceCard
+ */
 function InvoiceCard({ invoice, onEdit, onDelete }) {
   const isOnline = !!invoice.fromOrderId
   const sourceLabel = isOnline ? `Từ đơn hàng #${invoice.fromOrderId}` : 'Tự tạo tại quầy'

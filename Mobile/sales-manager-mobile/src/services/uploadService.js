@@ -2,6 +2,9 @@ import { ApiError, BASE_URL, notifyUnauthorized } from './apiClient'
 
 const UPLOAD_TIMEOUT_MS = 45000
 
+/**
+ * Hàm uploadImage: thực thi chức năng xử lý của module
+ */
 export async function uploadImage(asset) {
   const formData = new FormData()
   formData.append('file', {

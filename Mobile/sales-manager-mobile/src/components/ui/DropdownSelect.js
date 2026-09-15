@@ -8,6 +8,9 @@ import { admin } from '../../theme/colors'
 import { fonts } from '../../theme/fonts'
 import { Icon, ICON_ROW } from './Icon'
 
+/**
+ * Component DropdownSelect
+ */
 export default function DropdownSelect({
   value,
   label,

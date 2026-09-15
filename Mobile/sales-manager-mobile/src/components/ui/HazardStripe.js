@@ -1,6 +1,9 @@
 import Svg, { Defs, Pattern, Rect } from 'react-native-svg'
 import { brand } from '../../theme/colors'
 
+/**
+ * Component HazardStripe
+ */
 export default function HazardStripe({ height = 8 }) {
   return (
     <Svg width="100%" height={height}>

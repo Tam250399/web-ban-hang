@@ -1,5 +1,8 @@
 import { useEffect, useRef } from 'react'
 
+/**
+ * Hook quản lý phím tắt và khả năng truy cập a11y cho hộp thoại Modal
+ */
 export function useModalA11y({ onClose, enabled = true }) {
   const containerRef = useRef(null)
   const onCloseRef = useRef(onClose)

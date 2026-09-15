@@ -7,6 +7,9 @@ const COLORS = {
 
 const ICON_ONLY_TRANSFORM = 'translate(100,100) scale(2.1) translate(-100,-64)'
 
+/**
+ * Component logo thương hiệu kèm biểu tượng
+ */
 export default function LogoBadge({ size = 44, variant = 'normal', showText = size >= 72 }) {
   const c = COLORS[variant] ?? COLORS.normal
   const mark = (

@@ -9,6 +9,9 @@ const AUTH_ENTRY_POINTS = ['/auth/login', '/auth/register']
 
 let unauthorizedHandler = null
 
+/**
+ * Đăng ký hàm callback xử lý khi người dùng nhận mã phản hồi 401 Unauthorized
+ */
 export function setUnauthorizedHandler(fn) {
   unauthorizedHandler = fn
 }
@@ -22,8 +25,14 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * Hàm kiểm tra điều kiện isNetworkError
+ */
 export const isNetworkError = (err) => err?.kind === 'network' || err?.kind === 'timeout'
 
+/**
+ * Tạo tín hiệu AbortController tự động hủy request khi quá thời gian timeout
+ */
 function withTimeout(signal, timeoutMs) {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), timeoutMs)
@@ -38,6 +47,9 @@ function withTimeout(signal, timeoutMs) {
   }
 }
 
+/**
+ * Chuẩn hóa lỗi từ fetch thành đối tượng ApiError dễ đọc
+ */
 function toFetchError(err, externalSignal) {
   if (externalSignal?.aborted) return err
   if (err?.name === 'AbortError') {
@@ -46,6 +58,9 @@ function toFetchError(err, externalSignal) {
   return new ApiError('Không có kết nối tới máy chủ. Kiểm tra lại mạng của bạn.', { kind: 'network' })
 }
 
+/**
+ * Đọc nội dung thông báo lỗi từ response trả về của backend
+ */
 async function readError(res, url) {
   const isJson = res.headers.get('content-type')?.includes('application/json')
   const data = isJson ? await res.json().catch(() => null) : null
@@ -60,6 +75,9 @@ async function readError(res, url) {
   return new ApiError(data?.message || `Lỗi ${res.status}`, { status: res.status })
 }
 
+/**
+ * Hàm wrapper gửi HTTP request JSON tới Backend và xử lý bắt lỗi tập trung
+ */
 export async function request(url, { body, headers, signal, ...options } = {}) {
   const { signal: timeoutSignal, cleanup } = withTimeout(signal, TIMEOUT_MS)
 
@@ -84,6 +102,9 @@ export async function request(url, { body, headers, signal, ...options } = {}) {
   return isJson ? res.json() : null
 }
 
+/**
+ * Tải file từ API backend và kích hoạt popup tải về trên trình duyệt
+ */
 export async function downloadFile(url, fallbackName, resolveFileName) {
   const { signal, cleanup } = withTimeout(null, DOWNLOAD_TIMEOUT_MS)
 

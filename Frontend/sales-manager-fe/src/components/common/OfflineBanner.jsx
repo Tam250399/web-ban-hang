@@ -1,5 +1,8 @@
 import { useNetwork } from '../../context/network-context'
 
+/**
+ * Thanh thông báo trạng thái mất kết nối mạng internet
+ */
 function OfflineBanner() {
   const { isOnline } = useNetwork()
   if (isOnline) return null

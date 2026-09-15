@@ -9,7 +9,6 @@ using SalesManagerBE.Services;
 
 namespace SalesManagerBE.Hubs
 {
-
     [Authorize]
     public class ChatHub : Hub
     {
@@ -26,6 +25,9 @@ namespace SalesManagerBE.Hubs
         private int UserId => int.Parse(Context.User!.FindFirstValue(ClaimTypes.NameIdentifier)!);
         private bool IsAdmin => Context.User!.IsInRole("Admin");
 
+        /// <summary>
+        /// Xử lý khi một client kết nối tới Hub chat qua SignalR
+        /// </summary>
         public override async Task OnConnectedAsync()
         {
             if (IsAdmin)
@@ -45,6 +47,9 @@ namespace SalesManagerBE.Hubs
             await base.OnConnectedAsync();
         }
 
+        /// <summary>
+        /// Xử lý khi client ngắt kết nối khỏi Hub chat
+        /// </summary>
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             if (!IsAdmin && _presence.MarkDisconnected(UserId))
@@ -54,6 +59,9 @@ namespace SalesManagerBE.Hubs
             await base.OnDisconnectedAsync(exception);
         }
 
+        /// <summary>
+        /// Khách hàng gửi tin nhắn mới tới quản trị viên
+        /// </summary>
         public async Task SendMessage(string content, string? imageUrl = null)
         {
             if (IsAdmin) return;
@@ -66,6 +74,9 @@ namespace SalesManagerBE.Hubs
             await Clients.Group(AdminsGroup).SendAsync("ConversationUpdated", await ToConversationDtoAsync(conversation.Id));
         }
 
+        /// <summary>
+        /// Quản trị viên phản hồi tin nhắn trong cuộc trò chuyện của khách hàng
+        /// </summary>
         public async Task ReplyToConversation(int conversationId, string content, string? imageUrl = null)
         {
             if (!IsAdmin) return;
@@ -80,6 +91,9 @@ namespace SalesManagerBE.Hubs
             await Clients.Group(AdminsGroup).SendAsync("ConversationUpdated", await ToConversationDtoAsync(conversation.Id));
         }
 
+        /// <summary>
+        /// Đưa client vào group SignalR của cuộc hội thoại cụ thể
+        /// </summary>
         public async Task JoinConversation(int conversationId)
         {
             if (!IsAdmin) return;
@@ -87,12 +101,18 @@ namespace SalesManagerBE.Hubs
             await MarkReadAsync(conversationId, fromAdminSide: true);
         }
 
+        /// <summary>
+        /// Rời khỏi group SignalR của cuộc hội thoại
+        /// </summary>
         public async Task LeaveConversation(int conversationId)
         {
             if (!IsAdmin) return;
             await Groups.RemoveFromGroupAsync(Context.ConnectionId, ConvGroup(conversationId));
         }
 
+        /// <summary>
+        /// Đánh dấu tất cả tin nhắn trong cuộc trò chuyện là đã đọc
+        /// </summary>
         public async Task MarkRead()
         {
             if (IsAdmin) return;
