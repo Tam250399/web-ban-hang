@@ -112,7 +112,8 @@ namespace SalesManagerBE.Controllers
             var orders = await _context.Orders
                 .Where(o => o.UserId == userId)
                 .Include(o => o.Items)
-                .OrderByDescending(o => o.CreatedAt)
+                .OrderByDescending(o => o.ConfirmedAt ?? o.CreatedAt)
+                .ThenByDescending(o => o.Id)
                 .Select(o => new
                 {
                     o.Id,
@@ -144,7 +145,8 @@ namespace SalesManagerBE.Controllers
                 query = query.Where(o => o.Status == status);
 
             var orders = await query
-                .OrderByDescending(o => o.CreatedAt)
+                .OrderByDescending(o => o.ConfirmedAt ?? o.CreatedAt)
+                .ThenByDescending(o => o.Id)
                 .Select(o => new
                 {
                     o.Id,

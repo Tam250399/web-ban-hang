@@ -83,65 +83,97 @@ function MultiSearchableSelect({
   }
 
   return (
-    <div className={`searchable-select ${open ? 'open' : ''} ${disabled ? 'disabled' : ''}`} ref={wrapRef}>
+    <div className={`relative w-full ${disabled ? 'opacity-60 pointer-events-none' : ''}`} ref={wrapRef}>
       <button
         type="button"
-        className="searchable-select-trigger multi-trigger"
+        className={`w-full min-h-[38px] px-2.5 py-1.5 bg-white border rounded-lg text-xs sm:text-sm text-left flex items-center justify-between gap-1.5 shadow-2xs transition cursor-pointer disabled:cursor-not-allowed ${
+          open ? 'border-primary ring-2 ring-primary/20' : 'border-stone-300 hover:border-primary'
+        }`}
         onClick={() => !disabled && setOpen(o => !o)}
         disabled={disabled}
       >
         {selectedOptions.length === 0 ? (
-          <span className="searchable-select-placeholder">{placeholder}</span>
+          <span className="text-stone-400 truncate">{placeholder}</span>
         ) : (
-          <span className="multi-select-tags">
+          <span className="flex flex-wrap items-center gap-1 min-w-0">
             {selectedOptions.slice(0, 2).map(o => (
-              <span key={o.value} className="multi-select-tag">
-                {o.label}
-                <span className="multi-select-tag-remove" onClick={(e) => removeValue(o.value, e)}>×</span>
+              <span
+                key={o.value}
+                className="inline-flex items-center gap-1 bg-stone-100 text-stone-800 text-[11px] font-medium px-2 py-0.5 rounded-md border border-stone-200 max-w-[120px] truncate"
+              >
+                <span className="truncate">{o.label}</span>
+                <span
+                  className="text-stone-400 hover:text-red-500 font-bold ml-0.5 cursor-pointer leading-none"
+                  onClick={(e) => removeValue(o.value, e)}
+                >
+                  ×
+                </span>
               </span>
             ))}
             {selectedOptions.length > 2 && (
-              <span className="multi-select-tag more">+{selectedOptions.length - 2}</span>
+              <span className="inline-flex items-center text-[11px] font-semibold text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded-md">
+                +{selectedOptions.length - 2}
+              </span>
             )}
           </span>
         )}
-        <span style={{ display: 'flex', alignItems: 'center', gap: 4, flexShrink: 0 }}>
+        <span className="flex items-center gap-1 shrink-0">
           {values.length > 0 && (
-            <span className="multi-select-clear" onClick={clearAll}>×</span>
+            <span
+              className="text-stone-400 hover:text-stone-700 px-1 text-sm font-bold cursor-pointer leading-none"
+              onClick={clearAll}
+            >
+              ×
+            </span>
           )}
-          <Icon name="chevronDown" size={14} className="searchable-select-arrow" />
+          <Icon
+            name="chevronDown"
+            size={14}
+            className={`shrink-0 text-stone-400 transition-transform duration-150 ${open ? 'rotate-180 text-primary' : ''}`}
+          />
         </span>
       </button>
 
       {open && panelStyle && createPortal(
-        <div className="searchable-select-panel" style={panelStyle} ref={panelRef}>
-          <input
-            ref={searchRef}
-            className="searchable-select-search"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={e => e.key === 'Escape' && (setOpen(false), setQuery(''))}
-            placeholder={searchPlaceholder}
-          />
-          <div className="searchable-select-options">
+        <div
+          ref={panelRef}
+          style={panelStyle}
+          className="z-50 bg-white border border-stone-200 rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="p-1.5 border-b border-stone-100 bg-stone-50/50">
+            <input
+              ref={searchRef}
+              className="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-200 rounded-md outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={e => e.key === 'Escape' && (setOpen(false), setQuery(''))}
+              placeholder={searchPlaceholder}
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto p-1 text-xs sm:text-sm space-y-0.5">
             {filtered.length === 0 && (
-              <div className="searchable-select-empty">Không tìm thấy kết quả</div>
+              <div className="py-4 text-center text-xs text-stone-400">Không tìm thấy kết quả</div>
             )}
-            {filtered.map(o => (
-              <div
-                key={o.value}
-                className={`searchable-select-option ${values.includes(String(o.value)) ? 'active' : ''}`}
-                onClick={() => toggleValue(o.value)}
-              >
-                <input
-                  type="checkbox"
-                  checked={values.includes(String(o.value))}
-                  readOnly
-                  style={{ marginRight: 8, accentColor: 'var(--primary)', pointerEvents: 'none' }}
-                />
-                {o.label}
-              </div>
-            ))}
+            {filtered.map(o => {
+              const active = values.includes(String(o.value))
+              return (
+                <div
+                  key={o.value}
+                  className={`px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-2 transition select-none ${
+                    active ? 'bg-primary/10 text-primary font-semibold' : 'text-stone-700 hover:bg-stone-100'
+                  }`}
+                  onClick={() => toggleValue(o.value)}
+                >
+                  <input
+                    type="checkbox"
+                    checked={active}
+                    readOnly
+                    className="accent-primary rounded pointer-events-none"
+                  />
+                  <span>{o.label}</span>
+                </div>
+              )
+            })}
           </div>
         </div>,
         document.body

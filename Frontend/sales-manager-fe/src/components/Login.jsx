@@ -62,7 +62,7 @@ function Login() {
       toast.success(`Đăng nhập thành công! Xin chào ${loggedIn.fullName || loggedIn.username}`)
       login(loggedIn)
       const from = location.state?.from?.pathname
-      navigate(from || (loggedIn.role === 'Admin' ? PATHS.admin : PATHS.home), { replace: true })
+      navigate(from || (loggedIn.role === 'Admin' ? PATHS.admin : PATHS.home), { replace: true, viewTransition: true })
     } catch (error) {
       setFormError(error.message || 'Không thể kết nối tới backend.')
       setSubmitting(false)
@@ -70,18 +70,26 @@ function Login() {
   }
 
   return (
-    <div className="auth-shell">
+    <div className="min-h-screen flex flex-col bg-brand-bg text-ink">
       <PageMeta title="Đăng nhập" noIndex />
       <div className="hzd" />
-      <div className="auth-center">
-        <div className="auth-card">
-          <span className="tag chip-rotate">Lý Sáu</span>
-          <h1 className="auth-title">Đăng nhập</h1>
-          <p className="auth-subtitle">Chào mừng bạn trở lại với Vật Liệu Xây Dựng</p>
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
+        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-brand-divider/60 p-6 sm:p-8">
+          <Link to={PATHS.home} viewTransition className="inline-block">
+            <span className="tag chip-rotate cursor-pointer hover:opacity-90 transition">← Trang chủ Lý Sáu</span>
+          </Link>
+          <h1 className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-ink mt-2 mb-1">
+            Đăng nhập
+          </h1>
+          <p className="text-sm text-brand-text mb-6">
+            Chào mừng bạn trở lại với Vật Liệu Xây Dựng
+          </p>
 
-          <form onSubmit={handleSubmit} className="auth-form">
-            <div className="auth-field">
-              <label htmlFor="username" className="auth-label">Tên đăng nhập</label>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="username" className="block text-xs font-bold uppercase tracking-wider text-brand-text mb-1.5">
+                Tên đăng nhập
+              </label>
               <input
                 id="username"
                 name="username"
@@ -90,14 +98,20 @@ function Login() {
                 placeholder="Nhập tên đăng nhập"
                 value={username}
                 onChange={handleUsernameChange}
-                className={`auth-input ${usernameError ? 'has-error' : ''}`}
+                className={`w-full px-3.5 py-2.5 rounded-xl border text-sm text-ink bg-white focus:outline-none focus:ring-2 transition ${
+                  usernameError
+                    ? 'border-red-500 focus:ring-red-400'
+                    : 'border-brand-divider focus:ring-primary focus:border-transparent'
+                }`}
               />
-              {usernameError && <span className="auth-field-error">{usernameError}</span>}
+              {usernameError && <span className="text-xs text-red-600 mt-1 block font-medium">{usernameError}</span>}
             </div>
 
-            <div className="auth-field">
-              <label htmlFor="password" className="auth-label">Mật khẩu</label>
-              <div className="auth-password-wrap">
+            <div>
+              <label htmlFor="password" className="block text-xs font-bold uppercase tracking-wider text-brand-text mb-1.5">
+                Mật khẩu
+              </label>
+              <div className="relative flex items-center">
                 <input
                   id="password"
                   name="password"
@@ -106,48 +120,58 @@ function Login() {
                   placeholder="Nhập mật khẩu"
                   value={password}
                   onChange={handlePasswordChange}
-                  className={`auth-input auth-input-password ${passwordError ? 'has-error' : ''}`}
+                  className={`w-full px-3.5 py-2.5 pr-11 rounded-xl border text-sm text-ink bg-white focus:outline-none focus:ring-2 transition ${
+                    passwordError
+                      ? 'border-red-500 focus:ring-red-400'
+                      : 'border-brand-divider focus:ring-primary focus:border-transparent'
+                  }`}
                 />
                 <button
                   type="button"
                   aria-label="Ẩn hiện mật khẩu"
                   onClick={() => setShowPassword((s) => !s)}
-                  className="auth-eye-btn"
+                  className="absolute right-3 text-brand-text hover:text-ink focus:outline-none transition p-1 cursor-pointer"
                 >
                   {showPassword ? <Icon name="eyeOff" size={20} /> : <Icon name="eye" size={20} />}
                 </button>
               </div>
-              {passwordError && <span className="auth-field-error">{passwordError}</span>}
+              {passwordError && <span className="text-xs text-red-600 mt-1 block font-medium">{passwordError}</span>}
             </div>
 
-            <div className="auth-row">
-              <label className="auth-checkbox-label">
+            <div className="flex items-center justify-between text-sm py-1">
+              <label className="flex items-center gap-2 cursor-pointer text-brand-text hover:text-ink select-none">
                 <input
                   type="checkbox"
                   checked={remember}
                   onChange={() => setRemember((r) => !r)}
-                  className="auth-checkbox"
+                  className="w-4 h-4 rounded border-brand-divider text-primary focus:ring-primary cursor-pointer"
                 />
-                Nhớ đăng nhập
+                <span>Nhớ đăng nhập</span>
               </label>
-              <a href="#" className="auth-forgot-link" onClick={(e) => e.preventDefault()}>
+              <a href="#" className="text-xs text-primary hover:text-primary-dark font-medium" onClick={(e) => e.preventDefault()}>
                 Quên mật khẩu?
               </a>
             </div>
 
             {formError && (
-              <div className="auth-error-banner">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-2.5 rounded-xl text-sm font-medium">
                 <span>{formError}</span>
               </div>
             )}
 
-            <button type="submit" disabled={submitting} className="auth-submit">
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-3 px-4 bg-primary hover:bg-primary-dark text-white font-extrabold font-display text-base tracking-wide rounded-xl shadow transition transform active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
               {submitting ? 'Đang đăng nhập...' : 'Đăng nhập'}
             </button>
 
-            <p className="auth-switch">
+            <p className="text-center text-sm text-brand-text pt-2">
               Chưa có tài khoản?{' '}
-              <Link className="auth-switch-link" to={PATHS.register}>Đăng ký ngay</Link>
+              <Link viewTransition className="text-primary hover:text-primary-dark font-bold ml-1" to={PATHS.register}>
+                Đăng ký ngay
+              </Link>
             </p>
           </form>
         </div>

@@ -23,7 +23,8 @@ namespace SalesManagerBE.Controllers
         public async Task<IActionResult> GetUsers() =>
             Ok(await _context.Users
                 .Include(u => u.Role)
-                .OrderBy(u => u.Username)
+                .OrderByDescending(u => u.CreatedAt)
+                .ThenByDescending(u => u.Id)
                 .Select(u => new UserDto
                 {
                     Id = u.Id,
@@ -95,6 +96,7 @@ namespace SalesManagerBE.Controllers
             user.Email = dto.Email;
             user.PhoneNumber = dto.PhoneNumber;
             user.RoleId = dto.RoleId;
+            user.CreatedAt = DateTime.UtcNow;
             if (!string.IsNullOrWhiteSpace(dto.Password))
                 user.PasswordHash = AuthService.HashPassword(dto.Password);
 
@@ -127,6 +129,7 @@ namespace SalesManagerBE.Controllers
                 return BadRequest(new { message = "Vai trò không hợp lệ." });
 
             user.RoleId = dto.RoleId;
+            user.CreatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật quyền thành công." });
         }

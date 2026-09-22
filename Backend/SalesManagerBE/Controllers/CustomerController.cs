@@ -17,7 +17,7 @@ namespace SalesManagerBE.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
-            Ok(await _context.Customers.OrderBy(c => c.FullName).ToListAsync());
+            Ok(await _context.Customers.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id).ToListAsync());
 
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -67,6 +67,7 @@ namespace SalesManagerBE.Controllers
             entity.PhoneNumber = dto.PhoneNumber.Trim();
             entity.Address = dto.Address?.Trim();
             entity.IsBusiness = dto.IsBusiness;
+            entity.CreatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return Ok(entity);
         }

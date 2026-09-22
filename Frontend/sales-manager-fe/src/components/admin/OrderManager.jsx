@@ -28,20 +28,32 @@ function CancelReasonModal({ onClose, onConfirm }) {
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-box" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Huỷ đơn hàng</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
+    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-8" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+          <h3 className="text-base sm:text-lg font-black text-stone-900 flex items-center gap-2">
+            <Icon name="close" size={18} className="text-red-500" /> Huỷ đơn hàng
+          </h3>
+          <button className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition cursor-pointer text-sm font-bold" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
-        <form onSubmit={handleSubmit} className="add-product-form">
-          <label className="form-field">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <label className="block text-xs sm:text-sm font-semibold text-stone-700">
             <span>Lý do huỷ (tuỳ chọn)</span>
-            <input value={reason} onChange={e => setReason(e.target.value)} placeholder="VD: Hết hàng, khách không phản hồi..." autoFocus />
+            <input
+              className="w-full mt-1.5 px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-stone-900 text-xs sm:text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder="VD: Hết hàng, khách không phản hồi..."
+              autoFocus
+            />
           </label>
-          <div className="modal-footer">
-            <button type="button" className="btn-ghost" onClick={onClose}>Đóng</button>
-            <button className="btn-danger" type="submit" disabled={loading}>
+          <div className="pt-4 border-t border-stone-100 flex items-center justify-end gap-3">
+            <button type="button" className="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-bold text-xs sm:text-sm transition cursor-pointer" onClick={onClose}>Đóng</button>
+            <button
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+            >
               {loading ? 'Đang huỷ...' : 'Xác nhận huỷ đơn'}
             </button>
           </div>
@@ -66,65 +78,61 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
   const totalQuantity = order.items?.reduce((sum, it) => sum + (it.quantity || 0), 0) || 0
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-box modal-box-lg" onClick={e => e.stopPropagation()} style={{ maxWidth: 740 }}>
+    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150" onClick={onClose}>
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-8" onClick={e => e.stopPropagation()}>
         
-        <div className="modal-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-            <Icon name="receipt" size={24} />
+        <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <Icon name="receipt" size={20} />
+            </div>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <h3 style={{ margin: 0, fontSize: '1.25rem' }}>Chi tiết đơn hàng #{order.id}</h3>
-                <span className={`order-status-badge ${STATUS_CLASS[order.status]}`}>
+              <div className="flex items-center gap-2.5">
+                <h3 className="text-base sm:text-lg font-black text-stone-900">Chi tiết đơn hàng #{order.id}</h3>
+                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold border ${
+                  order.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                  order.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                  'bg-amber-50 text-amber-800 border-amber-200'
+                }`}>
                   {STATUS_LABEL[order.status]}
                 </span>
               </div>
-              <p style={{ margin: '3px 0 0', fontSize: '0.82rem', color: 'var(--text)' }}>
+              <p className="text-xs text-stone-400 mt-0.5">
                 Thời gian đặt: {order.createdAt ? new Date(order.createdAt).toLocaleString('vi-VN') : 'Không rõ'}
                 {order.confirmedAt && ` · Xác nhận lúc: ${new Date(order.confirmedAt).toLocaleString('vi-VN')}`}
               </p>
             </div>
           </div>
-          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
+          <button className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition cursor-pointer text-sm font-bold" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
-        <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: '20px 24px' }}>
+        <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           
-          <div style={{
-            background: 'oklch(0.975 0.005 255)',
-            border: '1px solid var(--border)',
-            borderRadius: 10,
-            padding: '14px 18px',
-            fontSize: '0.88rem'
-          }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '10px 20px' }}>
+          <div className="bg-stone-50 rounded-2xl border border-stone-200/80 p-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
               <div>
-                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Người nhận hàng:</span>
-                <div style={{ fontWeight: 600, marginTop: 2 }}>
-                  {order.recipientName}
-                </div>
+                <span className="text-xs text-stone-400 block">Người nhận hàng:</span>
+                <strong className="text-stone-900 font-bold">{order.recipientName}</strong>
               </div>
 
               <div>
-                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Số điện thoại:</span>
-                <div style={{ fontWeight: 600, marginTop: 2 }}>
-                  <a href={`tel:${order.phoneNumber}`} style={{ color: 'var(--primary)', textDecoration: 'none' }}>
-                    {order.phoneNumber}
-                  </a>
-                </div>
+                <span className="text-xs text-stone-400 block">Số điện thoại:</span>
+                <a href={`tel:${order.phoneNumber}`} className="text-primary font-bold hover:underline">
+                  {order.phoneNumber}
+                </a>
               </div>
 
-              <div style={{ gridColumn: '1 / -1' }}>
-                <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Địa chỉ nhận hàng:</span>
-                <div style={{ fontWeight: 500, marginTop: 2 }}>
-                  {order.address || <em style={{ color: '#888' }}>Nhận tại cửa hàng</em>}
+              <div className="sm:col-span-2">
+                <span className="text-xs text-stone-400 block">Địa chỉ nhận hàng:</span>
+                <div className="font-medium text-stone-800">
+                  {order.address || <span className="text-stone-400 italic">Nhận tại cửa hàng</span>}
                 </div>
               </div>
 
               {order.note && (
-                <div style={{ gridColumn: '1 / -1' }}>
-                  <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Ghi chú từ khách:</span>
-                  <div style={{ fontStyle: 'italic', marginTop: 2, color: 'var(--ink)' }}>
+                <div className="sm:col-span-2">
+                  <span className="text-xs text-stone-400 block">Ghi chú từ khách:</span>
+                  <div className="italic text-stone-700 bg-white/75 p-2 rounded-lg border border-stone-200/60 mt-1">
                     "{order.note}"
                   </div>
                 </div>
@@ -132,60 +140,50 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
 
               {order.customerUsername && (
                 <div>
-                  <span style={{ color: 'var(--text)', fontSize: '0.82rem' }}>Tài khoản đặt hàng:</span>
-                  <div style={{ fontWeight: 500, marginTop: 2 }}>
-                    <code>{order.customerUsername}</code>
-                  </div>
+                  <span className="text-xs text-stone-400 block">Tài khoản đặt hàng:</span>
+                  <code className="text-xs px-2 py-0.5 rounded bg-stone-200/60 font-mono text-stone-700">{order.customerUsername}</code>
                 </div>
               )}
             </div>
 
             {order.cancelReason && (
-              <div style={{
-                marginTop: 12,
-                padding: '8px 12px',
-                borderRadius: 6,
-                background: 'oklch(0.55 0.19 24 / 0.1)',
-                border: '1px solid oklch(0.85 0.08 24)',
-                color: 'oklch(0.45 0.18 24)',
-                fontSize: '0.84rem'
-              }}>
+              <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs">
                 <strong>Lý do huỷ đơn:</strong> {order.cancelReason}
               </div>
             )}
           </div>
 
           <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-              <strong style={{ fontSize: '0.92rem' }}>
+            <div className="flex items-center justify-between mb-2">
+              <strong className="text-xs sm:text-sm font-bold text-stone-800">
                 Danh sách sản phẩm ({order.items?.length || 0})
               </strong>
-              <span style={{ fontSize: '0.82rem', color: 'var(--text)' }}>
-                Tổng số lượng: <strong>{totalQuantity}</strong>
+              <span className="text-xs text-stone-500">
+                Tổng số lượng: <strong className="text-stone-800">{totalQuantity}</strong>
               </span>
             </div>
 
-            <div className="admin-table-wrap" style={{ minWidth: 0 }}>
-              <table className="admin-table" style={{ minWidth: 0, width: '100%' }}>
+            <div className="bg-white rounded-2xl border border-stone-200/80 shadow-2xs overflow-hidden overflow-x-auto">
+              <table className="w-full text-left text-xs sm:text-sm border-collapse">
                 <thead>
-                  <tr>
-                    <th style={{ width: 44 }}>#</th>
-                    <th>Tên sản phẩm</th>
-                    <th className="text-right" style={{ width: 70 }}>SL</th>
-                    <th className="text-right" style={{ width: 130 }}>Đơn giá</th>
-                    <th className="text-right" style={{ width: 150 }}>Thành tiền</th>
+                  <tr className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+                    <th className="px-3.5 py-2.5 w-10">#</th>
+                    <th className="px-3.5 py-2.5">Tên sản phẩm</th>
+                    <th className="px-3.5 py-2.5 text-right w-16">SL</th>
+                    <th className="px-3.5 py-2.5 text-right w-28">Đơn giá</th>
+                    <th className="px-3.5 py-2.5 text-right w-32">Thành tiền</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-stone-100">
                   {order.items?.map((it, i) => {
                     const amount = (it.quantity || 0) * (it.unitPrice || 0)
                     return (
-                      <tr key={it.productId || i}>
-                        <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{i + 1}</td>
-                        <td><strong>{it.productName}</strong></td>
-                        <td className="text-right" style={{ fontWeight: 600 }}>{it.quantity}</td>
-                        <td className="text-right">{it.unitPrice?.toLocaleString('vi-VN')}đ</td>
-                        <td className="price-cell text-right">{amount.toLocaleString('vi-VN')}đ</td>
+                      <tr key={it.productId || i} className="hover:bg-stone-50/60 transition">
+                        <td className="px-3.5 py-2.5 text-stone-400 text-xs">{i + 1}</td>
+                        <td className="px-3.5 py-2.5 font-bold text-stone-900">{it.productName}</td>
+                        <td className="px-3.5 py-2.5 text-right font-semibold">{it.quantity}</td>
+                        <td className="px-3.5 py-2.5 text-right text-stone-600">{it.unitPrice?.toLocaleString('vi-VN')}đ</td>
+                        <td className="px-3.5 py-2.5 text-right font-bold text-primary">{amount.toLocaleString('vi-VN')}đ</td>
                       </tr>
                     )
                   })}
@@ -194,42 +192,33 @@ function OrderDetailModal({ order, onClose, onConfirm, onCancelClick, confirming
             </div>
           </div>
 
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            padding: '14px 18px',
-            background: 'oklch(0.965 0.008 255)',
-            borderRadius: 10,
-            fontSize: '0.95rem'
-          }}>
-            <span>Tổng cộng thanh toán:</span>
-            <strong className="price-cell" style={{ fontSize: '1.3rem' }}>
+          <div className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-200/80">
+            <span className="text-xs sm:text-sm font-semibold text-stone-700">Tổng cộng thanh toán:</span>
+            <strong className="text-lg sm:text-xl font-black text-primary">
               {order.total?.toLocaleString('vi-VN')}đ
             </strong>
           </div>
 
         </div>
 
-        <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex items-center justify-between gap-3">
           <div>
             {order.status === 'Pending' && (
               <button
                 type="button"
-                className="btn-danger-sm"
-                style={{ padding: '8px 16px' }}
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 transition cursor-pointer border border-red-200"
                 onClick={() => onCancelClick?.(order.id)}
               >
-                <Icon name="close" size={15} /> Huỷ đơn hàng
+                <Icon name="close" size={14} /> Huỷ đơn hàng
               </button>
             )}
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button type="button" className="btn-ghost" onClick={onClose}>Đóng</button>
+          <div className="flex items-center gap-3">
+            <button type="button" className="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-bold text-xs sm:text-sm transition cursor-pointer" onClick={onClose}>Đóng</button>
             {order.status === 'Pending' && (
               <button
                 type="button"
-                className="btn-primary"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer disabled:opacity-50"
                 onClick={() => onConfirm?.(order.id)}
                 disabled={confirming}
               >
@@ -275,7 +264,11 @@ function OrderManager({ onChanged }) {
 
   const load = useCallback(() => {
     orderService.getAll(filter)
-      .then(setOrders)
+      .then(data => {
+        const list = Array.isArray(data) ? data : []
+        list.sort((a, b) => new Date(b.confirmedAt || b.createdAt || 0) - new Date(a.confirmedAt || a.createdAt || 0) || (b.id || 0) - (a.id || 0))
+        setOrders(list)
+      })
       .catch(() => toast.error('Không tải được danh sách đơn hàng.'))
       .finally(() => setLoading(false))
   }, [filter])
@@ -287,6 +280,12 @@ function OrderManager({ onChanged }) {
     try {
       await orderService.confirm(id, {})
       toast.success('Đã xác nhận đơn hàng và tạo phiếu bán hàng!')
+      setOrders(prev => {
+        const found = prev.find(o => o.id === id)
+        if (!found) return prev
+        const updated = { ...found, status: 'Confirmed', confirmedAt: new Date().toISOString() }
+        return [updated, ...prev.filter(o => o.id !== id)]
+      })
       load()
       onChanged?.()
     } catch (err) {
@@ -301,6 +300,12 @@ function OrderManager({ onChanged }) {
       await orderService.cancel(id, { reason })
       toast.success('Đã huỷ đơn hàng.')
       setCancellingOrderId(null)
+      setOrders(prev => {
+        const found = prev.find(o => o.id === id)
+        if (!found) return prev
+        const updated = { ...found, status: 'Cancelled', cancelReason: reason, confirmedAt: new Date().toISOString() }
+        return [updated, ...prev.filter(o => o.id !== id)]
+      })
       load()
       onChanged?.()
     } catch (err) {
@@ -308,7 +313,8 @@ function OrderManager({ onChanged }) {
     }
   }
 
-  const filtered = orders.filter(o => {
+  const sorted = [...orders].sort((a, b) => new Date(b.confirmedAt || b.createdAt || 0) - new Date(a.confirmedAt || a.createdAt || 0) || (b.id || 0) - (a.id || 0))
+  const filtered = sorted.filter(o => {
     const matchSearch = !search.trim() || o.recipientName?.toLowerCase().includes(search.trim().toLowerCase()) || o.phoneNumber?.includes(search.trim())
     const oDate = o.createdAt ? o.createdAt.slice(0, 10) : ''
     const matchFrom = !fromDate || oDate >= fromDate
@@ -320,19 +326,25 @@ function OrderManager({ onChanged }) {
   const paginated = filtered.slice((page - 1) * pageSize, page * pageSize)
 
   return (
-    <div>
-      <div className="list-header">
-        <h3 className="tab-title" style={{ marginBottom: 0 }}>
+    <div className="space-y-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <h3 className="text-xl sm:text-2xl font-black text-stone-900 tracking-tight flex items-center gap-2.5">
           Đơn hàng online
-          <span className="count-badge" style={{ marginLeft: 8 }}>{filtered.length}</span>
+          <span className="inline-flex items-center justify-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">
+            {filtered.length}
+          </span>
         </h3>
       </div>
 
-      <div className="sub-tabs">
+      <div className="inline-flex p-1 bg-white rounded-2xl border border-stone-200/80 shadow-2xs gap-1 flex-wrap">
         {FILTERS.map(f => (
           <button
             key={f.key}
-            className={`sub-tab-btn ${filter === f.key ? 'active' : ''}`}
+            className={`inline-flex items-center px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition cursor-pointer ${
+              filter === f.key
+                ? 'bg-primary text-white shadow-xs'
+                : 'text-stone-600 hover:text-stone-900 hover:bg-stone-100'
+            }`}
             onClick={() => changeFilter(f.key)}
           >
             {f.label}
@@ -340,69 +352,128 @@ function OrderManager({ onChanged }) {
         ))}
       </div>
 
-      <div className="admin-filter-bar" style={{ marginTop: 16 }}>
-        <input
-          className="search-input"
-          placeholder="Tìm theo người nhận, SĐT..."
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1) }}
-        />
+      <div className="flex flex-wrap items-center gap-3 bg-white p-3 sm:p-4 rounded-2xl border border-stone-200/80 shadow-2xs">
+        <div className="relative flex-1 min-w-[240px]">
+          <Icon name="search" size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-stone-400" />
+          <input
+            className="w-full pl-10 pr-4 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl outline-none focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 transition"
+            placeholder="Tìm theo người nhận, SĐT..."
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1) }}
+          />
+        </div>
         <button
           type="button"
-          className={`btn-advanced-toggle ${showAdvanced ? 'active' : ''}`}
+          className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold transition cursor-pointer border ${
+            showAdvanced
+              ? 'bg-stone-800 text-white border-stone-800'
+              : 'bg-stone-50 text-stone-700 border-stone-200 hover:bg-stone-100'
+          }`}
           onClick={() => setShowAdvanced(v => !v)}
         >
-          <span className="toggle-icon"><Icon name="chevronDown" size={14} /></span> Nâng cao
+          <Icon name="chevronDown" size={14} className={`transition-transform duration-150 ${showAdvanced ? 'rotate-180' : ''}`} />
+          Nâng cao
           {[fromDate, toDate].filter(Boolean).length > 0 && (
-            <span className="advanced-count">{[fromDate, toDate].filter(Boolean).length}</span>
+            <span className="px-1.5 py-0.2 rounded-full text-[10px] font-bold bg-primary text-white">
+              {[fromDate, toDate].filter(Boolean).length}
+            </span>
           )}
         </button>
         {(search || fromDate || toDate) && (
-          <button type="button" className="btn-ghost" onClick={() => { setSearch(''); setFromDate(''); setToDate(''); setPage(1) }}>Xóa lọc</button>
+          <button
+            type="button"
+            className="px-3 py-2 rounded-xl text-stone-500 hover:text-stone-800 hover:bg-stone-100 text-xs font-bold transition cursor-pointer"
+            onClick={() => { setSearch(''); setFromDate(''); setToDate(''); setPage(1) }}
+          >
+            Xóa lọc
+          </button>
         )}
       </div>
+
       {showAdvanced && (
-        <div className="advanced-filter-panel">
-          <label className="admin-filter-date">
-            <span>Từ ngày</span>
-            <input type="date" value={fromDate} onChange={e => { setFromDate(e.target.value); setPage(1) }} />
+        <div className="flex flex-wrap items-center gap-4 p-4 bg-white rounded-2xl border border-stone-200/80 shadow-2xs">
+          <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-stone-700">
+            <span>Từ ngày:</span>
+            <input
+              type="date"
+              className="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-800 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              value={fromDate}
+              onChange={e => { setFromDate(e.target.value); setPage(1) }}
+            />
           </label>
-          <label className="admin-filter-date">
-            <span>Đến ngày</span>
-            <input type="date" value={toDate} onChange={e => { setToDate(e.target.value); setPage(1) }} />
+          <label className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-stone-700">
+            <span>Đến ngày:</span>
+            <input
+              type="date"
+              className="px-3 py-1.5 rounded-xl border border-stone-200 bg-stone-50 text-stone-800 text-xs outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              value={toDate}
+              onChange={e => { setToDate(e.target.value); setPage(1) }}
+            />
           </label>
         </div>
       )}
 
-      <div className="admin-table-wrap">
-        <table className="admin-table">
+      <div className="bg-white rounded-2xl border border-stone-200/80 shadow-2xs overflow-hidden overflow-x-auto">
+        <table className="w-full text-left text-xs sm:text-sm border-collapse">
           <thead>
-            <tr><th>#</th><th>Ngày</th><th>Người nhận</th><th>SL sản phẩm</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr>
+            <tr className="bg-stone-50/80 border-b border-stone-200 text-[11px] font-bold text-stone-500 uppercase tracking-wider">
+              <th className="px-3.5 py-2.5">#</th>
+              <th className="px-3.5 py-2.5">Ngày</th>
+              <th className="px-3.5 py-2.5">Người nhận</th>
+              <th className="px-3.5 py-2.5">SL sản phẩm</th>
+              <th className="px-3.5 py-2.5">Tổng tiền</th>
+              <th className="px-3.5 py-2.5">Trạng thái</th>
+              <th className="px-3.5 py-2.5 text-right">Thao tác</th>
+            </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y divide-stone-100">
             {loading ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-light)' }}>Đang tải...</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-stone-400 text-xs sm:text-sm">Đang tải...</td></tr>
             ) : paginated.length === 0 ? (
-              <tr><td colSpan={7} style={{ textAlign: 'center', padding: 24, color: 'var(--text-light)' }}>Chưa có đơn hàng nào</td></tr>
+              <tr><td colSpan={7} className="text-center py-12 text-stone-400 text-xs sm:text-sm">Chưa có đơn hàng nào</td></tr>
             ) : paginated.map((o, i) => (
-              <tr key={o.id}>
-                <td style={{ color: 'var(--text)', fontSize: '0.8rem' }}>{(page - 1) * pageSize + i + 1}</td>
-                <td>{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
-                <td><strong>{o.recipientName}</strong><br /><span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>{o.phoneNumber}</span></td>
-                <td>{o.itemCount}</td>
-                <td><strong>{o.total?.toLocaleString('vi-VN')}đ</strong></td>
-                <td><span className={`order-status-badge ${STATUS_CLASS[o.status]}`}>{STATUS_LABEL[o.status]}</span></td>
-                <td>
-                  <div className="action-btns">
-                    <button className="btn-edit-sm" onClick={() => openDetail(o.id)} disabled={loadingDetailId === o.id}>
-                      {loadingDetailId === o.id ? '...' : <><Icon name="eye" /> Xem</>}
+              <tr key={o.id} className="hover:bg-stone-50/60 transition">
+                <td className="px-3.5 py-2 text-stone-400 text-xs">{(page - 1) * pageSize + i + 1}</td>
+                <td className="px-3.5 py-2 text-stone-600">{new Date(o.createdAt).toLocaleDateString('vi-VN')}</td>
+                <td className="px-3.5 py-2">
+                  <strong className="text-stone-900 block font-bold">{o.recipientName}</strong>
+                  <span className="text-[11px] text-stone-400">{o.phoneNumber}</span>
+                </td>
+                <td className="px-3.5 py-2 text-stone-600 font-semibold">{o.itemCount}</td>
+                <td className="px-3.5 py-2 font-bold text-primary">{o.total?.toLocaleString('vi-VN')}đ</td>
+                <td className="px-3.5 py-2">
+                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-bold border ${
+                    o.status === 'Confirmed' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' :
+                    o.status === 'Cancelled' ? 'bg-red-50 text-red-700 border-red-200' :
+                    'bg-amber-50 text-amber-800 border-amber-200'
+                  }`}>
+                    {STATUS_LABEL[o.status]}
+                  </span>
+                </td>
+                <td className="px-3.5 py-2 text-right">
+                  <div className="inline-flex items-center gap-1.5 justify-end">
+                    <button
+                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-stone-100 text-stone-800 hover:bg-stone-200 transition cursor-pointer border border-stone-200"
+                      onClick={() => openDetail(o.id)}
+                      disabled={loadingDetailId === o.id}
+                    >
+                      {loadingDetailId === o.id ? '...' : <><Icon name="eye" size={13} /> Xem</>}
                     </button>
                     {o.status === 'Pending' && (
                       <>
-                        <button className="btn-edit-sm" onClick={() => handleConfirm(o.id)} disabled={confirmingId === o.id}>
-                          {confirmingId === o.id ? '...' : <><Icon name="check" /> Xác nhận</>}
+                        <button
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition cursor-pointer border border-emerald-200"
+                          onClick={() => handleConfirm(o.id)}
+                          disabled={confirmingId === o.id}
+                        >
+                          {confirmingId === o.id ? '...' : <><Icon name="check" size={13} /> Xác nhận</>}
                         </button>
-                        <button className="btn-danger-sm" onClick={() => setCancellingOrderId(o.id)}><Icon name="trash" /> Huỷ</button>
+                        <button
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold bg-red-50 text-red-700 hover:bg-red-100 transition cursor-pointer border border-red-200"
+                          onClick={() => setCancellingOrderId(o.id)}
+                        >
+                          <Icon name="trash" size={13} /> Huỷ
+                        </button>
                       </>
                     )}
                   </div>
@@ -414,9 +485,13 @@ function OrderManager({ onChanged }) {
       </div>
 
       <Pagination
-        page={page} totalPages={totalPages} total={filtered.length} pageSize={pageSize}
+        page={page}
+        totalPages={totalPages}
+        total={filtered.length}
+        pageSize={pageSize}
         onPageSizeChange={(size) => { setPageSize(size); setPage(1) }}
-        label="đơn hàng" onPage={setPage}
+        label="đơn hàng"
+        onPage={setPage}
       />
 
       {detailOrder && (

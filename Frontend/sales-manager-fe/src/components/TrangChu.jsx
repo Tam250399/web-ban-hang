@@ -24,14 +24,37 @@ const PAGE_SIZE = 12
 /**
  * Thẻ hiển thị thông tin tóm tắt và giá của một sản phẩm
  */
-const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToCart }) {
-  const catName  = product.categoryName || product.category || 'Khác'
+const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToCart, index = 0 }) {
+  const catName = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
   const icon = CATEGORY_ICONS[catName] || DEFAULT_CATEGORY_ICON
   const outOfStock = product.stockQuantity <= 0
+
   return (
-    <Link className="product-card" to={PATHS.productDetail(product.id)}>
-      <div className="product-img-placeholder">
+    <Link
+      data-product-card-id={product.id}
+      style={{ animationDelay: `${Math.min((index % 12) * 45, 450)}ms` }}
+      className="group animate-card-entrance flex flex-col bg-white rounded-2xl overflow-hidden border border-brand-divider/60 shadow-xs hover:shadow-xl hover:shadow-primary/5 hover:border-primary/40 hover:-translate-y-1.5 active:scale-[0.98] transition-all duration-300 ease-out will-change-transform"
+      to={PATHS.productDetail(product.id)}
+      onClick={(e) => {
+        const rect = e.currentTarget.getBoundingClientRect()
+        window.__lastProductCardRect = {
+          id: product.id,
+          rect: {
+            top: rect.top,
+            left: rect.left,
+            width: rect.width,
+            height: rect.height,
+          },
+        }
+      }}
+    >
+      <div className="relative h-44 bg-neutral-100 flex items-center justify-center overflow-hidden border-b border-brand-divider/40">
+        {/* Shimmer sweep effect on hover */}
+        <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+          <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-[-20deg]" />
+        </div>
+
         {product.imageUrl ? (
           <img
             src={resolveMediaUrl(product.imageUrl)}
@@ -40,35 +63,62 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
             height={140}
             loading="lazy"
             decoding="async"
-            style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
           />
         ) : (
-          <span className="product-icon"><Icon name={icon} size={44} /></span>
+          <span className="text-brand-text/70 group-hover:scale-115 group-hover:text-primary transition-all duration-300 ease-out">
+            <Icon name={icon} size={44} />
+          </span>
         )}
-        <span className="tag chip-rotate product-code-chip">{product.productCode}</span>
+        <span className="absolute top-2 left-2 tag chip-rotate text-[11px] group-hover:rotate-0 group-hover:scale-105 transition-transform duration-300 ease-out shadow-xs z-20">
+          {product.productCode}
+        </span>
         {product.stockQuantity < 50 && (
-          <span className="low-stock-badge">{outOfStock ? 'Hết hàng' : 'Sắp hết'}</span>
+          <span
+            className={`absolute top-2 right-2 text-[11px] font-bold px-2 py-0.5 rounded-md shadow-xs z-20 transition-transform duration-300 group-hover:scale-105 ${
+              outOfStock ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-800'
+            }`}
+          >
+            {outOfStock ? 'Hết hàng' : 'Sắp hết'}
+          </span>
         )}
       </div>
-      <div className="product-info">
-        <span className="product-category">{catName}</span>
-        <h3 className="product-name">{product.productName}</h3>
-        <p className="product-desc">{product.description}</p>
-        <div className="product-footer">
+      <div className="p-4 flex-1 flex flex-col">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-brand-text mb-1 group-hover:text-brand-text/80 transition-colors">
+          {catName}
+        </span>
+        <h3 className="text-base font-bold text-ink mb-1 group-hover:text-primary transition-colors duration-200 line-clamp-2">
+          {product.productName}
+        </h3>
+        <p className="text-xs text-brand-text mb-3 line-clamp-2 flex-1 leading-relaxed">
+          {product.description}
+        </p>
+        <div className="flex items-baseline justify-between pt-2 border-t border-brand-divider/30 mb-3">
           <div>
-            <span className="product-price">{product.price?.toLocaleString('vi-VN')}đ</span>
-            <span className="product-unit">/{unitName}</span>
+            <span className="text-base font-extrabold font-display text-primary group-hover:scale-105 inline-block transition-transform duration-200 origin-left">
+              {product.price?.toLocaleString('vi-VN')}đ
+            </span>
+            <span className="text-xs text-brand-text ml-0.5">/{unitName}</span>
           </div>
-          <span className="product-stock">Còn: {product.stockQuantity} {unitName}</span>
+          <span className="text-xs text-brand-text">Còn: {product.stockQuantity} {unitName}</span>
         </div>
         {!hideAddToCart && (
           <button
             type="button"
-            className="btn-add-cart"
+            className="group/btn w-full py-2 px-3 bg-primary hover:bg-primary-dark text-white font-extrabold font-display text-sm tracking-wide rounded-xl shadow-xs hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
             onClick={e => { e.preventDefault(); e.stopPropagation(); onAddToCart(product) }}
             disabled={outOfStock}
           >
-            {outOfStock ? 'Hết hàng' : <><Icon name="cart" /> Thêm vào giỏ</>}
+            {outOfStock ? (
+              'Hết hàng'
+            ) : (
+              <>
+                <span className="transition-transform duration-200 group-hover/btn:-rotate-12 group-hover/btn:scale-110 inline-flex">
+                  <Icon name="cart" size={16} />
+                </span>
+                <span>Thêm vào giỏ</span>
+              </>
+            )}
           </button>
         )}
       </div>
@@ -83,15 +133,19 @@ function TrangChu() {
   const navigate = useNavigate()
   const { user, isAdmin, isLoggedIn, logout } = useAuth()
   const canBuy = !isAdmin
-  const [search, setSearch]               = useState('')
+  const [search, setSearch] = useState('')
   const debouncedSearch = useDebouncedValue(search, 250)
   const [activeCategory, setActiveCategory] = useState('Tất cả')
-  const [visibleCount, setVisibleCount]   = useState(PAGE_SIZE)
-  const [menuOpen, setMenuOpen]           = useState(false)
-  const [banners, setBanners]             = useState([])
+
+  const handleCategoryChange = useCallback((cat) => {
+    setActiveCategory(cat)
+  }, [])
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [banners, setBanners] = useState([])
   const [homeCategories, setHomeCategories] = useState([])
   const [contact, setContact] = useState(null)
-  const [cartOpen, setCartOpen]           = useState(false)
+  const [cartOpen, setCartOpen] = useState(false)
   const { addItem, totalCount } = useCart()
 
   const handleAddToCart = useCallback((product) => {
@@ -107,7 +161,10 @@ function TrangChu() {
     isOnline,
   } = useCachedResource(CACHE_KEYS.products, () => productService.getAll())
 
-  const products = useMemo(() => productData ?? [], [productData])
+  const products = useMemo(() => {
+    const list = Array.isArray(productData) ? [...productData] : []
+    return list.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0) || (b.id || 0) - (a.id || 0))
+  }, [productData])
 
   useEffect(() => {
     bannerService.getActive().then(setBanners).catch(() => {})
@@ -141,120 +198,222 @@ function TrangChu() {
   const hasMore = displayed.length < filtered.length
 
   return (
-    <div className="site-wrapper">
-      <header className="site-header">
-        <div className="header-inner">
-          <div className="brand">
-            <div className="brand-icon"><LogoBadge size={40} variant="reversed" /></div>
+    <div className="min-h-screen flex flex-col bg-brand-bg text-ink">
+      <header className="sticky top-0 z-40 bg-brand-bg/95 backdrop-blur-md border-b border-brand-divider/60">
+        <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-6">
+          <Link to={PATHS.home} viewTransition className="flex items-center gap-3.5 select-none shrink-0">
+            <div className="shrink-0"><LogoBadge size={44} variant="reversed" /></div>
             <div>
-              <strong>Cửa Hàng VLXD Lý Sáu</strong>
-              <span>Nhà phân phối xi măng Sài Sơn</span>
+              <strong className="block text-lg sm:text-xl font-bold leading-snug text-ink tracking-tight">
+                Cửa Hàng VLXD Lý Sáu
+              </strong>
+              <span className="block text-xs text-brand-text font-medium">
+                Nhà phân phối xi măng Sài Sơn
+              </span>
             </div>
-          </div>
+          </Link>
 
-          <nav className="header-nav">
-            <a href="#products">Sản phẩm</a>
-            <a href="#about">Về chúng tôi</a>
-            {contact && <a href="#contact">Liên hệ</a>}
+          <nav className="hidden md:flex items-center gap-8 text-[15px] sm:text-base font-semibold text-ink">
+            <a href="#products" className="hover:text-primary transition-colors py-1">Sản phẩm</a>
+            <a href="#about" className="hover:text-primary transition-colors py-1">Về chúng tôi</a>
+            {contact && <a href="#contact" className="hover:text-primary transition-colors py-1">Liên hệ</a>}
           </nav>
 
-          <div className="header-actions">
+          <div className="hidden sm:flex items-center gap-3">
             {canBuy && (
-              <button className="cart-icon-btn" onClick={() => setCartOpen(true)} aria-label="Giỏ hàng">
-                <Icon name="cart" size={20} />
-                {totalCount > 0 && <span className="cart-icon-badge">{totalCount}</span>}
+              <button
+                className="relative h-10 w-10 inline-flex items-center justify-center text-ink hover:bg-black/5 rounded-xl transition cursor-pointer"
+                onClick={() => setCartOpen(true)}
+                aria-label="Giỏ hàng"
+              >
+                <Icon name="cart" size={22} />
+                {totalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                    {totalCount}
+                  </span>
+                )}
               </button>
             )}
             {isLoggedIn ? (
-              <>
-                <span className="user-greeting">
-                  Xin chào, <strong>{user.fullName || user.username}</strong>
-                  {isAdmin && <span className="role-badge">Admin</span>}
+              <div className="flex items-center gap-2.5">
+                <span className="text-sm text-brand-text">
+                  Xin chào, <strong className="text-ink font-bold">{user.fullName || user.username}</strong>
+                  {isAdmin && (
+                    <span className="ml-1.5 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-xs font-bold">
+                      Admin
+                    </span>
+                  )}
                 </span>
                 {!isAdmin && (
-                  <Link className="btn-ghost btn-icon-text" to={PATHS.myOrders}><Icon name="box" /> Đơn hàng</Link>
+                  <Link
+                    viewTransition
+                    className="h-10 px-4 rounded-xl border border-brand-divider hover:bg-neutral-100 text-sm font-semibold text-ink transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                    to={PATHS.myOrders}
+                  >
+                    <Icon name="box" size={16} /> Đơn hàng
+                  </Link>
                 )}
                 {isAdmin && (
-                  <Link className="btn-admin btn-icon-text" to={PATHS.admin}><Icon name="settings" /> Quản trị</Link>
+                  <Link
+                    viewTransition
+                    className="h-10 px-4 rounded-xl bg-admin-dark hover:bg-admin-dark-active text-white text-sm font-semibold border border-transparent transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                    to={PATHS.admin}
+                  >
+                    <Icon name="settings" size={16} /> Quản trị
+                  </Link>
                 )}
-                <button className="btn-ghost" onClick={logout}>Đăng xuất</button>
-              </>
+                <button
+                  className="h-10 px-4 rounded-xl border border-brand-divider hover:bg-neutral-100 text-sm font-semibold text-ink transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  onClick={logout}
+                >
+                  <Icon name="logout" size={15} /> Đăng xuất
+                </button>
+              </div>
             ) : (
-              <>
-                <Link className="btn-ghost" to={PATHS.login}>Đăng nhập</Link>
-                <Link className="btn-primary" to={PATHS.register}>Đăng ký</Link>
-              </>
+              <div className="flex items-center gap-2.5">
+                <Link
+                  viewTransition
+                  className="h-10 px-4.5 rounded-xl border border-brand-divider hover:bg-white text-sm font-semibold text-ink transition inline-flex items-center justify-center cursor-pointer shadow-2xs"
+                  to={PATHS.login}
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  viewTransition
+                  className="h-10 px-5 rounded-xl bg-primary hover:bg-primary-dark text-white text-sm font-bold shadow-xs hover:shadow-md transition inline-flex items-center justify-center cursor-pointer"
+                  to={PATHS.register}
+                >
+                  Đăng ký
+                </Link>
+              </div>
             )}
           </div>
 
-          <button className={`hamburger ${menuOpen ? 'open' : ''}`} onClick={() => setMenuOpen(o => !o)} aria-label="Menu">
-            <span /><span /><span />
-          </button>
+          <div className="flex items-center gap-2 sm:hidden">
+            {canBuy && (
+              <button
+                className="relative h-10 w-10 inline-flex items-center justify-center text-ink hover:bg-black/5 rounded-xl transition cursor-pointer"
+                onClick={() => setCartOpen(true)}
+                aria-label="Giỏ hàng"
+              >
+                <Icon name="cart" size={22} />
+                {totalCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                    {totalCount}
+                  </span>
+                )}
+              </button>
+            )}
+            <button
+              className="h-10 w-10 inline-flex items-center justify-center rounded-xl text-ink hover:bg-black/5 cursor-pointer"
+              onClick={() => setMenuOpen(o => !o)}
+              aria-label="Menu"
+            >
+              <Icon name={menuOpen ? 'close' : 'settings'} size={24} />
+            </button>
+          </div>
         </div>
 
-        <div className={`mobile-menu ${menuOpen ? 'open' : ''}`}>
-          <a href="#products" onClick={() => setMenuOpen(false)}><Icon name="cement" /> Sản phẩm</a>
-          <a href="#about" onClick={() => setMenuOpen(false)}><Icon name="info" /> Về chúng tôi</a>
-          {contact && <a href="#contact" onClick={() => setMenuOpen(false)}><Icon name="phone" /> Liên hệ</a>}
-          <div className="mobile-divider" />
-          {canBuy && (
-            <button onClick={() => { setMenuOpen(false); setCartOpen(true) }}>
-              <Icon name="cart" /> Giỏ hàng {totalCount > 0 && `(${totalCount})`}
-            </button>
-          )}
-          {isLoggedIn ? (
-            <>
-              <span style={{ padding: '8px 14px', fontSize: '0.88rem', color: 'var(--text)' }}>
-                Xin chào, <strong>{user.fullName || user.username}</strong>
-                {isAdmin && <span className="role-badge" style={{ marginLeft: 6 }}>Admin</span>}
-              </span>
-              {!isAdmin && (
-                <Link to={PATHS.myOrders} onClick={() => setMenuOpen(false)}><Icon name="box" /> Đơn hàng của tôi</Link>
-              )}
-              {isAdmin && (
-                <Link to={PATHS.admin} onClick={() => setMenuOpen(false)}><Icon name="settings" /> Quản trị Admin</Link>
-              )}
-              <button onClick={() => { setMenuOpen(false); logout() }}><Icon name="logout" /> Đăng xuất</button>
-            </>
-          ) : (
-            <>
-              <Link to={PATHS.login} onClick={() => setMenuOpen(false)}><Icon name="lock" /> Đăng nhập</Link>
-              <Link to={PATHS.register} onClick={() => setMenuOpen(false)}><Icon name="note" /> Đăng ký</Link>
-            </>
-          )}
-        </div>
+        {menuOpen && (
+          <div className="sm:hidden px-4 pt-2 pb-5 space-y-3 bg-brand-bg border-b border-brand-divider/60">
+            <a href="#products" className="flex items-center gap-2.5 py-2 text-sm font-bold text-ink" onClick={() => setMenuOpen(false)}>
+              <Icon name="cement" /> Sản phẩm
+            </a>
+            <a href="#about" className="flex items-center gap-2.5 py-2 text-sm font-bold text-ink" onClick={() => setMenuOpen(false)}>
+              <Icon name="info" /> Về chúng tôi
+            </a>
+            {contact && (
+              <a href="#contact" className="flex items-center gap-2.5 py-2 text-sm font-bold text-ink" onClick={() => setMenuOpen(false)}>
+                <Icon name="phone" /> Liên hệ
+              </a>
+            )}
+            <div className="h-px bg-brand-divider/50 my-2" />
+            {isLoggedIn ? (
+              <div className="space-y-2 pt-1">
+                <div className="text-xs text-brand-text">
+                  Xin chào, <strong className="text-ink font-bold">{user.fullName || user.username}</strong>
+                  {isAdmin && <span className="ml-1.5 px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 text-[10px] font-bold">Admin</span>}
+                </div>
+                {!isAdmin && (
+                  <Link viewTransition to={PATHS.myOrders} className="flex items-center gap-2 py-2 text-sm font-bold text-ink" onClick={() => setMenuOpen(false)}>
+                    <Icon name="box" /> Đơn hàng của tôi
+                  </Link>
+                )}
+                {isAdmin && (
+                  <Link viewTransition to={PATHS.admin} className="flex items-center gap-2 py-2 text-sm font-bold text-ink" onClick={() => setMenuOpen(false)}>
+                    <Icon name="settings" /> Quản trị Admin
+                  </Link>
+                )}
+                <button
+                  className="flex items-center gap-2 py-2 text-sm font-bold text-red-600 cursor-pointer"
+                  onClick={() => { setMenuOpen(false); logout() }}
+                >
+                  <Icon name="logout" /> Đăng xuất
+                </button>
+              </div>
+            ) : (
+              <div className="flex gap-2.5 pt-2">
+                <Link
+                  viewTransition
+                  to={PATHS.login}
+                  className="flex-1 py-2.5 text-center rounded-xl border border-brand-divider text-sm font-semibold text-ink hover:bg-white"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Đăng nhập
+                </Link>
+                <Link
+                  viewTransition
+                  to={PATHS.register}
+                  className="flex-1 py-2.5 text-center rounded-xl bg-primary text-white text-sm font-bold shadow-xs"
+                  onClick={() => setMenuOpen(false)}
+                >
+                  Đăng ký
+                </Link>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       <div className="hzd" />
 
-      <section className="hero-slider-section">
+      <section className="relative overflow-hidden bg-brand-bg">
         {banners.length > 0 ? (
           <Carousel slides={banners} />
         ) : (
-          <div className="hero-banner">
-            <div className="hero-content">
-              <p className="hero-eyebrow chip-rotate tag">Cửa Hàng Vật Liệu Xây Dựng Lý Sáu — Nhà phân phối xi măng Sài Sơn</p>
-              <h1>Vật liệu chất lượng — <span className="hero-accent">Giá tốt nhất</span></h1>
-              <p className="hero-sub">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-16 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            <div className="lg:col-span-8">
+              <span className="tag chip-rotate text-xs mb-3">
+                Cửa Hàng VLXD Lý Sáu — Nhà phân phối xi măng Sài Sơn
+              </span>
+              <h1 className="text-3xl sm:text-5xl font-extrabold font-display tracking-tight text-ink mt-2 mb-4 leading-tight">
+                Vật liệu chất lượng — <span className="text-primary">Giá tốt nhất</span>
+              </h1>
+              <p className="text-sm sm:text-base text-brand-text max-w-2xl mb-6 leading-relaxed">
                 Chuyên bán buôn - bán lẻ: Xi măng - Sắt - Thép - Cát - Đá - Sỏi và các vật liệu xây dựng chính hãng.
                 Giao hàng tận công trình, hỗ trợ tư vấn 24/7.
               </p>
-              <div className="hero-btns">
-                <a href="#products" className="btn-primary">Xem sản phẩm</a>
+              <div>
+                <a
+                  href="#products"
+                  className="inline-block py-3 px-6 bg-primary hover:bg-primary-dark text-white font-extrabold font-display text-base tracking-wide rounded-xl shadow transition transform hover:-translate-y-0.5"
+                >
+                  Xem sản phẩm
+                </a>
               </div>
             </div>
-            <div className="hero-stats">
-              <div className="stat-card">
-                <span className="stat-num">500+</span>
-                <span className="stat-label">Loại sản phẩm</span>
+            <div className="lg:col-span-4 grid grid-cols-3 lg:grid-cols-1 gap-3">
+              <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-4 border border-brand-divider/50 shadow-xs text-center lg:text-left">
+                <span className="block text-2xl sm:text-3xl font-extrabold font-display text-primary">500+</span>
+                <span className="text-xs text-brand-text font-medium">Loại sản phẩm</span>
               </div>
-              <div className="stat-card">
-                <span className="stat-num">1,200+</span>
-                <span className="stat-label">Khách hàng tin dùng</span>
+              <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-4 border border-brand-divider/50 shadow-xs text-center lg:text-left">
+                <span className="block text-2xl sm:text-3xl font-extrabold font-display text-primary">1,200+</span>
+                <span className="text-xs text-brand-text font-medium">Khách hàng tin dùng</span>
               </div>
-              <div className="stat-card">
-                <span className="stat-num">10+</span>
-                <span className="stat-label">Năm kinh nghiệm</span>
+              <div className="bg-white/90 backdrop-blur-xs rounded-2xl p-4 border border-brand-divider/50 shadow-xs text-center lg:text-left">
+                <span className="block text-2xl sm:text-3xl font-extrabold font-display text-primary">10+</span>
+                <span className="text-xs text-brand-text font-medium">Năm kinh nghiệm</span>
               </div>
             </div>
           </div>
@@ -263,36 +422,50 @@ function TrangChu() {
 
       <div className="hzd" />
 
-      <section id="products" className="products-section">
-        <div className="section-header">
-          <h2>Danh mục sản phẩm</h2>
-          <p>Vật liệu xây dựng chính hãng, đảm bảo chất lượng</p>
+      <section id="products" className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+        <div className="mb-8 text-center sm:text-left">
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-ink">
+            Danh mục sản phẩm
+          </h2>
+          <p className="text-sm text-brand-text mt-1">
+            Vật liệu xây dựng chính hãng, đảm bảo chất lượng công trình
+          </p>
         </div>
 
-        <div className="product-controls">
-          <input
-            className="search-input"
-            type="text"
-            placeholder="Tìm kiếm sản phẩm..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-          <div className="category-tabs">
+        <div className="flex flex-col lg:flex-row gap-3 items-stretch lg:items-center justify-between mb-8">
+          <div className="relative w-full lg:w-72 shrink-0">
+            <input
+              className="w-full h-10 pl-9 pr-4 rounded-xl border border-brand-divider bg-white text-sm text-ink placeholder-brand-text/60 focus:outline-none focus:ring-2 focus:ring-primary shadow-xs"
+              type="text"
+              placeholder="Tìm kiếm sản phẩm..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none">
+              <Icon name="search" size={16} />
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2">
             {categories.map(cat => (
               <button
                 key={cat}
-                className={`cat-tab ${activeCategory === cat ? 'active' : ''}`}
-                onClick={() => setActiveCategory(cat)}
+                className={`inline-flex items-center gap-1.5 h-10 px-3.5 rounded-xl text-xs font-bold border transition whitespace-nowrap cursor-pointer ${
+                  activeCategory === cat
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'bg-white text-ink border-brand-divider/70 hover:bg-neutral-50'
+                }`}
+                onClick={() => handleCategoryChange(cat)}
               >
-                <Icon name={CATEGORY_ICONS[cat] || DEFAULT_CATEGORY_ICON} />
-                {cat}
+                <Icon name={CATEGORY_ICONS[cat] || DEFAULT_CATEGORY_ICON} size={15} />
+                <span>{cat}</span>
               </button>
             ))}
           </div>
         </div>
 
         {isStale && !loading && (
-          <div className="stale-bar" role="status">
+          <div className="mb-6 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs font-medium" role="status">
             {isOnline
               ? `Chưa cập nhật được — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`
               : `Đang ngoại tuyến — dữ liệu lưu lúc ${formatCacheAge(cachedAt)}`}
@@ -300,38 +473,39 @@ function TrangChu() {
         )}
 
         {loading ? (
-          <div className="loading-state">
-            <div className="spinner" />
-            <p>Đang tải sản phẩm...</p>
+          <div className="py-20 text-center text-brand-text">
+            <div className="w-8 h-8 mx-auto border-3 border-primary border-t-transparent rounded-full animate-spin mb-3" />
+            <p className="text-sm">Đang tải sản phẩm...</p>
           </div>
         ) : filtered.length === 0 ? (
-          <div className="empty-state">
+          <div className="py-16 text-center text-brand-text bg-white/60 rounded-2xl border border-brand-divider/40 p-8">
             {!isOnline && products.length === 0 ? (
               <>
-                <p><strong>Chưa có dữ liệu ngoại tuyến</strong></p>
-                <p>Hãy kết nối mạng một lần để tải danh sách sản phẩm về máy.</p>
+                <p className="font-bold text-ink text-base">Chưa có dữ liệu ngoại tuyến</p>
+                <p className="text-sm mt-1">Hãy kết nối mạng một lần để tải danh sách sản phẩm về máy.</p>
               </>
             ) : (
-              <p>Không tìm thấy sản phẩm phù hợp</p>
+              <p className="text-sm">Không tìm thấy sản phẩm phù hợp</p>
             )}
           </div>
         ) : (
           <>
-            <div className="product-grid">
-              {displayed.map(p => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+              {displayed.map((p, idx) => (
                 <ProductCard
                   key={p.id}
                   product={p}
+                  index={idx}
                   onAddToCart={handleAddToCart}
                   hideAddToCart={!canBuy}
                 />
               ))}
             </div>
             {hasMore && (
-              <div className="product-load-more">
+              <div className="mt-10 text-center">
                 <button
                   type="button"
-                  className="btn-ghost"
+                  className="px-6 py-2.5 rounded-xl border border-brand-divider bg-white hover:bg-neutral-50 text-ink font-bold font-display text-sm transition shadow-xs cursor-pointer"
                   onClick={() => setVisibleCount(c => c + PAGE_SIZE)}
                 >
                   Xem thêm ({displayed.length}/{filtered.length} sản phẩm) ↓
@@ -342,45 +516,60 @@ function TrangChu() {
         )}
       </section>
 
-      <div className="hzd" style={{ marginTop: 64 }} />
+      <div className="hzd mt-8" />
 
-      <section id="about" className="about-section">
-        <div className="about-content">
-          <h2>Tại sao chọn chúng tôi?</h2>
-          <div className="feature-cards">
-            <div className="feature-card">
-              <span className="feature-icon"><Icon name="trophy" size={30} /></span>
-              <h3>Chất lượng đảm bảo</h3>
-              <p>Tất cả sản phẩm đều có chứng nhận chất lượng, xuất xứ rõ ràng</p>
-            </div>
-            <div className="feature-card">
-              <span className="feature-icon"><Icon name="truck" size={30} /></span>
-              <h3>Giao hàng nhanh</h3>
-              <p>Giao hàng tận công trình trong vòng 24h tại khu vực nội thành</p>
-            </div>
-            <div className="feature-card">
-              <span className="feature-icon"><Icon name="money" size={30} /></span>
-              <h3>Giá cạnh tranh</h3>
-              <p>Cam kết giá tốt nhất thị trường, chiết khấu đặc biệt cho đơn lớn</p>
-            </div>
-            <div className="feature-card">
-              <span className="feature-icon"><Icon name="phone" size={30} /></span>
-              <h3>Hỗ trợ 24/7</h3>
-              <p>Đội ngũ tư vấn chuyên nghiệp luôn sẵn sàng hỗ trợ bạn</p>
-            </div>
+      <section id="about" className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
+        <div className="text-center mb-10">
+          <h2 className="text-2xl sm:text-3xl font-extrabold font-display tracking-tight text-ink">
+            Tại sao chọn chúng tôi?
+          </h2>
+          <p className="text-sm text-brand-text mt-1">
+            Uy tín hàng đầu trong ngành vật liệu xây dựng
+          </p>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div className="bg-white rounded-2xl p-6 border border-brand-divider/50 shadow-xs text-center flex flex-col items-center">
+            <span className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
+              <Icon name="trophy" size={28} />
+            </span>
+            <h3 className="text-base font-bold text-ink mb-1">Chất lượng đảm bảo</h3>
+            <p className="text-xs text-brand-text leading-relaxed">Tất cả sản phẩm đều có chứng nhận chất lượng, xuất xứ rõ ràng</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-brand-divider/50 shadow-xs text-center flex flex-col items-center">
+            <span className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
+              <Icon name="truck" size={28} />
+            </span>
+            <h3 className="text-base font-bold text-ink mb-1">Giao hàng nhanh</h3>
+            <p className="text-xs text-brand-text leading-relaxed">Giao hàng tận công trình trong vòng 24h tại khu vực nội thành</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-brand-divider/50 shadow-xs text-center flex flex-col items-center">
+            <span className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
+              <Icon name="money" size={28} />
+            </span>
+            <h3 className="text-base font-bold text-ink mb-1">Giá cạnh tranh</h3>
+            <p className="text-xs text-brand-text leading-relaxed">Cam kết giá tốt nhất thị trường, chiết khấu đặc biệt cho đơn lớn</p>
+          </div>
+          <div className="bg-white rounded-2xl p-6 border border-brand-divider/50 shadow-xs text-center flex flex-col items-center">
+            <span className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center mb-4">
+              <Icon name="phone" size={28} />
+            </span>
+            <h3 className="text-base font-bold text-ink mb-1">Hỗ trợ 24/7</h3>
+            <p className="text-xs text-brand-text leading-relaxed">Đội ngũ tư vấn chuyên nghiệp luôn sẵn sàng hỗ trợ bạn</p>
           </div>
         </div>
       </section>
 
       {contact && (
-        <section id="contact" className="contact-section">
-          <h2>Liên hệ với chúng tôi</h2>
-          <div className="contact-grid">
-            <div className="contact-info">
-              <p><Icon name="pin" /> {contact.address}</p>
-              <p><Icon name="phone" /> {contact.phone}</p>
-              <p><Icon name="mail" /> {contact.email}</p>
-              <p><Icon name="clock" /> {contact.workingHours}</p>
+        <section id="contact" className="max-w-7xl mx-auto px-4 sm:px-6 pb-14">
+          <div className="bg-white rounded-2xl p-6 sm:p-8 border border-brand-divider/60 shadow-xs max-w-3xl mx-auto">
+            <h2 className="text-xl font-extrabold font-display tracking-tight text-ink mb-4 text-center">
+              Liên hệ với chúng tôi
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-brand-text">
+              <p className="flex items-center gap-2"><Icon name="pin" size={18} className="text-primary" /> {contact.address}</p>
+              <p className="flex items-center gap-2"><Icon name="phone" size={18} className="text-primary" /> {contact.phone}</p>
+              <p className="flex items-center gap-2"><Icon name="mail" size={18} className="text-primary" /> {contact.email}</p>
+              <p className="flex items-center gap-2"><Icon name="clock" size={18} className="text-primary" /> {contact.workingHours}</p>
             </div>
           </div>
         </section>
@@ -394,36 +583,48 @@ function TrangChu() {
           onClose={() => setCartOpen(false)}
           user={user}
           isLoggedIn={isLoggedIn}
-          onLoginClick={() => navigate(PATHS.login)}
-          onOrdered={() => navigate(PATHS.myOrders)}
+          onLoginClick={() => navigate(PATHS.login, { viewTransition: true })}
+          onOrdered={() => navigate(PATHS.myOrders, { viewTransition: true })}
         />
       )}
 
-      <footer className="site-footer">
+      <footer className="bg-ink text-neutral-300 mt-auto">
         <div className="hzd" />
-        <div className="footer-inner">
-          <div className="footer-brand">
-            <div className="brand-icon"><LogoBadge size={40} variant="reversed" /></div>
-            <div>
-              <strong>Cửa Hàng VLXD Lý Sáu</strong>
-              <span>Đồng hành cùng công trình của bạn</span>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="flex flex-col md:flex-row justify-between gap-8 pb-8 border-b border-neutral-800">
+            <div className="flex items-start gap-3">
+              <div className="shrink-0"><LogoBadge size={40} variant="reversed" /></div>
+              <div>
+                <strong className="block text-base font-bold font-display text-white">
+                  Cửa Hàng VLXD Lý Sáu
+                </strong>
+                <span className="text-xs text-neutral-400">
+                  Đồng hành cùng công trình của bạn
+                </span>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-8 text-xs">
+              <div>
+                <h4 className="font-bold text-white uppercase tracking-wider mb-3">Sản phẩm</h4>
+                <div className="flex flex-col space-y-2">
+                  <a href="#products" className="hover:text-white transition">Xi măng</a>
+                  <a href="#products" className="hover:text-white transition">Gạch</a>
+                  <a href="#products" className="hover:text-white transition">Thép</a>
+                  <a href="#products" className="hover:text-white transition">Cát - Đá</a>
+                </div>
+              </div>
+              <div>
+                <h4 className="font-bold text-white uppercase tracking-wider mb-3">Hỗ trợ</h4>
+                <div className="flex flex-col space-y-2">
+                  {contact && <a href="#contact" className="hover:text-white transition">Liên hệ</a>}
+                  <a href="#about" className="hover:text-white transition">Về chúng tôi</a>
+                </div>
+              </div>
             </div>
           </div>
-          <div className="footer-links">
-            <div>
-              <h4>Sản phẩm</h4>
-              <a href="#products">Xi măng</a>
-              <a href="#products">Gạch</a>
-              <a href="#products">Thép</a>
-              <a href="#products">Cát - Đá</a>
-            </div>
-            <div>
-              <h4>Hỗ trợ</h4>
-              {contact && <a href="#contact">Liên hệ</a>}
-              <a href="#about">Về chúng tôi</a>
-            </div>
-          </div>
-          <p className="footer-copy">© 2026 Cửa Hàng Vật Liệu Xây Dựng Lý Sáu. All rights reserved.</p>
+          <p className="text-center text-xs text-neutral-500 pt-6">
+            © 2026 Cửa Hàng Vật Liệu Xây Dựng Lý Sáu. All rights reserved.
+          </p>
         </div>
       </footer>
     </div>

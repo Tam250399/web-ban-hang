@@ -32,7 +32,8 @@ namespace SalesManagerBE.Controllers
         [HttpGet("all")]
         public async Task<IActionResult> GetAll() =>
             Ok(await _context.Banners
-                .OrderBy(b => b.DisplayOrder)
+                .OrderByDescending(b => b.CreatedAt)
+                .ThenByDescending(b => b.Id)
                 .ToListAsync());
 
         /// <summary>
@@ -67,6 +68,7 @@ namespace SalesManagerBE.Controllers
             entity.ImageUrl = dto.ImageUrl;
             entity.DisplayOrder = dto.DisplayOrder;
             entity.IsActive = dto.IsActive;
+            entity.CreatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return Ok(entity);
         }

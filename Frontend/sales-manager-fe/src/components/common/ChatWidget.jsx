@@ -135,45 +135,96 @@ function ChatWidget({ user }) {
   if (!user || user.role !== 'Customer') return null
 
   return (
-    <div className="chat-widget">
+    <div className="fixed bottom-5 right-5 z-40">
       {open && (
         <div
-          className={`chat-panel ${dragOver ? 'drag-over' : ''}`}
+          className={`w-[calc(100vw-2.5rem)] sm:w-96 h-[500px] max-h-[calc(100vh-6rem)] bg-white rounded-2xl shadow-2xl border border-stone-200 flex flex-col overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-200 ${
+            dragOver ? 'ring-2 ring-primary ring-offset-2' : ''
+          }`}
           onDragOver={e => { e.preventDefault(); setDragOver(true) }}
           onDragLeave={() => setDragOver(false)}
           onDrop={handleDrop}
         >
-          <div className="chat-panel-header">
-            <span><Icon name="chat" /> Hỗ trợ trực tuyến</span>
-            <button className="chat-panel-close" onClick={toggleOpen} aria-label="Đóng">✕</button>
+          {/* Header */}
+          <div className="px-4 py-3 bg-gradient-to-r from-primary to-primary-hover text-white flex items-center justify-between shadow-xs shrink-0">
+            <span className="font-semibold text-sm flex items-center gap-2">
+              <Icon name="chat" size={18} /> Hỗ trợ trực tuyến
+            </span>
+            <button
+              className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors"
+              onClick={toggleOpen}
+              aria-label="Đóng"
+            >
+              ✕
+            </button>
           </div>
-          <div className="chat-panel-body" ref={bodyRef}>
-            {dragOver && <div className="chat-drop-hint"><Icon name="camera" /> Thả ảnh để gửi</div>}
+
+          {/* Body */}
+          <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-stone-50/50" ref={bodyRef}>
+            {dragOver && (
+              <div className="p-3 bg-primary/10 border-2 border-dashed border-primary text-primary rounded-xl text-center text-xs font-semibold flex items-center justify-center gap-1.5">
+                <Icon name="camera" size={16} /> Thả ảnh để gửi
+              </div>
+            )}
             {messages.length === 0 && (
-              <p className="chat-empty">Gửi tin nhắn cho shop, chúng tôi sẽ phản hồi sớm nhất!</p>
+              <div className="h-full flex items-center justify-center text-center p-4">
+                <p className="text-xs text-stone-400">Gửi tin nhắn cho shop, chúng tôi sẽ phản hồi sớm nhất!</p>
+              </div>
             )}
             {messages.map(m => (
-              <div key={m.id} className={`chat-bubble-row ${m.fromAdmin ? 'from-admin' : 'from-me'}`}>
-                <div className="chat-bubble">
+              <div key={m.id} className={`flex flex-col ${m.fromAdmin ? 'items-start' : 'items-end'}`}>
+                <div
+                  className={`max-w-[82%] rounded-2xl p-3 text-xs sm:text-sm shadow-2xs space-y-1.5 ${
+                    m.fromAdmin
+                      ? 'bg-white text-stone-800 border border-stone-200/80 rounded-bl-xs'
+                      : 'bg-primary text-white rounded-br-xs'
+                  }`}
+                >
                   {m.imageUrl && (
-                    <a href={m.imageUrl} target="_blank" rel="noreferrer">
-                      <img src={resolveMediaUrl(m.imageUrl)} alt="Ảnh gửi" className="chat-bubble-image" loading="lazy" decoding="async" />
+                    <a href={m.imageUrl} target="_blank" rel="noreferrer" className="block overflow-hidden rounded-lg">
+                      <img
+                        src={resolveMediaUrl(m.imageUrl)}
+                        alt="Ảnh gửi"
+                        className="max-h-48 w-full object-cover hover:opacity-95 transition-opacity"
+                        loading="lazy"
+                        decoding="async"
+                      />
                     </a>
                   )}
-                  {m.content && <span>{m.content}</span>}
-                  <span className="chat-bubble-time">{formatTime(m.sentAt)}</span>
+                  {m.content && <p className="whitespace-pre-wrap leading-relaxed">{m.content}</p>}
+                  <div className={`text-[10px] ${m.fromAdmin ? 'text-stone-400' : 'text-white/75'} text-right`}>
+                    {formatTime(m.sentAt)}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
+
+          {/* Pending Image */}
           {pendingImage && (
-            <div className="chat-pending-image">
-              <img src={pendingImage.previewUrl} alt="Ảnh sẽ gửi" />
-              {pendingImage.uploading && <span className="chat-pending-uploading">Đang tải...</span>}
-              <button type="button" onClick={removePendingImage} title="Bỏ ảnh" aria-label="Bỏ ảnh">✕</button>
+            <div className="relative p-2 bg-stone-100 border-t border-stone-200 flex items-center gap-2">
+              <div className="relative w-14 h-14 rounded-lg overflow-hidden border border-stone-300 shrink-0">
+                <img src={pendingImage.previewUrl} alt="Ảnh sẽ gửi" className="w-full h-full object-cover" />
+                {pendingImage.uploading && (
+                  <div className="absolute inset-0 bg-black/50 text-white text-[9px] flex items-center justify-center font-medium">
+                    Tải...
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={removePendingImage}
+                className="w-6 h-6 rounded-full bg-stone-300 hover:bg-stone-400 text-stone-700 flex items-center justify-center text-xs"
+                title="Bỏ ảnh"
+                aria-label="Bỏ ảnh"
+              >
+                ✕
+              </button>
             </div>
           )}
-          <form className="chat-panel-input" onSubmit={handleSend}>
+
+          {/* Input Form */}
+          <form className="p-2.5 border-t border-stone-200 bg-white flex items-center gap-2 shrink-0" onSubmit={handleSend}>
             <input
               ref={fileInputRef}
               type="file"
@@ -183,28 +234,45 @@ function ChatWidget({ user }) {
             />
             <button
               type="button"
-              className="chat-attach-btn"
+              className="w-9 h-9 rounded-xl flex items-center justify-center text-stone-500 hover:text-stone-800 hover:bg-stone-100 transition-colors shrink-0"
               onClick={() => fileInputRef.current?.click()}
               title="Gửi ảnh"
             >
-              <Icon name="paperclip" />
+              <Icon name="paperclip" size={18} />
             </button>
             <input
               ref={inputRef}
               value={input}
               onChange={e => setInput(e.target.value)}
               onPaste={handlePaste}
-              placeholder="Nhập tin nhắn... (dán hoặc kéo thả ảnh)"
+              placeholder="Nhập tin nhắn... (dán/kéo thả ảnh)"
               disabled={sending}
+              className="flex-1 px-3 py-2 text-xs sm:text-sm bg-stone-50 border border-stone-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
-            <button type="submit" disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}>➤</button>
+            <button
+              type="submit"
+              disabled={sending || (!input.trim() && !pendingImage) || pendingImage?.uploading}
+              className="w-9 h-9 rounded-xl bg-primary hover:bg-primary/90 text-white flex items-center justify-center transition-colors disabled:opacity-40 shrink-0 shadow-xs"
+            >
+              ➤
+            </button>
           </form>
         </div>
       )}
+
+      {/* Floating Action Button */}
       {!open && (
-        <button className="chat-fab" onClick={toggleOpen}>
+        <button
+          className="relative w-14 h-14 rounded-full bg-primary hover:bg-primary/90 text-white shadow-lg hover:shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all duration-200"
+          onClick={toggleOpen}
+          aria-label="Mở khung trò chuyện hỗ trợ"
+        >
           <Icon name="chat" size={24} />
-          {unread > 0 && <span className="chat-fab-badge">{unread}</span>}
+          {unread > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-red-600 text-white text-[11px] font-bold flex items-center justify-center shadow-xs border-2 border-white animate-bounce">
+              {unread}
+            </span>
+          )}
         </button>
       )}
     </div>

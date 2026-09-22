@@ -31,48 +31,69 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
 
   return (
     <div
-      className="carousel"
+      className="group relative overflow-hidden w-full rounded-2xl sm:rounded-3xl shadow-sm select-none"
       onMouseEnter={() => canAutoPlay && setPaused(true)}
       onMouseLeave={() => canAutoPlay && setPaused(prefersReducedMotion())}
       aria-roledescription="carousel"
-      aria-label="Banner khuyến mãi">
-      <div className="carousel-track" style={{ transform: `translateX(-${index * 100}%)` }}>
+      aria-label="Banner khuyến mãi"
+    >
+      {/* Slides Track */}
+      <div
+        className="flex transition-transform duration-500 ease-out w-full"
+        style={{ transform: `translateX(-${index * 100}%)` }}
+      >
         {slides.map((slide, i) => (
-          <div className="carousel-slide" key={slide.id ?? i}>
+          <div className="w-full shrink-0 relative aspect-[16/7] sm:aspect-[21/8] md:aspect-[24/8] bg-stone-100" key={slide.id ?? i}>
             <img
               src={resolveMediaUrl(slide.imageUrl)}
               alt={slide.title || `slide-${i}`}
+              className="w-full h-full object-cover"
               decoding="async"
               loading={i === 0 ? 'eager' : 'lazy'}
               fetchPriority={i === 0 ? 'high' : 'auto'}
             />
             {(slide.title || slide.description) && (
-              <div className="carousel-caption">
-                {slide.title && <h3>{slide.title}</h3>}
-                {slide.description && <p>{slide.description}</p>}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 md:p-8 text-white">
+                {slide.title && <h3 className="text-base sm:text-xl md:text-2xl font-bold drop-shadow-xs">{slide.title}</h3>}
+                {slide.description && <p className="text-xs sm:text-sm text-stone-200 mt-1 max-w-xl line-clamp-2 drop-shadow-xs">{slide.description}</p>}
               </div>
             )}
           </div>
         ))}
       </div>
 
+      {/* Navigation Controls */}
       {slides.length > 1 && (
         <>
-          <button className="carousel-arrow carousel-arrow-prev" onClick={prev} aria-label="Banner trước">‹</button>
-          <button className="carousel-arrow carousel-arrow-next" onClick={next} aria-label="Banner sau">›</button>
+          <button
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white text-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs"
+            onClick={prev}
+            aria-label="Banner trước"
+          >
+            ‹
+          </button>
+          <button
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 sm:w-11 sm:h-11 rounded-full bg-black/40 hover:bg-black/70 text-white text-lg flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs"
+            onClick={next}
+            aria-label="Banner sau"
+          >
+            ›
+          </button>
           <button
             type="button"
-            className="carousel-pause"
+            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 hover:bg-black/70 text-white text-xs flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 backdrop-blur-xs"
             onClick={() => setPaused(p => !p)}
             aria-label={paused ? 'Tiếp tục chạy banner' : 'Tạm dừng banner'}
           >
             {paused ? '▶' : '❚❚'}
           </button>
-          <div className="carousel-dots">
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
             {slides.map((_, i) => (
               <button
                 key={i}
-                className={`carousel-dot ${i === index ? 'active' : ''}`}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  i === index ? 'w-6 bg-white' : 'w-2 bg-white/50 hover:bg-white/80'
+                }`}
                 onClick={() => go(i)}
                 aria-label={`Banner ${i + 1} trên ${slides.length}`}
                 aria-current={i === index}

@@ -80,43 +80,61 @@ function SearchableSelect({
   }
 
   return (
-    <div className={`searchable-select ${open ? 'open' : ''} ${disabled ? 'disabled' : ''}`} ref={wrapRef}>
+    <div className={`relative w-full ${disabled ? 'opacity-60 pointer-events-none' : ''}`} ref={wrapRef}>
       <button
         type="button"
-        className="searchable-select-trigger"
+        className={`w-full min-h-[38px] px-3 py-1.5 bg-white border rounded-lg text-xs sm:text-sm text-left flex items-center justify-between gap-2 shadow-2xs transition cursor-pointer disabled:cursor-not-allowed ${
+          open ? 'border-primary ring-2 ring-primary/20' : 'border-stone-300 hover:border-primary'
+        }`}
         onClick={() => !disabled && setOpen(o => !o)}
         disabled={disabled}
       >
-        <span className={selected ? 'searchable-select-value' : 'searchable-select-placeholder'}>
+        <span className={`truncate ${selected ? 'text-stone-900 font-medium' : 'text-stone-400'}`}>
           {selected ? selected.label : placeholder}
         </span>
-        <Icon name="chevronDown" size={14} className="searchable-select-arrow" />
+        <Icon
+          name="chevronDown"
+          size={14}
+          className={`shrink-0 text-stone-400 transition-transform duration-150 ${open ? 'rotate-180 text-primary' : ''}`}
+        />
       </button>
 
       {open && panelStyle && createPortal(
-        <div className="searchable-select-panel" style={panelStyle} ref={panelRef}>
-          <input
-            ref={searchRef}
-            className="searchable-select-search"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            placeholder={searchPlaceholder}
-          />
-          <div className="searchable-select-options">
+        <div
+          ref={panelRef}
+          style={panelStyle}
+          className="z-50 bg-white border border-stone-200 rounded-xl shadow-xl overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100"
+        >
+          <div className="p-1.5 border-b border-stone-100 bg-stone-50/50">
+            <input
+              ref={searchRef}
+              className="w-full px-2.5 py-1.5 text-xs sm:text-sm bg-white border border-stone-200 rounded-md outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={handleSearchKeyDown}
+              placeholder={searchPlaceholder}
+            />
+          </div>
+          <div className="max-h-56 overflow-y-auto p-1 text-xs sm:text-sm space-y-0.5">
             <div
-              className={`searchable-select-option ${!value ? 'active' : ''}`}
+              className={`px-3 py-1.5 rounded-lg cursor-pointer transition select-none ${
+                !value ? 'bg-primary/10 text-primary font-semibold' : 'text-stone-700 hover:bg-stone-100'
+              }`}
               onClick={() => handleSelect('')}
             >
               {placeholder}
             </div>
             {filtered.length === 0 && (
-              <div className="searchable-select-empty">Không tìm thấy kết quả</div>
+              <div className="py-4 text-center text-xs text-stone-400">Không tìm thấy kết quả</div>
             )}
             {filtered.map(o => (
               <div
                 key={o.value}
-                className={`searchable-select-option ${String(o.value) === String(value) ? 'active' : ''}`}
+                className={`px-3 py-1.5 rounded-lg cursor-pointer flex items-center transition select-none ${
+                  String(o.value) === String(value)
+                    ? 'bg-primary/10 text-primary font-semibold'
+                    : 'text-stone-700 hover:bg-stone-100'
+                }`}
                 onClick={() => handleSelect(o.value)}
               >
                 {o.label}

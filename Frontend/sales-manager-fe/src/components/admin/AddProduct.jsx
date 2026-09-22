@@ -87,121 +87,172 @@ function AddProduct({ onRefresh, onSuccess, onClose }) {
   }
 
   return (
-    <div className="modal-overlay">
-      <div className="modal-box edit-product-modal" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <h3>Thêm sản phẩm mới</h3>
-          <button className="modal-close" onClick={onClose} aria-label="Đóng">✕</button>
+    <div className="fixed inset-0 z-50 bg-stone-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-150">
+      <div className="relative w-full max-w-3xl bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-8" onClick={e => e.stopPropagation()}>
+        <div className="px-6 py-4 border-b border-stone-100 flex items-center justify-between bg-stone-50/50">
+          <h3 className="text-base sm:text-lg font-black text-stone-900 flex items-center gap-2">
+            <Icon name="package" size={20} className="text-primary" />
+            Thêm sản phẩm mới
+          </h3>
+          <button className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-stone-700 hover:bg-stone-200/50 transition cursor-pointer text-sm font-bold" onClick={onClose} aria-label="Đóng">✕</button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="edit-modal-body">
+          <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
 
-            <div className="edit-modal-image">
-              <p className="form-field-label">Hình ảnh sản phẩm</p>
+            <div className="md:col-span-1 space-y-2">
+              <p className="text-xs sm:text-sm font-bold text-stone-700">Hình ảnh sản phẩm</p>
               {imagePreview ? (
-                <div className="image-upload-preview" style={{ maxHeight: 220 }}>
-                  <img src={imagePreview} alt="preview" />
-                  {uploading && <div className="image-upload-overlay">Đang tải...</div>}
+                <div className="relative rounded-2xl overflow-hidden border border-stone-200 aspect-square max-h-[240px] bg-stone-50 flex items-center justify-center group">
+                  <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
+                  {uploading && (
+                    <div className="absolute inset-0 bg-stone-900/60 text-white flex items-center justify-center text-xs font-bold backdrop-blur-2xs">
+                      Đang tải...
+                    </div>
+                  )}
                   {!uploading && (
-                    <button type="button" className="image-remove-btn" onClick={removeImage} aria-label="Xoá ảnh">✕</button>
+                    <button
+                      type="button"
+                      className="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-stone-900/75 hover:bg-stone-900 text-white flex items-center justify-center text-xs font-bold transition shadow-sm cursor-pointer"
+                      onClick={removeImage}
+                      aria-label="Xoá ảnh"
+                    >
+                      ✕
+                    </button>
                   )}
                 </div>
               ) : (
-                <label className={`image-upload-zone ${uploading ? 'uploading' : ''}`}>
+                <label className={`relative flex flex-col items-center justify-center border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition min-h-[200px] ${
+                  uploading ? 'border-primary bg-primary/5 opacity-70 pointer-events-none' : 'border-stone-300 hover:border-primary bg-stone-50/50 hover:bg-stone-50'
+                }`}>
                   <input
                     ref={fileInputRef}
                     type="file"
                     accept="image/jpeg,image/png,image/webp,image/gif"
                     onChange={handleImageChange}
-                    style={{ display: 'none' }}
+                    className="sr-only"
                     disabled={uploading}
                   />
-                  <span className="image-upload-icon"><Icon name="image" size={30} /></span>
-                  <span>{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text)' }}>JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+                  <div className="w-12 h-12 rounded-2xl bg-white shadow-2xs border border-stone-200/60 flex items-center justify-center text-stone-400 mb-2">
+                    <Icon name="image" size={24} />
+                  </div>
+                  <span className="text-xs font-bold text-stone-800">{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh'}</span>
+                  <span className="text-[11px] text-stone-400 mt-1">JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
                 </label>
               )}
             </div>
 
-            <div className="edit-modal-fields">
-              <div className="form-row">
-                <label className="form-field">
-                  <span>Mã sản phẩm <span className="required">*</span></span>
-                  <input value={form.productCode} onChange={set('productCode')} required placeholder="VD: XM001" />
+            <div className="md:col-span-2 space-y-3.5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <label className="block text-xs sm:text-sm font-semibold text-stone-700">
+                  <span>Mã sản phẩm <span className="text-red-500">*</span></span>
+                  <input
+                    className="w-full mt-1.5 px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-stone-900 text-xs sm:text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
+                    value={form.productCode}
+                    onChange={set('productCode')}
+                    required
+                    placeholder="VD: XM001"
+                  />
                 </label>
 
-                <div className="form-field">
+                <div className="block text-xs sm:text-sm font-semibold text-stone-700">
                   <span>Danh mục sản phẩm</span>
-                  <SearchableSelect
-                    value={form.categoryId}
-                    onChange={(val) => setForm(f => ({ ...f, categoryId: val }))}
-                    options={categories.map(c => ({ value: c.id, label: c.name }))}
-                    placeholder="-- Chọn danh mục --"
-                    searchPlaceholder="Tìm danh mục..."
-                  />
+                  <div className="mt-1.5">
+                    <SearchableSelect
+                      value={form.categoryId}
+                      onChange={(val) => setForm(f => ({ ...f, categoryId: val }))}
+                      options={categories.map(c => ({ value: c.id, label: c.name }))}
+                      placeholder="-- Chọn danh mục --"
+                      searchPlaceholder="Tìm danh mục..."
+                    />
+                  </div>
                 </div>
               </div>
 
-              <div className="form-field">
-                <span>Tên sản phẩm <span className="required">*</span></span>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  <div style={{ flex: 1 }}>
-                    <SearchableSelect
-                      value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
-                      onChange={(val) => setForm(f => ({ ...f, productName: val }))}
-                      options={filteredNames.map(n => ({ value: n.name, label: n.name }))}
-                      placeholder="-- Chọn tên từ danh mục --"
-                      searchPlaceholder="Tìm tên sản phẩm..."
-                    />
-                  </div>
+              <div className="block text-xs sm:text-sm font-semibold text-stone-700">
+                <span>Tên sản phẩm <span className="text-red-500">*</span></span>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5">
+                  <SearchableSelect
+                    value={filteredNames.find(n => n.name === form.productName) ? form.productName : ''}
+                    onChange={(val) => setForm(f => ({ ...f, productName: val }))}
+                    options={filteredNames.map(n => ({ value: n.name, label: n.name }))}
+                    placeholder="-- Chọn tên từ danh mục --"
+                    searchPlaceholder="Tìm tên sản phẩm..."
+                  />
                   <input
-                    style={{ flex: 1 }}
+                    className="w-full px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-stone-900 text-xs sm:text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
                     value={form.productName}
                     onChange={set('productName')}
                     required
                     placeholder="Hoặc nhập tên mới..."
                   />
                 </div>
-                <span style={{ fontSize: '0.78rem', color: 'var(--text)' }}>
+                <span className="text-[11px] text-stone-400 mt-1 block">
                   Chọn từ danh sách hoặc nhập tên tùy chỉnh
                 </span>
               </div>
 
-              <div className="form-row">
-                <div className="form-field">
-                  <span>Đơn vị tính <span className="required">*</span></span>
-                  <SearchableSelect
-                    value={form.unitTypeId}
-                    onChange={(val) => setForm(f => ({ ...f, unitTypeId: val }))}
-                    options={unitTypes.map(u => ({ value: u.id, label: u.name }))}
-                    placeholder="-- Chọn đơn vị --"
-                    searchPlaceholder="Tìm đơn vị..."
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="block text-xs sm:text-sm font-semibold text-stone-700">
+                  <span>Đơn vị tính <span className="text-red-500">*</span></span>
+                  <div className="mt-1.5">
+                    <SearchableSelect
+                      value={form.unitTypeId}
+                      onChange={(val) => setForm(f => ({ ...f, unitTypeId: val }))}
+                      options={unitTypes.map(u => ({ value: u.id, label: u.name }))}
+                      placeholder="-- Chọn đơn vị --"
+                      searchPlaceholder="Tìm đơn vị..."
+                    />
+                  </div>
                 </div>
 
-                <label className="form-field">
-                  <span>Giá bán (VNĐ) <span className="required">*</span></span>
-                  <MoneyInput value={form.price} onChange={set('price')} required min="0" placeholder="0" />
+                <label className="block text-xs sm:text-sm font-semibold text-stone-700">
+                  <span>Giá bán (VNĐ) <span className="text-red-500">*</span></span>
+                  <div className="mt-1.5">
+                    <MoneyInput value={form.price} onChange={set('price')} required min="0" placeholder="0" />
+                  </div>
                 </label>
               </div>
 
-              <label className="form-field">
-                <span>Số lượng ban đầu <span className="required">*</span></span>
-                <input type="number" value={form.stockQuantity} onChange={set('stockQuantity')} required min="0" placeholder="0" />
+              <label className="block text-xs sm:text-sm font-semibold text-stone-700">
+                <span>Số lượng ban đầu <span className="text-red-500">*</span></span>
+                <input
+                  className="w-full mt-1.5 px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-stone-900 text-xs sm:text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
+                  type="number"
+                  value={form.stockQuantity}
+                  onChange={set('stockQuantity')}
+                  required
+                  min="0"
+                  placeholder="0"
+                />
               </label>
 
-              <label className="form-field">
+              <label className="block text-xs sm:text-sm font-semibold text-stone-700">
                 <span>Mô tả sản phẩm</span>
-                <input value={form.description} onChange={set('description')} placeholder="Mô tả ngắn về sản phẩm..." />
+                <input
+                  className="w-full mt-1.5 px-3.5 py-2 rounded-xl border border-stone-200 bg-stone-50/50 text-stone-900 text-xs sm:text-sm focus:bg-white focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition"
+                  value={form.description}
+                  onChange={set('description')}
+                  placeholder="Mô tả ngắn về sản phẩm..."
+                />
               </label>
             </div>
 
           </div>
 
-          <div className="modal-footer">
-            <button type="button" className="btn-ghost" onClick={onClose}>Hủy</button>
-            <button className="btn-primary" type="submit" disabled={loading || uploading}>
+          <div className="px-6 py-4 border-t border-stone-100 bg-stone-50/50 flex items-center justify-end gap-3">
+            <button
+              type="button"
+              className="px-4 py-2 rounded-xl text-stone-600 hover:bg-stone-100 font-bold text-xs sm:text-sm transition cursor-pointer"
+              onClick={onClose}
+            >
+              Hủy
+            </button>
+            <button
+              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-white text-xs sm:text-sm font-bold shadow-xs hover:shadow transition cursor-pointer disabled:opacity-50"
+              type="submit"
+              disabled={loading || uploading}
+            >
               {loading ? 'Đang lưu...' : '+ Thêm sản phẩm'}
             </button>
           </div>

@@ -22,7 +22,7 @@ namespace SalesManagerBE.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll() =>
-            Ok(await _context.ContactInfos.OrderByDescending(c => c.IsActive).ThenBy(c => c.Id).ToListAsync());
+            Ok(await _context.ContactInfos.OrderByDescending(c => c.IsActive).ThenByDescending(c => c.Id).ToListAsync());
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] ContactInfoDto dto)

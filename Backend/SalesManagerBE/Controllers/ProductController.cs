@@ -31,7 +31,7 @@ namespace SalesManagerBE.Controllers
             var products = await _context.Products
                 .Include(p => p.ProductCategory)
                 .Include(p => p.UnitType)
-                .OrderBy(p => p.Category).ThenBy(p => p.ProductName)
+                .OrderByDescending(p => p.CreatedAt).ThenByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id, p.ProductCode, p.ProductName, p.Unit, p.Price,
                     p.StockQuantity, p.Description, p.ImageUrl, p.Category,
@@ -132,6 +132,7 @@ namespace SalesManagerBE.Controllers
             product.Category = categoryName;
             product.CategoryId = dto.CategoryId;
             product.UnitTypeId = dto.UnitTypeId;
+            product.CreatedAt = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return Ok(new {

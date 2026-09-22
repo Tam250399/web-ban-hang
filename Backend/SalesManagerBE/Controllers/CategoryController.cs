@@ -20,7 +20,7 @@ namespace SalesManagerBE.Controllers
         /// </summary>
         [HttpGet("product-categories")]
         public async Task<IActionResult> GetProductCategories() =>
-            Ok(await _context.ProductCategories.OrderBy(c => c.Name).ToListAsync());
+            Ok(await _context.ProductCategories.OrderByDescending(c => c.Id).ToListAsync());
 
         /// <summary>
         /// Lấy các danh mục sản phẩm được cấu hình hiển thị ở trang chủ
@@ -80,7 +80,7 @@ namespace SalesManagerBE.Controllers
         /// </summary>
         [HttpGet("unit-types")]
         public async Task<IActionResult> GetUnitTypes() =>
-            Ok(await _context.UnitTypes.OrderBy(u => u.Name).ToListAsync());
+            Ok(await _context.UnitTypes.OrderByDescending(u => u.Id).ToListAsync());
 
         /// <summary>
         /// Tạo mới đơn vị tính sản phẩm
@@ -130,7 +130,7 @@ namespace SalesManagerBE.Controllers
         public async Task<IActionResult> GetProductNames() =>
             Ok(await _context.ProductNameTemplates
                 .Include(p => p.Category)
-                .OrderBy(p => p.CategoryId).ThenBy(p => p.Name)
+                .OrderByDescending(p => p.Id)
                 .Select(p => new { p.Id, p.Name, p.CategoryId, categoryName = p.Category != null ? p.Category.Name : null })
                 .ToListAsync());
 

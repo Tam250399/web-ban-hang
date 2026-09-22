@@ -28,6 +28,7 @@ namespace SalesManagerBE.Controllers
             var transactions = await _context.StockTransactions
                 .Include(t => t.Product)
                 .OrderByDescending(t => t.TransactionDate)
+                .ThenByDescending(t => t.Id)
                 .Select(t => new {
                     t.Id, t.ProductId, t.Type, t.Quantity, t.UnitPrice, t.Note, t.TransactionDate,
                     productName = t.Product!.ProductName,
@@ -97,6 +98,7 @@ namespace SalesManagerBE.Controllers
             transaction.Quantity = dto.Quantity;
             transaction.UnitPrice = dto.UnitPrice;
             transaction.Note = dto.Note;
+            transaction.TransactionDate = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật giao dịch thành công.", transaction, updatedStock = newProduct.StockQuantity });

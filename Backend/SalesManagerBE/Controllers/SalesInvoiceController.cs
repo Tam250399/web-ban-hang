@@ -50,6 +50,7 @@ namespace SalesManagerBE.Controllers
             var invoices = await _context.SalesInvoices
                 .Include(i => i.Items)
                 .OrderByDescending(i => i.CreatedAt)
+                .ThenByDescending(i => i.Id)
                 .Select(i => new
                 {
                     i.Id,
@@ -221,6 +222,7 @@ namespace SalesManagerBE.Controllers
                 });
             }
 
+            invoice.CreatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
             return Ok(new { message = "Cập nhật phiếu bán hàng thành công." });
         }

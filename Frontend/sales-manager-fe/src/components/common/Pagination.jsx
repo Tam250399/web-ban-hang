@@ -1,4 +1,4 @@
-const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50]
+const DEFAULT_PAGE_SIZE_OPTIONS = [10, 20, 50, 100]
 
 /**
  * Component Pagination
@@ -29,35 +29,77 @@ function Pagination({
     : []
 
   return (
-    <div className="table-footer">
-      <div className="table-footer-info">
-        Hiển thị <strong>{start}-{end}</strong> / <strong>{total}</strong> {label}
+    <div className="flex flex-col sm:flex-row items-center justify-between gap-3 py-2.5 px-3 text-xs text-brand-text border-t border-brand-divider/40">
+      <div>
+        Hiển thị <strong className="text-ink font-bold">{start}-{end}</strong> / <strong className="text-ink font-bold">{total}</strong> {label}
       </div>
 
       {onPageSizeChange && (
-        <label className="table-footer-size">
-          Số dòng/trang
-          <select value={pageSize} onChange={e => onPageSizeChange(+e.target.value)}>
+        <label className="flex items-center gap-2 text-xs">
+          <span>Số dòng/trang</span>
+          <select
+            value={pageSize}
+            onChange={e => onPageSizeChange(+e.target.value)}
+            className="px-2 py-0.5 rounded-lg border border-brand-divider bg-white text-ink text-xs focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+          >
             {pageSizeOptions.map(n => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
       )}
 
       {totalPages > 1 && (
-        <div className="pagination">
-          <button className="page-btn" onClick={() => onPage(1)} disabled={page === 1}>«</button>
-          <button className="page-btn" onClick={() => onPage(page - 1)} disabled={page === 1}>‹</button>
+        <div className="flex items-center gap-1">
+          <button
+            className="min-w-8 h-8 px-2 flex items-center justify-center rounded-lg border border-brand-divider text-xs font-semibold text-ink bg-white hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            onClick={() => onPage(1)}
+            disabled={page === 1}
+            title="Trang đầu"
+          >
+            «
+          </button>
+          <button
+            className="min-w-8 h-8 px-2 flex items-center justify-center rounded-lg border border-brand-divider text-xs font-semibold text-ink bg-white hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            onClick={() => onPage(page - 1)}
+            disabled={page === 1}
+            title="Trang trước"
+          >
+            ‹
+          </button>
           {pages.map((p, i) =>
-            p === '...'
-              ? <span key={`el${i}`} className="page-ellipsis">…</span>
-              : <button
-                  key={p}
-                  className={`page-btn ${page === p ? 'active' : ''}`}
-                  onClick={() => onPage(p)}
-                >{p}</button>
+            p === '...' ? (
+              <span key={`el${i}`} className="px-1 text-neutral-400 text-xs">
+                …
+              </span>
+            ) : (
+              <button
+                key={p}
+                className={`min-w-8 h-8 px-2.5 flex items-center justify-center rounded-lg border text-xs font-bold transition cursor-pointer ${
+                  page === p
+                    ? 'bg-primary text-white border-primary shadow-xs'
+                    : 'border-brand-divider text-ink bg-white hover:bg-neutral-50'
+                }`}
+                onClick={() => onPage(p)}
+              >
+                {p}
+              </button>
+            )
           )}
-          <button className="page-btn" onClick={() => onPage(page + 1)} disabled={page === totalPages}>›</button>
-          <button className="page-btn" onClick={() => onPage(totalPages)} disabled={page === totalPages}>»</button>
+          <button
+            className="min-w-8 h-8 px-2 flex items-center justify-center rounded-lg border border-brand-divider text-xs font-semibold text-ink bg-white hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            onClick={() => onPage(page + 1)}
+            disabled={page === totalPages}
+            title="Trang sau"
+          >
+            ›
+          </button>
+          <button
+            className="min-w-8 h-8 px-2 flex items-center justify-center rounded-lg border border-brand-divider text-xs font-semibold text-ink bg-white hover:bg-neutral-50 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+            onClick={() => onPage(totalPages)}
+            disabled={page === totalPages}
+            title="Trang cuối"
+          >
+            »
+          </button>
         </div>
       )}
     </div>

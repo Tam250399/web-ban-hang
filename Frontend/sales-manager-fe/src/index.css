@@ -1,8 +1,92 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #C1440E;
+  --color-primary-dark: #9B360B;
+  --color-primary-hover: #A33A0C;
+  --color-accent: #F2B705;
+  --color-ink: #1F1D1A;
+  --color-brand-bg: #EDEAE3;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-text: #5C5648;
+  --color-brand-light: #6F6857;
+  --color-brand-divider: #D8D3C7;
+  --color-brand-divider-dark: #3A3630;
+  --color-admin-dark: #33302A;
+  --color-admin-dark-active: #423E36;
+
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+}
+
+@utility hzd {
+  height: 8px;
+  width: 100%;
+  flex-shrink: 0;
+  background: repeating-linear-gradient(135deg, #F2B705 0 14px, #1F1D1A 14px 28px);
+}
+
+@utility chip-rotate {
+  display: inline-block;
+  transform: rotate(-2deg);
+  background: #F2B705;
+  color: #1F1D1A;
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+@utility chip-rotate-alt {
+  display: inline-block;
+  transform: rotate(-3deg);
+  background: #F2B705;
+  color: #1F1D1A;
+  padding: 4px 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@utility animate-card-entrance {
+  animation: card-entrance 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-entrance {
+    animation: none !important;
+  }
+}
+
 :root {
-  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --primary: #C1440E;
+  --primary-dark: #9B360B;
+  --accent: #F2B705;
+  --ink: #1F1D1A;
+  --bg: #EDEAE3;
+  --text: #5C5648;
+  --text-light: #6F6857;
+  --divider: #D8D3C7;
+  --divider-dark: #3A3630;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', monospace;
+
+  font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
-  font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -15,6 +99,9 @@
 body {
   margin: 0;
   min-height: 100vh;
+  background-color: var(--color-brand-bg);
+  color: var(--color-ink);
+  overflow-wrap: break-word;
 }
 
 #root {
@@ -22,6 +109,45 @@ body {
 }
 
 button,
-input {
+input,
+select,
+textarea {
   font: inherit;
+}
+
+/* ==========================================================================
+   View Transitions API styles
+   ========================================================================== */
+::view-transition-old(root) {
+  animation: 200ms ease both vt-fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 200ms ease both vt-fade-in;
+}
+
+@keyframes vt-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }

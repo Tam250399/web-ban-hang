@@ -18,7 +18,6 @@ import { useAuth } from './context/auth-context'
 import { DEFAULT_ADMIN_TAB, PATHS } from './routes/paths'
 
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'))
-
 const ChatWidget = lazy(() => import('./components/common/ChatWidget'))
 
 /**
@@ -26,9 +25,9 @@ const ChatWidget = lazy(() => import('./components/common/ChatWidget'))
  */
 function RouteLoading({ label }) {
   return (
-    <div className="route-loading">
-      <div className="spinner" />
-      <p>{label}</p>
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3 text-stone-500">
+      <div className="w-10 h-10 border-3 border-stone-200 border-t-primary rounded-full animate-spin" />
+      <p className="text-sm font-medium">{label}</p>
     </div>
   )
 }
