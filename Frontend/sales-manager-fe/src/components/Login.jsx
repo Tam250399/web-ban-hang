@@ -7,31 +7,7 @@ import { useAuth } from '../context/auth-context'
 import { useRequireOnline } from '../hooks/useRequireOnline'
 import PageMeta from './common/PageMeta'
 import { PATHS } from '../routes/paths'
-
-/**
- * Component EyeIcon
- */
-function EyeIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  )
-}
-
-/**
- * Component EyeOffIcon
- */
-function EyeOffIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  )
-}
+import { Icon } from './common/Icon'
 
 /**
  * Component giao diện đăng nhập hệ thống
@@ -138,7 +114,7 @@ function Login() {
                   onClick={() => setShowPassword((s) => !s)}
                   className="auth-eye-btn"
                 >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  {showPassword ? <Icon name="eyeOff" size={20} /> : <Icon name="eye" size={20} />}
                 </button>
               </div>
               {passwordError && <span className="auth-field-error">{passwordError}</span>}

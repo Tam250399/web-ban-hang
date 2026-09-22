@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Icon } from './Icon'
 
 /**
  * Component MultiSearchableSelect
@@ -108,9 +109,7 @@ function MultiSearchableSelect({
           {values.length > 0 && (
             <span className="multi-select-clear" onClick={clearAll}>×</span>
           )}
-          <svg className="searchable-select-arrow" width="14" height="14" viewBox="0 0 24 24" fill="none">
-            <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
+          <Icon name="chevronDown" size={14} className="searchable-select-arrow" />
         </span>
       </button>
 

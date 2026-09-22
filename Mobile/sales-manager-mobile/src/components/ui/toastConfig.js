@@ -1,39 +1,26 @@
 import { StyleSheet, Text, View } from 'react-native'
-import Svg, { Circle, Path } from 'react-native-svg'
+import { Feather } from '@expo/vector-icons'
 import { fonts } from '../../theme/fonts'
 
 /**
  * Component SuccessIcon
  */
 function SuccessIcon() {
-  return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M20 6L9 17l-5-5" />
-    </Svg>
-  )
+  return <Feather name="check" size={16} color="#059669" />
 }
 
 /**
  * Component ErrorIcon
  */
 function ErrorIcon() {
-  return (
-    <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#DC2626" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M18 6L6 18M6 6l12 12" />
-    </Svg>
-  )
+  return <Feather name="x" size={15} color="#DC2626" />
 }
 
 /**
  * Component InfoIcon
  */
 function InfoIcon() {
-  return (
-    <Svg width={15} height={15} viewBox="0 0 24 24" fill="none" stroke="#2563EB" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round">
-      <Circle cx={12} cy={12} r={10} />
-      <Path d="M12 16v-4M12 8h.01" />
-    </Svg>
-  )
+  return <Feather name="info" size={15} color="#2563EB" />
 }
 
 export const toastConfig = {

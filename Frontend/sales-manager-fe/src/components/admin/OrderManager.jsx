@@ -352,7 +352,7 @@ function OrderManager({ onChanged }) {
           className={`btn-advanced-toggle ${showAdvanced ? 'active' : ''}`}
           onClick={() => setShowAdvanced(v => !v)}
         >
-          <span className="toggle-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg></span> Nâng cao
+          <span className="toggle-icon"><Icon name="chevronDown" size={14} /></span> Nâng cao
           {[fromDate, toDate].filter(Boolean).length > 0 && (
             <span className="advanced-count">{[fromDate, toDate].filter(Boolean).length}</span>
           )}

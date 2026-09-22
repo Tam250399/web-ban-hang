@@ -136,30 +136,7 @@ function PermissionTable({ users, roles, currentUser, onChangeRole, onDelete }) 
   )
 }
 
-/**
- * Component EyeIcon
- */
-function EyeIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-    </svg>
-  )
-}
 
-/**
- * Component EyeOffIcon
- */
-function EyeOffIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-      <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.8" />
-      <line x1="3" y1="21" x2="21" y2="3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  )
-}
 
 /**
  * Component UserFormModal
@@ -235,7 +212,7 @@ function UserFormModal({ user, roles, onSave, onClose }) {
                   onClick={() => setShowPassword(s => !s)}
                   className="auth-eye-btn"
                 >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  {showPassword ? <Icon name="eyeOff" size={20} /> : <Icon name="eye" size={20} />}
                 </button>
               </div>
             </label>
