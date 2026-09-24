@@ -1,5 +1,5 @@
 import React from 'react'
-import { Feather, MaterialCommunityIcons } from '@expo/vector-icons'
+import { Feather, FontAwesome, MaterialCommunityIcons } from '@expo/vector-icons'
 import { brand } from '../../theme/colors'
 
 export const ICON_MAP = {
@@ -53,6 +53,11 @@ export const ICON_MAP = {
   settings:    { Family: Feather, name: 'settings' },
   key:         { Family: Feather, name: 'key' },
   lock:        { Family: Feather, name: 'lock' },
+  shield:      { Family: Feather, name: 'shield' },
+
+  // Mạng xã hội / OAuth
+  google:      { Family: FontAwesome, name: 'google' },
+  facebook:    { Family: FontAwesome, name: 'facebook-square' },
 
   // Danh mục vật liệu & Xây dựng
   cement:      { Family: MaterialCommunityIcons, name: 'sack-outline' },

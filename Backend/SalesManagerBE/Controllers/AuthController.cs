@@ -42,7 +42,7 @@ namespace SalesManagerBE.Controllers
         }
 
         /// <summary>
-        /// Đăng nhập hệ thống và cấp phát cookie xác thực JWT
+        /// Đăng nhập hệ thống và cấp phát cookie xác thực JWT (hỗ trợ bắt buộc 2FA cho Admin)
         /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginDto dto)
@@ -54,16 +54,84 @@ namespace SalesManagerBE.Controllers
                 return Unauthorized(new { message = result.Message });
             }
 
-            Response.Cookies.Append(CookieName, result.Token!, new CookieOptions
+            // Nếu tài khoản yêu cầu xác thực 2 bước (2FA bắt buộc cho Admin)
+            if (result.RequiresTwoFactor)
             {
-                HttpOnly = true,
-                Secure = !_env.IsDevelopment(),
-                SameSite = SameSiteMode.Lax,
-                Path = "/",
-                Expires = DateTimeOffset.UtcNow.AddDays(7),
-            });
+                return Ok(new
+                {
+                    requires2Fa = true,
+                    tempToken = result.TempToken,
+                    twoFactorMethod = result.TwoFactorMethod,
+                    emailMasked = result.EmailMasked,
+                    message = result.Message
+                });
+            }
 
+            SetAccessTokenCookie(result.Token!);
             return Ok(new { user = result.User });
+        }
+
+        /// <summary>
+        /// Đăng nhập hoặc tạo mới tài khoản qua mạng xã hội (Google / Facebook)
+        /// </summary>
+        [HttpPost("social-login")]
+        public async Task<IActionResult> SocialLogin([FromBody] SocialLoginDto dto)
+        {
+            var result = await _authService.SocialLoginAsync(dto);
+
+            if (!result.Success)
+            {
+                return BadRequest(new { message = result.Message });
+            }
+
+            // Nếu tài khoản là Admin, bắt buộc xác thực 2 bước (2FA)
+            if (result.RequiresTwoFactor)
+            {
+                return Ok(new
+                {
+                    requires2Fa = true,
+                    tempToken = result.TempToken,
+                    twoFactorMethod = result.TwoFactorMethod,
+                    emailMasked = result.EmailMasked,
+                    message = result.Message
+                });
+            }
+
+            SetAccessTokenCookie(result.Token!);
+            return Ok(new { user = result.User });
+        }
+
+        /// <summary>
+        /// Xác thực mã OTP 2FA cho tài khoản Quản trị và hoàn tất đăng nhập
+        /// </summary>
+        [HttpPost("verify-2fa")]
+        public async Task<IActionResult> VerifyTwoFactor([FromBody] VerifyTwoFactorDto dto)
+        {
+            var result = await _authService.VerifyTwoFactorAsync(dto);
+
+            if (!result.Success)
+            {
+                return Unauthorized(new { message = result.Message });
+            }
+
+            SetAccessTokenCookie(result.Token!);
+            return Ok(new { user = result.User });
+        }
+
+        /// <summary>
+        /// Yêu cầu gửi lại mã OTP 2FA qua email
+        /// </summary>
+        [HttpPost("resend-2fa")]
+        public async Task<IActionResult> ResendTwoFactor([FromBody] ResendTwoFactorDto dto)
+        {
+            var (success, message, maskedEmail) = await _authService.ResendTwoFactorOtpAsync(dto.TempToken);
+
+            if (!success)
+            {
+                return BadRequest(new { message, emailMasked = maskedEmail });
+            }
+
+            return Ok(new { message, emailMasked = maskedEmail });
         }
 
         /// <summary>
@@ -88,6 +156,18 @@ namespace SalesManagerBE.Controllers
             if (user == null) return Unauthorized();
 
             return Ok(new UserInfo(user.Id, user.Username, user.FullName, user.Role?.RoleName, user.PhoneNumber));
+        }
+
+        private void SetAccessTokenCookie(string token)
+        {
+            Response.Cookies.Append(CookieName, token, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(7),
+            });
         }
     }
 }

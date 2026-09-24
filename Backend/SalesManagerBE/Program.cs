@@ -18,6 +18,8 @@ builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddHttpClient();
+
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? builder.Configuration["Cors:AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
     ?? new[] { "http://localhost:5173" };
@@ -76,6 +78,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddSingleton<TwoFactorService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<IMinioService, MinioService>();
 builder.Services.AddScoped<IExcelExportService, ExcelExportService>();
@@ -124,29 +127,51 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 
     var adminRole = await db.Roles.FirstOrDefaultAsync(r => r.RoleName == "Admin");
-    if (adminRole != null && !await db.Users.AnyAsync(u => u.RoleId == adminRole.Id))
+    if (adminRole != null)
     {
-        var bootstrapPassword = builder.Configuration["AdminBootstrap:Password"];
-        if (!string.IsNullOrWhiteSpace(bootstrapPassword))
+        var existingAdmins = await db.Users.Where(u => u.RoleId == adminRole.Id).ToListAsync();
+        if (existingAdmins.Count == 0)
         {
-            db.Users.Add(new User
+            var bootstrapPassword = builder.Configuration["AdminBootstrap:Password"];
+            if (!string.IsNullOrWhiteSpace(bootstrapPassword))
             {
-                Username = "admin",
-                PasswordHash = AuthService.HashPassword(bootstrapPassword),
-                FullName = "Quản trị viên",
-                RoleId = adminRole.Id,
-                CreatedAt = DateTime.UtcNow,
-            });
-            await db.SaveChangesAsync();
-            app.Logger.LogWarning(
-                "Đã tạo tài khoản admin đầu tiên (username: admin) từ AdminBootstrap:Password. " +
-                "Hãy đăng nhập và đổi mật khẩu ngay, sau đó gỡ AdminBootstrap:Password khỏi cấu hình.");
+                db.Users.Add(new User
+                {
+                    Username = "admin",
+                    Email = "tamthanhsk25@gmail.com",
+                    PasswordHash = AuthService.HashPassword(bootstrapPassword),
+                    FullName = "Quản trị viên",
+                    RoleId = adminRole.Id,
+                    CreatedAt = DateTime.UtcNow,
+                });
+                await db.SaveChangesAsync();
+                app.Logger.LogWarning(
+                    "Đã tạo tài khoản admin đầu tiên (username: admin, email: tamthanhsk25@gmail.com) từ AdminBootstrap:Password. " +
+                    "Hãy đăng nhập và đổi mật khẩu ngay, sau đó gỡ AdminBootstrap:Password khỏi cấu hình.");
+            }
+            else
+            {
+                app.Logger.LogWarning(
+                    "Chưa có tài khoản Admin nào trong hệ thống. Đặt biến môi trường AdminBootstrap__Password " +
+                    "(hoặc AdminBootstrap:Password trong appsettings) rồi khởi động lại ứng dụng để tạo tài khoản admin đầu tiên.");
+            }
         }
         else
         {
-            app.Logger.LogWarning(
-                "Chưa có tài khoản Admin nào trong hệ thống. Đặt biến môi trường AdminBootstrap__Password " +
-                "(hoặc AdminBootstrap:Password trong appsettings) rồi khởi động lại ứng dụng để tạo tài khoản admin đầu tiên.");
+            var updated = false;
+            foreach (var adm in existingAdmins)
+            {
+                if (string.IsNullOrWhiteSpace(adm.Email) || adm.Email.Contains("vlxdlysau.vn") || adm.Email.Contains("tamnc2503"))
+                {
+                    adm.Email = "tamthanhsk25@gmail.com";
+                    updated = true;
+                }
+            }
+            if (updated)
+            {
+                await db.SaveChangesAsync();
+                app.Logger.LogInformation("Đã cập nhật email nhận mã xác thực 2FA cho Quản trị viên: tamthanhsk25@gmail.com");
+            }
         }
     }
 }
