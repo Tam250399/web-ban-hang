@@ -14,6 +14,7 @@ import { CACHE_KEYS, formatCacheAge } from '../services/cache'
 import CartDrawer from './common/CartDrawer'
 import LogoBadge from './LogoBadge'
 import { Icon } from './common/Icon'
+import OptimizedImage from './common/OptimizedImage'
 import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from './categoryIcons'
 import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
@@ -36,18 +37,6 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
       style={{ animationDelay: `${Math.min((index % 12) * 45, 450)}ms` }}
       className="group animate-card-entrance flex flex-col bg-white rounded-2xl overflow-hidden border border-brand-divider/60 shadow-xs hover:shadow-xl hover:shadow-primary/5 hover:border-primary/40 hover:-translate-y-1.5 active:scale-[0.98] transition-all duration-300 ease-out will-change-transform"
       to={PATHS.productDetail(product.id)}
-      onClick={(e) => {
-        const rect = e.currentTarget.getBoundingClientRect()
-        window.__lastProductCardRect = {
-          id: product.id,
-          rect: {
-            top: rect.top,
-            left: rect.left,
-            width: rect.width,
-            height: rect.height,
-          },
-        }
-      }}
     >
       <div className="relative h-44 bg-neutral-100 flex items-center justify-center overflow-hidden border-b border-brand-divider/40">
         {/* Shimmer sweep effect on hover */}
@@ -56,14 +45,14 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
         </div>
 
         {product.imageUrl ? (
-          <img
+          <OptimizedImage
             src={resolveMediaUrl(product.imageUrl)}
             alt={product.productName}
             width={320}
-            height={140}
-            loading="lazy"
-            decoding="async"
+            height={176}
+            fallbackIcon={icon}
             className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
+            wrapperClassName="w-full h-full"
           />
         ) : (
           <span className="text-brand-text/70 group-hover:scale-115 group-hover:text-primary transition-all duration-300 ease-out">

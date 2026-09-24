@@ -1,19 +1,27 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 /**
- * Hook quản lý phím tắt và khả năng truy cập a11y cho hộp thoại Modal
+ * Hook quản lý phím tắt, khóa cuộn trang (không giật layout) và khả năng truy cập a11y cho hộp thoại Modal
  */
 export function useModalA11y({ onClose, enabled = true }) {
   const containerRef = useRef(null)
   const onCloseRef = useRef(onClose)
   useEffect(() => { onCloseRef.current = onClose })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!enabled) return
 
     const previouslyFocused = document.activeElement
 
     const originalOverflow = document.body.style.overflow
+    const originalPaddingRight = document.body.style.paddingRight
+
+    // Tính độ rộng thanh cuộn scrollbar của hệ điều hành/trình duyệt để bù trừ paddingRight,
+    // loại bỏ hoàn toàn hiện tượng giật trang (layout shift 15-17px) khi mở/đóng modal trên Windows
+    const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth
+    if (scrollbarWidth > 0) {
+      document.body.style.paddingRight = `${scrollbarWidth}px`
+    }
     document.body.style.overflow = 'hidden'
 
     const focusablesSelector =
@@ -53,6 +61,7 @@ export function useModalA11y({ onClose, enabled = true }) {
     return () => {
       document.removeEventListener('keydown', onKeyDown)
       document.body.style.overflow = originalOverflow
+      document.body.style.paddingRight = originalPaddingRight
       previouslyFocused?.focus?.()
     }
   }, [enabled])

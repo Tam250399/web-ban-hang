@@ -5,6 +5,7 @@ import { uploadImage } from '../../services/uploadService'
 import ConfirmModal from '../common/ConfirmModal'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from '../common/Icon'
+import OptimizedImage from '../common/OptimizedImage'
 
 const EMPTY_FORM = { title: '', description: '', imageUrl: '', displayOrder: 0, isActive: true }
 
@@ -287,14 +288,14 @@ function BannerManager() {
               <tr key={b.id} className="hover:bg-stone-50/60 transition">
                 <td className="px-3.5 py-2 text-stone-400 text-xs">{i + 1}</td>
                 <td className="px-3.5 py-2">
-                  <img
+                  <OptimizedImage
                     src={resolveMediaUrl(b.imageUrl)}
                     alt={b.title}
                     width={56}
                     height={32}
-                    loading="lazy"
-                    decoding="async"
-                    className="w-14 h-8 object-cover rounded-lg border border-stone-200"
+                    fallbackIcon="megaphone"
+                    className="w-full h-full object-cover"
+                    wrapperClassName="w-14 h-8 rounded-lg border border-stone-200 overflow-hidden"
                   />
                 </td>
                 <td className="px-3.5 py-2 font-bold text-stone-900">{b.title}</td>

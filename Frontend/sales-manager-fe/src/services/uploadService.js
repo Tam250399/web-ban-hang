@@ -1,13 +1,22 @@
 import { ApiError, BASE_URL } from './apiClient'
+import { compressAndConvertToWebP } from '../utils/imageOptimizer'
 
 const UPLOAD_TIMEOUT_MS = 45000
 
 /**
- * Tải file hình ảnh lên máy chủ MinIO qua API Upload
+ * Tải file hình ảnh lên máy chủ MinIO qua API Upload (tự động tối ưu hóa sang WebP)
  */
 export async function uploadImage(file) {
+  // Tự động chuyển đổi và nén sang WebP ở client để giảm 50% - 80% dung lượng tải lên
+  let fileToUpload = file
+  try {
+    fileToUpload = await compressAndConvertToWebP(file)
+  } catch (e) {
+    console.warn('Lỗi khi nén ảnh sang WebP client-side, sử dụng file gốc:', e)
+  }
+
   const formData = new FormData()
-  formData.append('file', file)
+  formData.append('file', fileToUpload)
 
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS)

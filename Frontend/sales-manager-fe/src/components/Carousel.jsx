@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { resolveMediaUrl } from '../services/config'
+import OptimizedImage from './common/OptimizedImage'
 
 /**
  * Hàm prefersReducedMotion: thực thi chức năng xử lý của module
@@ -44,13 +45,13 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
       >
         {slides.map((slide, i) => (
           <div className="w-full shrink-0 relative aspect-[16/7] sm:aspect-[21/8] md:aspect-[24/8] bg-stone-100" key={slide.id ?? i}>
-            <img
+            <OptimizedImage
               src={resolveMediaUrl(slide.imageUrl)}
               alt={slide.title || `slide-${i}`}
               className="w-full h-full object-cover"
-              decoding="async"
-              loading={i === 0 ? 'eager' : 'lazy'}
-              fetchPriority={i === 0 ? 'high' : 'auto'}
+              wrapperClassName="w-full h-full"
+              priority={i === 0}
+              fallbackIcon="megaphone"
             />
             {(slide.title || slide.description) && (
               <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 md:p-8 text-white">

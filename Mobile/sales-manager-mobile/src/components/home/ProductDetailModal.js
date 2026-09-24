@@ -46,12 +46,16 @@ export default function ProductDetailModal({ visible, product, onClose, onAddToC
             <View style={styles.imageWrap}>
               {product.imageUrl ? (
                 <Image
-                  source={{ uri: resolveMediaUrl(product.imageUrl) }}
+                  source={{
+                    uri: resolveMediaUrl(product.imageUrl),
+                    headers: { Accept: 'image/webp,image/*;q=0.8' },
+                  }}
                   style={styles.image}
                   contentFit="cover"
                   placeholder={{ blurhash: BLURHASH }}
-                  transition={150}
-                  cachePolicy="disk"
+                  transition={200}
+                  cachePolicy="memory-disk"
+                  priority="high"
                 />
               ) : (
                 <Text style={styles.imageIcon}>{icon}</Text>

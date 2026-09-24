@@ -37,12 +37,16 @@ export default function BannerCarousel({ banners }) {
         {banners.map((slide, i) => (
           <View key={slide.id ?? i} style={styles.slide}>
             <Image
-              source={{ uri: resolveMediaUrl(slide.imageUrl) }}
+              source={{
+                uri: resolveMediaUrl(slide.imageUrl),
+                headers: { Accept: 'image/webp,image/*;q=0.8' },
+              }}
               style={styles.image}
               contentFit="cover"
               placeholder={{ blurhash: BLURHASH }}
-              transition={150}
-              cachePolicy="disk"
+              transition={200}
+              cachePolicy="memory-disk"
+              priority={i === 0 ? 'high' : 'low'}
             />
             {(!!slide.title || !!slide.description) && (
               <View style={styles.caption}>

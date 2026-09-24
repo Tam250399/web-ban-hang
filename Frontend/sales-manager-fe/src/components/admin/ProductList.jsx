@@ -9,6 +9,7 @@ import OverflowMenu from '../common/OverflowMenu'
 import AddProduct from './AddProduct'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from '../common/Icon'
+import OptimizedImage from '../common/OptimizedImage'
 
 const IMPORT_STATUS_LABEL = { New: 'Mới', Duplicate: 'Trùng mã', Invalid: 'Lỗi' }
 const IMPORT_STATUS_CLASS = { New: 'new', Duplicate: 'duplicate', Invalid: 'invalid' }
@@ -493,12 +494,14 @@ function ProductList({ products, categories, unitTypes, onRefresh }) {
                 </td>
                 <td className="px-3.5 py-2">
                   {p.imageUrl ? (
-                    <img
+                    <OptimizedImage
                       src={resolveMediaUrl(p.imageUrl)}
                       alt={p.productName}
-                      className="w-9 h-9 object-cover rounded-xl border border-stone-200 shadow-2xs"
-                      loading="lazy"
-                      decoding="async"
+                      width={36}
+                      height={36}
+                      fallbackIcon="brick"
+                      className="w-full h-full object-cover"
+                      wrapperClassName="w-9 h-9 rounded-xl border border-stone-200 shadow-2xs overflow-hidden"
                     />
                   ) : (
                     <div className="w-9 h-9 rounded-xl bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400">

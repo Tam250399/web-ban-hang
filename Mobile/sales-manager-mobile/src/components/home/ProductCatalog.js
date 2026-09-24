@@ -201,9 +201,11 @@ export default function ProductCatalog({ hideHeading, reloadKey, ListHeaderCompo
         onEndReachedThreshold={0.4}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.listContent}
-        initialNumToRender={6}
-        maxToRenderPerBatch={6}
-        windowSize={5}
+        removeClippedSubviews={true}
+        initialNumToRender={4}
+        maxToRenderPerBatch={4}
+        windowSize={3}
+        updateCellsBatchingPeriod={50}
       />
 
       <ProductDetailModal

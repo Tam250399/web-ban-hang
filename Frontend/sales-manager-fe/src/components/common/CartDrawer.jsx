@@ -6,6 +6,7 @@ import { useRequireOnline } from '../../hooks/useRequireOnline'
 import { useModalA11y } from '../../hooks/useModalA11y'
 import { resolveMediaUrl } from '../../services/config'
 import { Icon } from './Icon'
+import OptimizedImage from './OptimizedImage'
 
 /**
  * Ngăn kéo hiển thị giỏ hàng xem nhanh và thanh toán
@@ -102,7 +103,13 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
                 <div className="py-3.5 flex items-center gap-3 relative" key={i.productId}>
                   <div className="w-14 h-14 rounded-xl bg-neutral-100 flex items-center justify-center shrink-0 overflow-hidden border border-brand-divider/40">
                     {i.imageUrl ? (
-                      <img src={resolveMediaUrl(i.imageUrl)} alt={i.productName} className="w-full h-full object-cover" loading="lazy" decoding="async" />
+                      <OptimizedImage
+                        src={resolveMediaUrl(i.imageUrl)}
+                        alt={i.productName}
+                        fallbackIcon="box"
+                        className="w-full h-full object-cover"
+                        wrapperClassName="w-full h-full"
+                      />
                     ) : (
                       <Icon name="box" size={24} className="text-brand-text" />
                     )}

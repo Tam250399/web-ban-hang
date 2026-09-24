@@ -18,12 +18,17 @@ function ProductCard({ product, onPress, onAddToCart, hideAddToCart }) {
       <View style={styles.imagePlaceholder}>
         {product.imageUrl ? (
           <Image
-            source={{ uri: resolveMediaUrl(product.imageUrl) }}
+            source={{
+              uri: resolveMediaUrl(product.imageUrl),
+              headers: { Accept: 'image/webp,image/*;q=0.8' },
+            }}
             style={styles.image}
             contentFit="cover"
             placeholder={{ blurhash: BLURHASH }}
-            transition={150}
-            cachePolicy="disk"
+            transition={200}
+            cachePolicy="memory-disk"
+            priority="normal"
+            recyclingKey={product.imageUrl}
           />
         ) : (
           <Text style={styles.imagePlaceholderText}>ảnh sản phẩm</Text>
