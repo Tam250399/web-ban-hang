@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using SalesManagerBE.Exceptions;
 using SalesManagerBE.Models;
 
 namespace SalesManagerBE.Services
@@ -117,32 +118,39 @@ namespace SalesManagerBE.Services
 
         public List<ProductImportRawRow> ParseImportFile(Stream fileStream)
         {
-            var result = new List<ProductImportRawRow>();
-            using var workbook = new XLWorkbook(fileStream);
-            var ws = workbook.Worksheets.First();
-            var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
-
-            for (int r = 2; r <= lastRow; r++)
+            try
             {
-                var row = ws.Row(r);
-                var code = row.Cell(1).GetString().Trim();
-                var name = row.Cell(2).GetString().Trim();
-                if (string.IsNullOrWhiteSpace(code) && string.IsNullOrWhiteSpace(name)) continue;
+                var result = new List<ProductImportRawRow>();
+                using var workbook = new XLWorkbook(fileStream);
+                var ws = workbook.Worksheets.First();
+                var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
 
-                result.Add(new ProductImportRawRow
+                for (int r = 2; r <= lastRow; r++)
                 {
-                    RowNumber = r,
-                    ProductCode = code,
-                    ProductName = name,
-                    CategoryName = row.Cell(3).GetString().Trim(),
-                    UnitName = row.Cell(4).GetString().Trim(),
-                    Price = row.Cell(5).TryGetValue<decimal>(out var price) ? price : 0,
-                    StockQuantity = row.Cell(6).TryGetValue<decimal>(out var qty) ? qty : 0,
-                    Description = row.Cell(7).GetString().Trim(),
-                });
-            }
+                    var row = ws.Row(r);
+                    var code = row.Cell(1).GetString().Trim();
+                    var name = row.Cell(2).GetString().Trim();
+                    if (string.IsNullOrWhiteSpace(code) && string.IsNullOrWhiteSpace(name)) continue;
 
-            return result;
+                    result.Add(new ProductImportRawRow
+                    {
+                        RowNumber = r,
+                        ProductCode = code,
+                        ProductName = name,
+                        CategoryName = row.Cell(3).GetString().Trim(),
+                        UnitName = row.Cell(4).GetString().Trim(),
+                        Price = row.Cell(5).TryGetValue<decimal>(out var price) ? price : 0,
+                        StockQuantity = row.Cell(6).TryGetValue<decimal>(out var qty) ? qty : 0,
+                        Description = row.Cell(7).GetString().Trim(),
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex) when (ex is not AppException)
+            {
+                throw new BadRequestException("Không đọc được file. Vui lòng dùng đúng file mẫu (.xlsx).");
+            }
         }
     }
 }

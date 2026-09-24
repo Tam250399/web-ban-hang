@@ -8,6 +8,7 @@ using SalesManagerBE.Models;
 using SalesManagerBE.Services;
 using System.Text;
 using System.Text.Json.Serialization;
+using SalesManagerBE.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,6 +109,8 @@ builder.Services.AddMinio(configureSource => configureSource
     .WithSSL(minioUseSsl));
 
 var app = builder.Build();
+
+app.UseGlobalExceptionHandler();
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using SalesManagerBE.Exceptions;
 using SalesManagerBE.Models;
 
 namespace SalesManagerBE.Services
@@ -80,29 +81,36 @@ namespace SalesManagerBE.Services
 
         public List<StockImportRawRow> ParseImportFile(Stream fileStream)
         {
-            var result = new List<StockImportRawRow>();
-            using var workbook = new XLWorkbook(fileStream);
-            var ws = workbook.Worksheets.First();
-            var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
-
-            for (int r = 2; r <= lastRow; r++)
+            try
             {
-                var row = ws.Row(r);
-                var code = row.Cell(1).GetString().Trim();
-                var qtyCell = row.Cell(2);
-                if (string.IsNullOrWhiteSpace(code) && qtyCell.IsEmpty()) continue;
+                var result = new List<StockImportRawRow>();
+                using var workbook = new XLWorkbook(fileStream);
+                var ws = workbook.Worksheets.First();
+                var lastRow = ws.LastRowUsed()?.RowNumber() ?? 1;
 
-                result.Add(new StockImportRawRow
+                for (int r = 2; r <= lastRow; r++)
                 {
-                    RowNumber = r,
-                    ProductCode = code,
-                    Quantity = qtyCell.TryGetValue<decimal>(out var qty) ? qty : 0,
-                    UnitPrice = row.Cell(3).TryGetValue<decimal>(out var price) ? price : 0,
-                    Note = row.Cell(4).GetString().Trim(),
-                });
-            }
+                    var row = ws.Row(r);
+                    var code = row.Cell(1).GetString().Trim();
+                    var qtyCell = row.Cell(2);
+                    if (string.IsNullOrWhiteSpace(code) && qtyCell.IsEmpty()) continue;
 
-            return result;
+                    result.Add(new StockImportRawRow
+                    {
+                        RowNumber = r,
+                        ProductCode = code,
+                        Quantity = qtyCell.TryGetValue<decimal>(out var qty) ? qty : 0,
+                        UnitPrice = row.Cell(3).TryGetValue<decimal>(out var price) ? price : 0,
+                        Note = row.Cell(4).GetString().Trim(),
+                    });
+                }
+
+                return result;
+            }
+            catch (Exception ex) when (ex is not AppException)
+            {
+                throw new BadRequestException("Không đọc được file. Vui lòng dùng đúng file mẫu (.xlsx).");
+            }
         }
     }
 }

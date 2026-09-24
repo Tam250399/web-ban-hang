@@ -192,16 +192,8 @@ namespace SalesManagerBE.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest(new { message = "Vui lòng chọn file." });
 
-            List<ProductImportRawRow> rawRows;
-            try
-            {
-                using var stream = file.OpenReadStream();
-                rawRows = _excelService.ParseImportFile(stream);
-            }
-            catch
-            {
-                return BadRequest(new { message = "Không đọc được file. Vui lòng dùng đúng file mẫu (.xlsx)." });
-            }
+            using var stream = file.OpenReadStream();
+            var rawRows = _excelService.ParseImportFile(stream);
 
             if (rawRows.Count == 0)
                 return BadRequest(new { message = "File không có dữ liệu." });

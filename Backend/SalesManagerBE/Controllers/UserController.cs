@@ -144,15 +144,7 @@ namespace SalesManagerBE.Controllers
             if (user == null) return NotFound();
 
             _context.Users.Remove(user);
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException)
-            {
-
-                return BadRequest(new { message = "Không thể xóa người dùng này vì còn dữ liệu liên quan (tin nhắn, đơn hàng...)." });
-            }
+            await _context.SaveChangesAsync();
             return Ok(new { message = "Đã xóa người dùng." });
         }
     }
