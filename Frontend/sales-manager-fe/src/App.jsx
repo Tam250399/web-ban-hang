@@ -11,10 +11,7 @@ import MyOrders from './components/MyOrders'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import OfflineBanner from './components/common/OfflineBanner'
 import RequireAuth from './components/common/RequireAuth'
-import { AuthProvider } from './context/AuthContext'
-import { NetworkProvider } from './context/NetworkContext'
-import { CartProvider } from './context/CartContext'
-import { useAuth } from './context/auth-context'
+import { useAuth } from './stores'
 import { DEFAULT_ADMIN_TAB, PATHS } from './routes/paths'
 
 const AdminDashboard = lazy(() => import('./components/AdminDashboard'))
@@ -99,15 +96,9 @@ function App() {
         }}
       />
       <ErrorBoundary>
-        <NetworkProvider>
-          <AuthProvider>
-            <CartProvider>
-              <OfflineBanner />
-              <AppRoutes />
-              <FloatingChat />
-            </CartProvider>
-          </AuthProvider>
-        </NetworkProvider>
+        <OfflineBanner />
+        <AppRoutes />
+        <FloatingChat />
       </ErrorBoundary>
     </BrowserRouter>
   )
