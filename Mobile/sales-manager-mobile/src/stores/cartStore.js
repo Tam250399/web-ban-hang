@@ -60,7 +60,8 @@ export const useCartStore = create(
 
       clear: () => set({ items: [] }),
 
-      getTotalCount: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
+      getTotalCount: () => get().items.length,
+      getTotalQuantity: () => get().items.reduce((sum, i) => sum + i.quantity, 0),
       getTotalPrice: () => get().items.reduce((sum, i) => sum + i.quantity * i.price, 0),
     }),
     {
@@ -80,7 +81,8 @@ export function useCart() {
   const removeItem = useCartStore((s) => s.removeItem)
   const clear = useCartStore((s) => s.clear)
 
-  const totalCount = items.reduce((sum, i) => sum + i.quantity, 0)
+  const totalCount = items.length
+  const totalQuantity = items.reduce((sum, i) => sum + i.quantity, 0)
   const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price, 0)
 
   return {
@@ -90,6 +92,7 @@ export function useCart() {
     removeItem,
     clear,
     totalCount,
+    totalQuantity,
     totalPrice,
   }
 }

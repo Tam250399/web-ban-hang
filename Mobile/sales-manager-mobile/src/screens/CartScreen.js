@@ -133,6 +133,10 @@ export default function CartScreen() {
       Toast.show({ type: 'error', text1: 'Vui lòng nhập số điện thoại' })
       return
     }
+    if (!form.address.trim()) {
+      Toast.show({ type: 'error', text1: 'Vui lòng nhập địa chỉ giao hàng' })
+      return
+    }
     if (!requireOnline('Đặt hàng')) return
     setSubmitting(true)
     try {
@@ -244,7 +248,7 @@ export default function CartScreen() {
                 <TextInput style={styles.input} value={form.phoneNumber} onChangeText={setField('phoneNumber')} keyboardType="phone-pad" placeholderTextColor={brand.textMuted} />
               </View>
               <View style={styles.field}>
-                <Text style={styles.fieldLabel}>Địa chỉ giao hàng</Text>
+                <Text style={styles.fieldLabel}>Địa chỉ giao hàng *</Text>
                 <TextInput
                   style={styles.input}
                   value={form.address}

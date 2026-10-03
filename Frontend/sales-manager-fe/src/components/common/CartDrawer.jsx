@@ -72,6 +72,10 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
       toast.error('Vui lòng nhập số điện thoại liên hệ.')
       return
     }
+    if (!form.address.trim()) {
+      toast.error('Vui lòng nhập địa chỉ giao hàng.')
+      return
+    }
     if (!requireOnline('Đặt hàng')) return
 
     setSubmitting(true)
@@ -130,7 +134,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
               </h3>
               {step === 'cart' && items.length > 0 && (
                 <span className="px-2 py-0.5 text-xs font-bold font-mono rounded-full bg-primary/10 text-primary border border-primary/20">
-                  {totalCount} món
+                  {totalCount} sản phẩm
                 </span>
               )}
             </div>
@@ -429,11 +433,12 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
 
                 <div>
                   <label className="block text-xs font-semibold text-stone-700 mb-1">
-                    Địa chỉ giao hàng (Công trình / Nhà riêng)
+                    Địa chỉ giao hàng (Công trình / Nhà riêng) <span className="text-red-500">*</span>
                   </label>
                   <input
                     value={form.address}
                     onChange={setField('address')}
+                    required
                     placeholder="Số nhà, đường phố, phường/xã, quận/huyện..."
                     className="w-full px-3.5 py-2.5 rounded-xl border border-brand-divider text-xs sm:text-sm text-ink bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition"
                   />
