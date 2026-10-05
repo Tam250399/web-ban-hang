@@ -140,7 +140,23 @@ namespace SalesManagerBE.Controllers
         [HttpPost("logout")]
         public IActionResult Logout()
         {
-            Response.Cookies.Delete(CookieName, new CookieOptions { Path = "/" });
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
+            };
+            Response.Cookies.Delete(CookieName, cookieOptions);
+            Response.Cookies.Append(CookieName, "", new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = !_env.IsDevelopment(),
+                SameSite = SameSiteMode.Lax,
+                Path = "/",
+                Expires = DateTimeOffset.UtcNow.AddDays(-1),
+                MaxAge = TimeSpan.Zero
+            });
             return Ok(new { message = "Đã đăng xuất." });
         }
 

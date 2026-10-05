@@ -34,7 +34,7 @@ function formatTime(iso) {
  * Component bảng điều khiển tổng quan dành cho quản trị viên
  */
 function AdminDashboard() {
-  const { user } = useAuth()
+  const { user, logout } = useAuth()
   const navigate = useNavigate()
   const { tabSlug } = useParams()
 
@@ -258,6 +258,15 @@ function AdminDashboard() {
           >
             ← Trang chủ
           </Link>
+          <button
+            type="button"
+            onClick={logout}
+            className="h-9 px-3 rounded-xl border border-red-500/30 bg-red-500/10 hover:bg-red-500/20 text-xs font-bold text-red-300 transition inline-flex items-center justify-center gap-1.5 cursor-pointer"
+            title="Đăng xuất khỏi tài khoản Quản trị"
+          >
+            <Icon name="logout" size={14} />
+            <span className="hidden sm:inline">Đăng xuất</span>
+          </button>
         </div>
       </header>
 

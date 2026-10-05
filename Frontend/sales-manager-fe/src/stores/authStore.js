@@ -61,6 +61,12 @@ export const useAuthStore = create((set, get) => ({
       clearAllCache()
       set({ user: GUEST_USER })
       toast.success('Đã đăng xuất')
+      if (
+        window.location.pathname.startsWith('/quan-tri') ||
+        window.location.pathname.startsWith('/don-hang-cua-toi')
+      ) {
+        window.location.href = '/'
+      }
     }
   },
 
