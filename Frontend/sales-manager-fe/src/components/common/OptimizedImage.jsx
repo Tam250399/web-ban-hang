@@ -31,12 +31,8 @@ export default function OptimizedImage({
 
   // Kiểm tra nếu ảnh đã được cache sẵn trong trình duyệt
   const checkComplete = (img) => {
-    if (img && img.complete) {
-      if (img.naturalWidth > 0) {
-        setIsLoaded(true)
-      } else if (img.src) {
-        setHasError(true)
-      }
+    if (img && img.complete && img.naturalWidth > 0) {
+      setIsLoaded(true)
     }
   }
 
@@ -126,7 +122,7 @@ export default function OptimizedImage({
       {src && !hasError && (
         <img
           ref={setImgRef}
-          src={isInView ? src : undefined}
+          src={src}
           alt={alt}
           width={width}
           height={height}

@@ -1,6 +1,8 @@
-import { memo, useCallback, useEffect, useMemo, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import '../App.css'
 import Carousel from './Carousel'
 import { bannerService } from '../services/bannerService'
@@ -19,6 +21,7 @@ import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from './categoryIcons'
 import { resolveMediaUrl } from '../services/config'
 import { useDebouncedValue } from '../hooks/useDebouncedValue'
 import { PATHS } from '../routes/paths'
+import { flyToCart } from '../utils/animations'
 
 const PAGE_SIZE = 12
 
@@ -95,7 +98,7 @@ const ProductCard = memo(function ProductCard({ product, onAddToCart, hideAddToC
           <button
             type="button"
             className="group/btn w-full py-2 px-3 bg-primary hover:bg-primary-dark text-white font-extrabold font-display text-sm tracking-wide rounded-xl shadow-xs hover:shadow-md transition-all duration-200 flex items-center justify-center gap-1.5 active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            onClick={e => { e.preventDefault(); e.stopPropagation(); onAddToCart(product) }}
+            onClick={e => { e.preventDefault(); e.stopPropagation(); onAddToCart(product, e.currentTarget) }}
             disabled={outOfStock}
           >
             {outOfStock ? (
@@ -137,8 +140,11 @@ function TrangChu() {
   const [cartOpen, setCartOpen] = useState(false)
   const { addItem, totalCount } = useCart()
 
-  const handleAddToCart = useCallback((product) => {
+  const gridRef = useRef(null)
+
+  const handleAddToCart = useCallback((product, sourceEl) => {
     addItem(product, 1)
+    flyToCart(sourceEl, product.imageUrl ? resolveMediaUrl(product.imageUrl) : null)
     toast.success(`Đã thêm "${product.productName}" vào giỏ hàng.`)
   }, [addItem])
 
@@ -186,12 +192,32 @@ function TrangChu() {
   const displayed = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount])
   const hasMore = displayed.length < filtered.length
 
+  useGSAP(() => {
+    if (!gridRef.current) return
+    const cards = gridRef.current.querySelectorAll('[data-product-card-id]')
+    if (!cards || cards.length === 0) return
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 24, scale: 0.98 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.4,
+        stagger: 0.04,
+        ease: 'power2.out',
+        clearProps: 'transform,opacity',
+      }
+    )
+  }, { dependencies: [activeCategory, debouncedSearch, visibleCount, displayed.length], scope: gridRef })
+
   return (
     <div className="min-h-screen flex flex-col bg-brand-bg text-ink">
       <header className="sticky top-0 z-40 bg-brand-bg/95 backdrop-blur-md border-b border-brand-divider/60">
         <div className="w-full max-w-[1536px] mx-auto px-4 sm:px-8 lg:px-12 h-20 flex items-center justify-between gap-6">
           <Link to={PATHS.home} viewTransition className="flex items-center gap-3.5 select-none shrink-0">
-            <div className="shrink-0"><LogoBadge size={44} variant="reversed" /></div>
+            <div className="shrink-0"><LogoBadge size={50} variant="reversed" /></div>
             <div>
               <strong className="block text-lg sm:text-xl font-bold leading-snug text-ink tracking-tight">
                 Cửa Hàng VLXD Lý Sáu
@@ -211,13 +237,17 @@ function TrangChu() {
           <div className="hidden sm:flex items-center gap-3">
             {canBuy && (
               <button
+                id="cart-btn-desktop"
                 className="relative h-10 w-10 inline-flex items-center justify-center text-ink hover:bg-black/5 rounded-xl transition cursor-pointer"
                 onClick={() => setCartOpen(true)}
                 aria-label="Giỏ hàng"
               >
                 <Icon name="cart" size={22} />
                 {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                  <span
+                    id="cart-badge-target"
+                    className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow"
+                  >
                     {totalCount}
                   </span>
                 )}
@@ -281,13 +311,17 @@ function TrangChu() {
           <div className="flex items-center gap-2 sm:hidden">
             {canBuy && (
               <button
+                id="cart-btn-mobile"
                 className="relative h-10 w-10 inline-flex items-center justify-center text-ink hover:bg-black/5 rounded-xl transition cursor-pointer"
                 onClick={() => setCartOpen(true)}
                 aria-label="Giỏ hàng"
               >
                 <Icon name="cart" size={22} />
                 {totalCount > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow">
+                  <span
+                    id="cart-badge-mobile-target"
+                    className="absolute -top-1 -right-1 min-w-5 h-5 px-1 bg-primary text-white text-[11px] font-bold rounded-full flex items-center justify-center shadow"
+                  >
                     {totalCount}
                   </span>
                 )}
@@ -479,7 +513,7 @@ function TrangChu() {
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
+            <div ref={gridRef} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 sm:gap-6">
               {displayed.map((p, idx) => (
                 <ProductCard
                   key={p.id}

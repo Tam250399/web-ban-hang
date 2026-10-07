@@ -1,4 +1,6 @@
-import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { CATEGORY_ICONS, DEFAULT_CATEGORY_ICON } from './categoryIcons'
 import { resolveMediaUrl } from '../services/config'
 import { useModalA11y } from '../hooks/useModalA11y'
@@ -6,7 +8,7 @@ import { Icon } from './common/Icon'
 import OptimizedImage from './common/OptimizedImage'
 
 /**
- * Hộp thoại hiển thị chi tiết thông tin và hình ảnh sản phẩm với hiệu ứng Container Transform (Card to Modal)
+ * Hộp thoại hiển thị chi tiết thông tin và hình ảnh sản phẩm với hiệu ứng GSAP Modal
  */
 function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
   const backdropRef = useRef(null)
@@ -20,61 +22,35 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
     const backdropEl = backdropRef.current
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion || !modalEl) {
+    if (prefersReducedMotion || !modalEl || !backdropEl) {
       onClose()
       return
     }
 
-    modalEl.style.transition = 'transform 200ms cubic-bezier(0.4, 0, 1, 1), opacity 180ms ease'
-    modalEl.style.transform = 'scale(0.96) translateY(6px)'
-    modalEl.style.opacity = '0'
-
-    if (backdropEl) {
-      backdropEl.style.transition = 'opacity 200ms ease'
-      backdropEl.style.opacity = '0'
-    }
-
-    setTimeout(() => {
-      onClose()
-    }, 200)
+    const tl = gsap.timeline({
+      onComplete: onClose,
+    })
+    tl.to(modalEl, { scale: 0.95, y: 10, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0)
+      .to(backdropEl, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0)
   }, [onClose])
 
   const dialogRef = useModalA11y({ onClose: handleClose })
 
-  useLayoutEffect(() => {
+  useGSAP(() => {
     const modalEl = dialogRef.current
     const backdropEl = backdropRef.current
-    if (!modalEl) return
+    if (!modalEl || !backdropEl) return
 
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) {
-      if (backdropEl) backdropEl.style.opacity = '1'
-      modalEl.style.opacity = '1'
-      modalEl.style.transform = 'none'
-      return
-    }
+    if (prefersReducedMotion) return
 
-    // Trạng thái khởi tạo mượt mà, không giật layout hay biến dạng khung hình
-    modalEl.style.transform = 'scale(0.96) translateY(8px)'
-    modalEl.style.opacity = '0'
-    modalEl.style.transition = 'none'
-    if (backdropEl) {
-      backdropEl.style.opacity = '0'
-      backdropEl.style.transition = 'none'
-    }
-
-    const frameId = requestAnimationFrame(() => {
-      modalEl.style.transition = 'transform 260ms cubic-bezier(0.16, 1, 0.3, 1), opacity 220ms ease-out'
-      modalEl.style.transform = 'scale(1) translateY(0)'
-      modalEl.style.opacity = '1'
-      if (backdropEl) {
-        backdropEl.style.transition = 'opacity 240ms ease-out'
-        backdropEl.style.opacity = '1'
-      }
-    })
-
-    return () => cancelAnimationFrame(frameId)
-  }, [product.id])
+    gsap.fromTo(backdropEl, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' })
+    gsap.fromTo(
+      modalEl,
+      { scale: 0.94, y: 16, opacity: 0 },
+      { scale: 1, y: 0, opacity: 1, duration: 0.32, ease: 'back.out(1.2)' }
+    )
+  }, { scope: backdropRef, dependencies: [product.id] })
 
   const catName = product.categoryName || product.category || 'Khác'
   const unitName = product.unitTypeName || product.unit || ''
@@ -82,8 +58,8 @@ function ProductDetailModal({ product, onClose, onAddToCart, hideAddToCart }) {
   const inStock = product.stockQuantity >= 50
   const outOfStock = product.stockQuantity <= 0
 
-  const handleAddToCart = () => {
-    onAddToCart?.(product)
+  const handleAddToCart = (e) => {
+    onAddToCart?.(product, e.currentTarget)
     handleClose()
   }
 

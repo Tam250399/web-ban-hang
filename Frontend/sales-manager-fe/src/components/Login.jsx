@@ -1,6 +1,8 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import '../App.css'
 import { authService } from '../services/authService'
 import { useAuth } from '../context/auth-context'
@@ -25,6 +27,30 @@ function Login() {
   const [usernameError, setUsernameError] = useState('')
   const [passwordError, setPasswordError] = useState('')
   const [formError, setFormError] = useState('')
+  const cardRef = useRef(null)
+
+  // Hiệu ứng GSAP xuất hiện thẻ đăng nhập
+  useGSAP(() => {
+    if (!cardRef.current) return
+    gsap.from(cardRef.current, {
+      y: 20,
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power3.out',
+      clearProps: 'transform,opacity',
+    })
+  }, [])
+
+  // Hiệu ứng GSAP rung lắc khi đăng nhập thất bại / sai mã OTP
+  const shakeForm = () => {
+    if (!cardRef.current) return
+    gsap.timeline()
+      .to(cardRef.current, { x: -10, duration: 0.06 })
+      .to(cardRef.current, { x: 10, duration: 0.06 })
+      .to(cardRef.current, { x: -7, duration: 0.06 })
+      .to(cardRef.current, { x: 7, duration: 0.06 })
+      .to(cardRef.current, { x: 0, duration: 0.06, clearProps: 'x' })
+  }
 
   // 2FA States (bắt buộc cho Admin để bảo vệ dữ liệu nội bộ)
   const [twoFactorData, setTwoFactorData] = useState(null) // { requires2Fa, tempToken, emailMasked, twoFactorMethod }
@@ -66,6 +92,7 @@ function Login() {
     if (uErr || pErr) {
       setUsernameError(uErr)
       setPasswordError(pErr)
+      shakeForm()
       return
     }
     if (!requireOnline('Đăng nhập')) return
@@ -94,6 +121,7 @@ function Login() {
       navigate(from || (loggedIn.role === 'Admin' ? PATHS.admin : PATHS.home), { replace: true, viewTransition: true })
     } catch (error) {
       setFormError(error.message || 'Không thể kết nối tới backend.')
+      shakeForm()
       setSubmitting(false)
     }
   }
@@ -104,10 +132,12 @@ function Login() {
     const code = otpCode.trim()
     if (!code) {
       setOtpError('Vui lòng nhập mã OTP 6 chữ số')
+      shakeForm()
       return
     }
     if (code.length < 6) {
       setOtpError('Mã OTP phải gồm đủ 6 chữ số')
+      shakeForm()
       return
     }
 
@@ -124,6 +154,7 @@ function Login() {
       navigate(from || PATHS.admin, { replace: true, viewTransition: true })
     } catch (error) {
       setOtpError(error.message || 'Mã xác thực không chính xác hoặc đã hết hạn.')
+      shakeForm()
     } finally {
       setVerifying2Fa(false)
     }
@@ -151,7 +182,7 @@ function Login() {
       <PageMeta title={twoFactorData ? 'Xác thực 2 bước (2FA)' : 'Đăng nhập'} noIndex />
       <div className="hzd" />
       <div className="flex-1 flex items-center justify-center p-4 sm:p-6">
-        <div className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-brand-divider/60 p-6 sm:p-8">
+        <div ref={cardRef} className="w-full max-w-md bg-white rounded-2xl shadow-lg border border-brand-divider/60 p-6 sm:p-8">
           
           {/* ================= GIAO DIỆN 2FA CHO ADMIN ================= */}
           {twoFactorData ? (

@@ -1,6 +1,8 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { Link } from 'react-router-dom'
 import toast from 'react-hot-toast'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import '../App.css'
 import { orderService } from '../services/orderService'
 import { useCachedResource } from '../hooks/useCachedResource'
@@ -24,7 +26,50 @@ const STATUS_CONFIG = {
  * Hộp thoại hiển thị chi tiết toàn bộ thông tin đơn hàng
  */
 function OrderDetailModal({ order, onClose, onCancel, onReorder, cancellingId, reorderingId }) {
-  const dialogRef = useModalA11y({ onClose })
+  const backdropRef = useRef(null)
+  const isClosingRef = useRef(false)
+
+  const handleAnimatedClose = () => {
+    if (isClosingRef.current) return
+    isClosingRef.current = true
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion || !dialogRef.current || !backdropRef.current) {
+      isClosingRef.current = false
+      onClose()
+      return
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        isClosingRef.current = false
+        onClose()
+      },
+    })
+    tl.to(dialogRef.current, { scale: 0.95, y: 12, opacity: 0, duration: 0.2, ease: 'power2.in' }, 0)
+      .to(backdropRef.current, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0)
+  }
+
+  const dialogRef = useModalA11y({ onClose: handleAnimatedClose })
+
+  useGSAP(() => {
+    if (!order) return
+    isClosingRef.current = false
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    if (backdropRef.current) {
+      gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' })
+    }
+    if (dialogRef.current) {
+      gsap.fromTo(
+        dialogRef.current,
+        { scale: 0.94, y: 16, opacity: 0 },
+        { scale: 1, y: 0, opacity: 1, duration: 0.32, ease: 'back.out(1.2)' }
+      )
+    }
+  }, { dependencies: [order?.id], scope: backdropRef })
+
   if (!order) return null
 
   const statusCfg = STATUS_CONFIG[order.status] || {
@@ -34,11 +79,12 @@ function OrderDetailModal({ order, onClose, onCancel, onReorder, cancellingId, r
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200"
-      onClick={onClose}
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs"
+      onClick={handleAnimatedClose}
     >
       <div
-        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-brand-divider/70 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200"
+        className="w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden border border-brand-divider/70 flex flex-col max-h-[90vh] will-change-transform"
         onClick={(e) => e.stopPropagation()}
         ref={dialogRef}
         role="dialog"
@@ -67,7 +113,7 @@ function OrderDetailModal({ order, onClose, onCancel, onReorder, cancellingId, r
           </div>
           <button
             className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-ink hover:bg-neutral-200 transition cursor-pointer text-sm font-bold"
-            onClick={onClose}
+            onClick={handleAnimatedClose}
             aria-label="Đóng"
           >
             ✕
@@ -269,6 +315,27 @@ function MyOrders() {
     const start = (page - 1) * pageSize
     return filteredOrders.slice(start, start + pageSize)
   }, [filteredOrders, page, pageSize])
+
+  const tableBodyRef = useRef(null)
+
+  useGSAP(() => {
+    if (!tableBodyRef.current) return
+    const rows = tableBodyRef.current.querySelectorAll('[data-order-row]')
+    if (rows.length === 0) return
+
+    gsap.fromTo(
+      rows,
+      { opacity: 0, y: 16 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 0.35,
+        stagger: 0.04,
+        ease: 'power2.out',
+        clearProps: 'transform,opacity',
+      }
+    )
+  }, { dependencies: [statusFilter, page, pagedOrders.length], scope: tableBodyRef })
 
   const handleCancel = async (id) => {
     setConfirmCancelOrder(null)
@@ -476,7 +543,7 @@ function MyOrders() {
                     <th className="py-3 px-4 text-right whitespace-nowrap">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-brand-divider/40">
+                <tbody ref={tableBodyRef} className="divide-y divide-brand-divider/40">
                   {pagedOrders.map((o) => {
                     const statusCfg = STATUS_CONFIG[o.status] || {
                       label: o.status,
@@ -486,7 +553,7 @@ function MyOrders() {
                     const firstItem = o.items?.[0]
 
                     return (
-                      <tr key={o.id} className="hover:bg-neutral-50/70 transition-colors">
+                      <tr key={o.id} data-order-row className="hover:bg-neutral-50/70 transition-colors">
                         {/* Mã đơn */}
                         <td className="py-3.5 px-4 whitespace-nowrap">
                           <button

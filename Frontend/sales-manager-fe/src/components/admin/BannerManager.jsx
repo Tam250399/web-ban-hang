@@ -31,7 +31,18 @@ function BannerModal({ banner, onClose, onSaved }) {
   const handleImageChange = async (e) => {
     const file = e.target.files[0]
     if (!file) return
-    setImagePreview(URL.createObjectURL(file))
+    const previewUrl = URL.createObjectURL(file)
+    setImagePreview(previewUrl)
+
+    // Kiểm tra kích thước độ phân giải ảnh
+    const img = new Image()
+    img.src = previewUrl
+    img.onload = () => {
+      if (img.width < 1200) {
+        toast(`⚠️ Ảnh có kích thước nhỏ (${img.width}×${img.height}px). Nên chọn ảnh tỉ lệ 3:1 (từ 1920×640px trở lên) để hiển thị nét nhất trên máy tính.`, { duration: 6000, icon: '💡' })
+      }
+    }
+
     setUploading(true)
     try {
       const url = await uploadImage(file)
@@ -161,7 +172,10 @@ function BannerModal({ banner, onClose, onSaved }) {
                     <Icon name="image" size={20} />
                   </div>
                   <span className="text-xs font-bold text-stone-800">{uploading ? 'Đang tải lên...' : 'Nhấn để chọn ảnh banner'}</span>
-                  <span className="text-[11px] text-stone-400 mt-0.5">JPG, PNG, WEBP, GIF · Tối đa 5MB</span>
+                  <span className="text-[11px] text-stone-400 mt-0.5">JPG, PNG, WEBP, GIF · Tối đa 10MB</span>
+                  <span className="text-[11px] font-semibold text-amber-700 bg-amber-50/80 px-2 py-0.5 rounded-md mt-1.5 border border-amber-200/60">
+                    💡 Khuyên dùng ảnh nét chuẩn 1920 × 640px hoặc 2400 × 800px (tỉ lệ 3:1)
+                  </span>
                 </label>
               )}
             </div>

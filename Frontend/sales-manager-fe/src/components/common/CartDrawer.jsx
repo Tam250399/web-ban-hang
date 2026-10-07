@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import toast from 'react-hot-toast'
 import { LuArrowLeft, LuShieldCheck, LuShoppingBag } from 'react-icons/lu'
 import { useCart } from '../../context/cart-context'
@@ -25,7 +27,58 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
     note: '',
   })
   const [submitting, setSubmitting] = useState(false)
-  const dialogRef = useModalA11y({ onClose, enabled: open })
+  const backdropRef = useRef(null)
+  const isClosingRef = useRef(false)
+
+  const handleAnimatedClose = () => {
+    if (isClosingRef.current) return
+    isClosingRef.current = true
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion || !dialogRef.current || !backdropRef.current) {
+      isClosingRef.current = false
+      onClose()
+      return
+    }
+
+    const tl = gsap.timeline({
+      onComplete: () => {
+        isClosingRef.current = false
+        onClose()
+      },
+    })
+    tl.to(dialogRef.current, { xPercent: 100, duration: 0.25, ease: 'power2.in' }, 0)
+      .to(backdropRef.current, { opacity: 0, duration: 0.2, ease: 'power1.in' }, 0.05)
+  }
+
+  const dialogRef = useModalA11y({ onClose: handleAnimatedClose, enabled: open })
+
+  useGSAP(() => {
+    if (!open) return
+    isClosingRef.current = false
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    if (backdropRef.current) {
+      gsap.fromTo(backdropRef.current, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power1.out' })
+    }
+    if (dialogRef.current) {
+      gsap.fromTo(
+        dialogRef.current,
+        { xPercent: 100 },
+        { xPercent: 0, duration: 0.36, ease: 'power3.out' }
+      )
+    }
+
+    const itemRows = dialogRef.current?.querySelectorAll('[data-cart-item]')
+    if (itemRows && itemRows.length > 0) {
+      gsap.fromTo(
+        itemRows,
+        { opacity: 0, x: 20 },
+        { opacity: 1, x: 0, duration: 0.25, stagger: 0.04, ease: 'power2.out', delay: 0.12 }
+      )
+    }
+  }, { dependencies: [open, step], scope: backdropRef })
 
   const [prevOpen, setPrevOpen] = useState(open)
   if (open !== prevOpen) {
@@ -100,11 +153,12 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
 
   return (
     <div
-      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
-      onClick={onClose}
+      ref={backdropRef}
+      className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-xs"
+      onClick={handleAnimatedClose}
     >
       <div
-        className="w-full max-w-md h-full bg-neutral-50 shadow-2xl flex flex-col overflow-hidden animate-in slide-in-from-right duration-300"
+        className="w-full max-w-md h-full bg-neutral-50 shadow-2xl flex flex-col overflow-hidden will-change-transform"
         onClick={e => e.stopPropagation()}
         ref={dialogRef}
         role="dialog"
@@ -173,7 +227,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
             )}
             <button
               className="w-8 h-8 rounded-full flex items-center justify-center text-stone-400 hover:text-ink hover:bg-neutral-100 transition cursor-pointer text-sm font-bold"
-              onClick={onClose}
+              onClick={handleAnimatedClose}
               aria-label="Đóng"
             >
               ✕
@@ -195,7 +249,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
             <button
               type="button"
               className="px-6 py-3 bg-primary hover:bg-primary-dark text-white font-bold font-display text-sm tracking-wide rounded-xl shadow-md shadow-primary/20 transition active:scale-95 cursor-pointer flex items-center gap-2"
-              onClick={onClose}
+              onClick={handleAnimatedClose}
             >
               <Icon name="store" size={16} />
               <span>Khám phá sản phẩm ngay</span>
@@ -211,6 +265,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
                 return (
                   <div
                     key={i.productId}
+                    data-cart-item
                     className="p-3 bg-white rounded-2xl border border-brand-divider/60 shadow-2xs hover:border-primary/40 transition-all flex items-center gap-3 relative group"
                   >
                     {/* Ảnh sản phẩm */}
@@ -220,6 +275,7 @@ function CartDrawer({ open, onClose, user, isLoggedIn, onLoginClick, onOrdered }
                           src={resolveMediaUrl(i.imageUrl)}
                           alt={i.productName}
                           fallbackIcon="box"
+                          priority={true}
                           className="w-full h-full object-cover"
                           wrapperClassName="w-full h-full"
                         />

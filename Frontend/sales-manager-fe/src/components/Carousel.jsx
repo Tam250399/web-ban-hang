@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { resolveMediaUrl } from '../services/config'
 import OptimizedImage from './common/OptimizedImage'
 
@@ -15,6 +17,7 @@ const prefersReducedMotion = () =>
 function Carousel({ slides, autoPlayMs = 5000 }) {
   const [index, setIndex] = useState(0)
   const [paused, setPaused] = useState(() => prefersReducedMotion())
+  const containerRef = useRef(null)
 
   const go = (i) => setIndex((i + slides.length) % slides.length)
   const next = () => go(index + 1)
@@ -26,12 +29,30 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
     return () => clearInterval(timer)
   }, [slides.length, autoPlayMs, paused])
 
+  useGSAP(() => {
+    if (!containerRef.current) return
+    const activeText = containerRef.current.querySelector(`[data-slide-text="${index}"]`)
+    if (!activeText) return
+
+    const title = activeText.querySelector('h3')
+    const desc = activeText.querySelector('p')
+    const targets = [title, desc].filter(Boolean)
+    if (targets.length === 0) return
+
+    gsap.fromTo(
+      targets,
+      { opacity: 0, y: 18 },
+      { opacity: 1, y: 0, duration: 0.5, stagger: 0.08, ease: 'power2.out', clearProps: 'transform,opacity' }
+    )
+  }, { dependencies: [index], scope: containerRef })
+
   if (!slides.length) return null
 
   const canAutoPlay = slides.length > 1 && !!autoPlayMs
 
   return (
     <div
+      ref={containerRef}
       className="group relative overflow-hidden w-full rounded-2xl sm:rounded-3xl shadow-sm select-none"
       onMouseEnter={() => canAutoPlay && setPaused(true)}
       onMouseLeave={() => canAutoPlay && setPaused(prefersReducedMotion())}
@@ -54,7 +75,10 @@ function Carousel({ slides, autoPlayMs = 5000 }) {
               fallbackIcon="megaphone"
             />
             {(slide.title || slide.description) && (
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 md:p-8 text-white">
+              <div
+                data-slide-text={i}
+                className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent p-4 sm:p-6 md:p-8 text-white"
+              >
                 {slide.title && <h3 className="text-base sm:text-xl md:text-2xl font-bold drop-shadow-xs">{slide.title}</h3>}
                 {slide.description && <p className="text-xs sm:text-sm text-stone-200 mt-1 max-w-xl line-clamp-2 drop-shadow-xs">{slide.description}</p>}
               </div>

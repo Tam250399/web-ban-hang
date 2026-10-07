@@ -1,15 +1,48 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import gsap from 'gsap'
+import { useGSAP } from '@gsap/react'
 import { Icon } from '../common/Icon'
 import { productService } from '../../services/productService'
 import { stockService } from '../../services/stockService'
 import { resolveMediaUrl } from '../../services/config'
 
 /**
+ * Hiệu ứng số nhảy mượt mà với GSAP
+ */
+function AnimatedNumber({ value, suffix = '', duration = 1.1 }) {
+  const numberRef = useRef(null)
+
+  useGSAP(() => {
+    if (!numberRef.current) return
+    const numericValue = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^0-9.-]+/g, '')) || 0
+    const obj = { val: 0 }
+
+    gsap.to(obj, {
+      val: numericValue,
+      duration,
+      ease: 'power2.out',
+      onUpdate: () => {
+        if (numberRef.current) {
+          numberRef.current.textContent = `${Math.round(obj.val).toLocaleString('vi-VN')}${suffix}`
+        }
+      },
+    })
+  }, { dependencies: [value], scope: numberRef })
+
+  return (
+    <span ref={numberRef}>
+      {typeof value === 'number' ? value.toLocaleString('vi-VN') : value}{suffix}
+    </span>
+  )
+}
+
+/**
  * Component StatCard
  */
-function StatCard({ icon, label, value, color, onClick, hint = 'Bấm để xem danh sách' }) {
+function StatCard({ icon, label, value, numericValue, suffix = '', color, onClick, hint = 'Bấm để xem danh sách' }) {
   return (
     <div
+      data-stat-card
       className="group relative flex items-center gap-3.5 p-4 sm:p-5 bg-white rounded-2xl border border-stone-200/80 shadow-2xs hover:shadow-md hover:border-stone-300 transition-all cursor-pointer select-none"
       style={{ borderTopWidth: '4px', borderTopColor: color }}
       onClick={onClick}
@@ -23,7 +56,13 @@ function StatCard({ icon, label, value, color, onClick, hint = 'Bấm để xem 
       </span>
       <div className="flex-1 min-w-0">
         <p className="text-xs font-semibold text-stone-500 uppercase tracking-wider truncate">{label}</p>
-        <p className="text-xl sm:text-2xl font-bold text-stone-900 mt-0.5 tracking-tight truncate">{value}</p>
+        <p className="text-xl sm:text-2xl font-bold text-stone-900 mt-0.5 tracking-tight truncate">
+          {numericValue !== undefined ? (
+            <AnimatedNumber value={numericValue} suffix={suffix} />
+          ) : (
+            value
+          )}
+        </p>
       </div>
       <span className="text-stone-400 group-hover:text-primary group-hover:translate-x-0.5 text-xs shrink-0 transition-all">
         ➜
@@ -378,6 +417,28 @@ function Statistics({ stats, products: propProducts = [] }) {
     )
   }
 
+  const cardsRef = useRef(null)
+
+  useGSAP(() => {
+    if (!cardsRef.current) return
+    const cards = cardsRef.current.querySelectorAll('[data-stat-card]')
+    if (!cards || cards.length === 0) return
+
+    gsap.fromTo(
+      cards,
+      { opacity: 0, y: 20, scale: 0.96 },
+      {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.45,
+        stagger: 0.06,
+        ease: 'power2.out',
+        clearProps: 'transform,opacity',
+      }
+    )
+  }, { dependencies: [stats], scope: cardsRef })
+
   return (
     <div className="space-y-6">
       {/* Title Bar */}
@@ -389,11 +450,12 @@ function Statistics({ stats, products: propProducts = [] }) {
       </div>
 
       {/* Overview Stat Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
+      <div ref={cardsRef} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3.5">
         <StatCard
           icon={<Icon name="box" size={24} />}
           label="Tổng sản phẩm"
           value={stats.totalProducts}
+          numericValue={stats.totalProducts}
           color="#C1440E"
           onClick={() => openModal('products', {
             title: 'Danh sách tất cả sản phẩm',
@@ -404,6 +466,8 @@ function Statistics({ stats, products: propProducts = [] }) {
           icon={<Icon name="money" size={24} />}
           label="Giá trị tồn kho"
           value={`${stats.totalStockValue?.toLocaleString('vi-VN')}đ`}
+          numericValue={stats.totalStockValue}
+          suffix="đ"
           color="#4A5560"
           onClick={() => openModal('stock_value', {
             title: 'Chi tiết giá trị tồn kho',
@@ -414,6 +478,8 @@ function Statistics({ stats, products: propProducts = [] }) {
           icon={<Icon name="importBox" size={24} />}
           label="Tổng nhập kho"
           value={`${stats.totalImported?.toLocaleString('vi-VN')}đ`}
+          numericValue={stats.totalImported}
+          suffix="đ"
           color="#16a34a"
           onClick={() => openModal('import', {
             title: 'Lịch sử phiếu nhập kho',
@@ -424,6 +490,8 @@ function Statistics({ stats, products: propProducts = [] }) {
           icon={<Icon name="exportBox" size={24} />}
           label="Tổng bán ra"
           value={`${stats.totalExported?.toLocaleString('vi-VN')}đ`}
+          numericValue={stats.totalExported}
+          suffix="đ"
           color="#d97706"
           onClick={() => openModal('export', {
             title: 'Lịch sử xuất kho / Bán ra',
@@ -434,6 +502,7 @@ function Statistics({ stats, products: propProducts = [] }) {
           icon={<Icon name="alert" size={24} />}
           label="Sản phẩm sắp hết"
           value={stats.lowStockCount}
+          numericValue={stats.lowStockCount}
           color="#dc2626"
           onClick={() => openModal('low_stock', {
             title: 'Danh sách sản phẩm sắp hết hàng (< 50)',

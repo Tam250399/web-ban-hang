@@ -57,12 +57,12 @@ namespace SalesManagerBE.Controllers
                 using var inputStream = file.OpenReadStream();
                 using var image = await Image.LoadAsync(inputStream);
 
-                // Giới hạn kích thước ảnh tối đa 1920x1920 để tối ưu dung lượng hiển thị
-                if (image.Width > 1920 || image.Height > 1920)
+                // Giới hạn kích thước ảnh tối đa 2560x2560 để hỗ trợ màn hình 2K/Ultra-wide siêu nét
+                if (image.Width > 2560 || image.Height > 2560)
                 {
                     image.Mutate(x => x.Resize(new ResizeOptions
                     {
-                        Size = new Size(1920, 1920),
+                        Size = new Size(2560, 2560),
                         Mode = ResizeMode.Max
                     }));
                 }
@@ -70,7 +70,7 @@ namespace SalesManagerBE.Controllers
                 var outputStream = new MemoryStream();
                 var encoder = new WebpEncoder
                 {
-                    Quality = 80,
+                    Quality = 85, // Tăng chất lượng độ nét ảnh WebP
                     FileFormat = WebpFileFormatType.Lossy
                 };
 
